@@ -19,17 +19,21 @@ interface HtmlConstants
 
     interface ElementName
     {
+        String  B       = "b";
         String  BODY    = "body";
         String  DIV     = "div";
         String  H4      = "h4";
         String  HEAD    = "head";
         String  HTML    = "html";
+        String  I       = "i";
         String  IMG     = "img";
         String  LINK    = "link";
         String  META    = "meta";
         String  P       = "p";
         String  SPAN    = "span";
         String  STYLE   = "style";
+        String  SUB     = "sub";
+        String  SUP     = "sup";
         String  TITLE   = "title";
     }
 

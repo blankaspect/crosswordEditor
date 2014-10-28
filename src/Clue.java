@@ -56,9 +56,21 @@ class Clue
     private static final    String  FIELD_ID_REGEX_FRAG3    = "))?";
 
     private static final    String  SEC_FIELD_ID_REGEX_FRAG1    = " *, *";
-    private static final    String  SEC_FIELD_ID_REGEX_FRAG2    = "(?= |,)";
+    private static final    String  SEC_FIELD_ID_REGEX_FRAG2    = "(?= |,|$)";
 
     private static final    Pattern NUMBER_PATTERN  = Pattern.compile( "^(\\d+)" );
+
+    private enum ParseState
+    {
+        START_OF_CLUE,
+        PRIMARY_FIELD_ID,
+        SECONDARY_FIELD_IDS,
+        REFERENCE,
+        TEXT,
+        ANSWER_LENGTH,
+        END_OF_CLUE,
+        STOP
+    }
 
 ////////////////////////////////////////////////////////////////////////
 //  Enumerated types
@@ -78,6 +90,9 @@ class Clue
 
         FIELD_NUMBER_EXPECTED
         ( "A field number was expected at the start of the line." ),
+
+        CLUE_TEXT_EXPECTED
+        ( "The text of a clue was expected." ),
 
         ANSWER_LENGTH_EXPECTED
         ( "The length of the answer was expected at the end of the line." );
@@ -771,7 +786,7 @@ class Clue
                 spaceKeywords.add( keyword );
         }
 
-        // Initialise regular expression for field ID
+        // Initialise the regular expression for a field ID
         String fieldIdRegex = FIELD_ID_REGEX_FRAG1 +
                                         StringUtilities.join( REGEX_ALTERNATION_CHAR, noSpaceKeywords ) +
                                         FIELD_ID_REGEX_FRAG2 +
@@ -786,89 +801,103 @@ class Clue
                         : Pattern.compile( SPACE_REGEX + RegexUtilities.escape( referenceKeyword ) +
                                                             SPACE_REGEX + fieldIdRegex + CLUE_INDEX_REGEX );
 
-        // Split input text into lines and add an empty line
+        // Split the input text into lines and add an empty line
         List<String> lines = new ArrayList<>( );
         Collections.addAll( lines, text.split( "\\n" ) );
-        lines.add( new String( ) );
+        lines.add( "" );
 
-        // Process lines
+        // Process the lines of input text
         List<Clue> clues = new ArrayList<>( );
-        StringBuilder buffer = new StringBuilder( 256 );
-        boolean continuation = false;
-        boolean done = false;
         Clue clue = null;
+        StringBuilder buffer = new StringBuilder( 256 );
+        String line = null;
+        Matcher matcher = null;
         int clueFirstLineNum = 0;
         int lastNonEmptyLineNum = 0;
         int lineIndex = 0;
-        while ( lineIndex < lines.size( ) )
+        int offset = 0;
+        ParseState state = ParseState.START_OF_CLUE;
+        while ( state != ParseState.STOP )
         {
-            // Get next line of input text
-            String line = lines.get( lineIndex++ ).replaceAll( WHITESPACE_REGEX, " " ).trim( );
-
-            // Test for empty line
-            if ( line.isEmpty( ) )
+            switch ( state )
             {
-                if ( continuation )
-                    throw new ParseException( ErrorId.ANSWER_LENGTH_EXPECTED, lastNonEmptyLineNum,
-                                              lines.get( lastNonEmptyLineNum - 1 ) );
-                continue;
-            }
-
-            // Set number of last non-empty line for use in error message
-            lastNonEmptyLineNum = lineIndex;
-
-            // Process continuation of clue
-            if ( continuation )
-            {
-                // Add clue text to buffer
-                buffer.append( line );
-
-                // Test for answer-length indicator
-                Matcher matcher = answerLengthParser.pattern.matcher( buffer );
-                if ( matcher.find( ) )
+                case START_OF_CLUE:
                 {
-                    clue.answerLength = getAnswerLength( matcher, answerLengthParser );
-                    done = true;
-                }
-                else
-                {
-                    if ( !line.endsWith( "-" ) )
-                        buffer.append( ' ' );
-                }
-            }
+                    // If there is more input text, get the next line ...
+                    if ( lineIndex < lines.size( ) )
+                    {
+                        line = lines.get( lineIndex++ ).replaceAll( WHITESPACE_REGEX, " " ).trim( );
+                        if ( !line.isEmpty( ) )
+                        {
+                            // Set the numbers of the last non-empty line and the first line of the clue for
+                            // use in error messages
+                            lastNonEmptyLineNum = lineIndex;
+                            clueFirstLineNum = lineIndex;
 
-            // Process first line of clue
-            else
-            {
-                // Set number of first line of clue for use in error message
-                clueFirstLineNum = lineIndex;
+                            // Put the line of input text in the buffer
+                            buffer.setLength( 0 );
+                            buffer.append( line );
 
-                // Test for field number at start of line
-                Matcher matcher = NUMBER_PATTERN.matcher( line );
-                if ( !matcher.find( ) )
-                    throw new ParseException( ErrorId.FIELD_NUMBER_EXPECTED, lineIndex, line );
-                int offset = matcher.end( );
+                            // Parse the primary field ID
+                            state = ParseState.PRIMARY_FIELD_ID;
+                        }
+                    }
 
-                // Create clue
-                clue = new Clue( matcher.group( 1 ) );
-
-                // Test for clue reference
-                if ( (referencePattern != null) &&
-                     matcher.usePattern( referencePattern ).region( offset, line.length( ) ).matches( ) )
-                {
-                    String directionStr = matcher.group( 2 );
-                    if ( directionStr == null )
-                        directionStr = matcher.group( 3 );
-                    clue.referentId = new Id( matcher.group( 1 ), directionStr, matcher.group( 4 ) );
-                    clues.add( clue );
+                    // ... otherwise, stop
+                    else
+                        state = ParseState.STOP;
+                    break;
                 }
 
-                // Process remainder of line after clue number
-                else
+                case PRIMARY_FIELD_ID:
                 {
+                    // Test for a field number at the start of the line
+                    matcher = NUMBER_PATTERN.matcher( buffer );
+                    if ( !matcher.find( ) )
+                        throw new ParseException( ErrorId.FIELD_NUMBER_EXPECTED, lineIndex, line );
+                    offset = matcher.end( );
+
+                    // Initialise a clue with the primary field ID
+                    clue = new Clue( matcher.group( 1 ) );
+
+                    // Test for a reference
+                    state = ((referencePattern != null) &&
+                             matcher.usePattern( referencePattern ).
+                                                            region( offset, buffer.length( ) ).matches( ))
+                                                                        ? ParseState.REFERENCE
+                                                                        : ParseState.SECONDARY_FIELD_IDS;
+                    break;
+                }
+
+                case SECONDARY_FIELD_IDS:
+                {
+                    // If more secondary field IDs are expected for the current clue, get the next line
+                    // of input text ...
+                    if ( line == null )
+                    {
+                        // Get the next line of input text
+                        if ( lineIndex < lines.size( ) )
+                            line = lines.get( lineIndex++ ).replaceAll( WHITESPACE_REGEX, " " ).trim( );
+                        if ( StringUtilities.isNullOrEmpty( line ) )
+                            throw new ParseException( ErrorId.CLUE_TEXT_EXPECTED, lastNonEmptyLineNum,
+                                                      lines.get( lastNonEmptyLineNum - 1 ) );
+
+                        // Set the number of the last non-empty line for use in error messages
+                        lastNonEmptyLineNum = lineIndex;
+
+                        // Append the line to the contents of the buffer
+                        buffer.append( line );
+
+                        // Update matcher
+                        matcher = secFieldIdPattern.matcher( buffer );
+                    }
+
+                    // ... otherwise, update the matcher
+                    else
+                        matcher.usePattern( secFieldIdPattern );
+
                     // Find secondary field IDs
-                    matcher.usePattern( secFieldIdPattern );
-                    while ( matcher.region( offset, line.length( ) ).lookingAt( ) )
+                    while ( matcher.region( offset, buffer.length( ) ).lookingAt( ) )
                     {
                         offset = matcher.end( );
                         String directionStr = matcher.group( 2 );
@@ -877,56 +906,134 @@ class Clue
                         clue.fieldIds.add( new Grid.Field.Id( matcher.group( 1 ), directionStr ) );
                     }
 
-                    // Put clue text in buffer
+                    // Replace the contents of buffer with the remainder of the line
+                    String str = buffer.substring( offset ).trim( );
                     buffer.setLength( 0 );
-                    buffer.append( line.substring( offset ).trim( ) );
+                    buffer.append( str );
+                    offset = 0;
 
-                    // If no answer-length parser, assume end of clue ...
-                    if ( answerLengthParser == null )
-                        done = true;
+                    // If more secondary field IDs are expected, get another line of input text next time
+                    // around ...
+                    if ( str.equals( "," ) )
+                        line = null;
 
-                    // ... otherwise, test for end of clue
+                    // .. otherwise, process the text of the clue
                     else
                     {
-                        if ( matcher.usePattern( answerLengthParser.pattern ).find( offset ) )
+                        if ( str.isEmpty( ) )
+                            line = null;
+                        state = ParseState.TEXT;
+                    }
+                    break;
+                }
+
+                case REFERENCE:
+                {
+                    // Set the referent ID of the clue
+                    String directionStr = matcher.group( 2 );
+                    if ( directionStr == null )
+                        directionStr = matcher.group( 3 );
+                    clue.referentId = new Id( matcher.group( 1 ), directionStr, matcher.group( 4 ) );
+
+                    // Add the clue to the list
+                    clues.add( clue );
+
+                    // Move on to the next clue
+                    state = ParseState.START_OF_CLUE;
+                    break;
+                }
+
+                case TEXT:
+                {
+                    // If more text is expected for the current clue, get the next line of input text ...
+                    if ( line == null )
+                    {
+                        // Get the next line of input text
+                        if ( lineIndex < lines.size( ) )
+                            line = lines.get( lineIndex++ ).replaceAll( WHITESPACE_REGEX, " " ).trim( );
+                        if ( StringUtilities.isNullOrEmpty( line ) )
                         {
-                            clue.answerLength = getAnswerLength( matcher, answerLengthParser );
-                            done = true;
+                            AppException.Id id = (answerLengthParser == null)
+                                                                        ? ErrorId.CLUE_TEXT_EXPECTED
+                                                                        : ErrorId.ANSWER_LENGTH_EXPECTED;
+                            throw new ParseException( id, lastNonEmptyLineNum,
+                                                      lines.get( lastNonEmptyLineNum - 1 ) );
                         }
+
+                        // Set the number of the last non-empty line for use in error messages
+                        lastNonEmptyLineNum = lineIndex;
+
+                        // Append line to contents of buffer
+                        buffer.append( line );
+
+                        // Update matcher
+                        matcher = answerLengthParser.pattern.matcher( buffer );
+                    }
+
+                    // ... otherwise, test for the end of the clue
+                    else
+                    {
+                        // If there is no answer-length parser, assume the end of the clue ...
+                        if ( answerLengthParser == null )
+                            state = ParseState.END_OF_CLUE;
+
+                        // ... otherwise, test for an answer-length expression
                         else
                         {
-                            if ( !line.endsWith( "-" ) )
-                                buffer.append( ' ' );
-                            continuation = true;
+                            if ( matcher.usePattern( answerLengthParser.pattern ).find( offset ) )
+                                state = ParseState.ANSWER_LENGTH;
+                            else
+                            {
+                                if ( !line.endsWith( "-" ) )
+                                    buffer.append( ' ' );
+                                line = null;
+                            }
                         }
                     }
+                    break;
                 }
-            }
 
-            // Set clue text and add clue to list
-            if ( done )
-            {
-                // Set clue text
-                try
+                case ANSWER_LENGTH:
                 {
+                    // Set the answer length of the clue
+                    clue.answerLength = getAnswerLength( matcher, answerLengthParser );
+
+                    // Finish processing the clue
+                    state = ParseState.END_OF_CLUE;
+                    break;
+                }
+
+                case END_OF_CLUE:
+                {
+                    // Apply substitutions to the clue text
                     String clueText = buffer.toString( );
                     for ( Substitution substitution : substitutions )
                         clueText = substitution.apply( clueText );
-                    clue.text = new StyledText( clueText );
-                }
-                catch ( StyledText.ParseException e )
-                {
-                    throw new ParseException( e, clueFirstLineNum, buffer.toString( ) );
+
+                    // Set the text of the clue
+                    try
+                    {
+                        clue.text = new StyledText( clueText );
+                    }
+                    catch ( StyledText.ParseException e )
+                    {
+                        throw new ParseException( e, clueFirstLineNum, buffer.toString( ) );
+                    }
+
+                    // Add the clue to the list
+                    clues.add( clue );
+
+                    // Move on to the next clue
+                    state = ParseState.START_OF_CLUE;
+                    break;
                 }
 
-                // Add clue to list
-                clues.add( clue );
-
-                // Start a new clue
-                continuation = false;
-                done = false;
+                case STOP:
+                    // do nothing
+                    break;
             }
         }
+
         return clues;
     }
 

@@ -1410,6 +1410,80 @@ class CrosswordDocument
     //==================================================================
 
 
+    // CLUE LISTS EDIT CLASS
+
+
+    private static class ClueListsEdit
+        extends EditList.Element<CrosswordDocument>
+    {
+
+    ////////////////////////////////////////////////////////////////////
+    //  Constants
+    ////////////////////////////////////////////////////////////////////
+
+        private static final    String  TEXT    = "clue lists";
+
+    ////////////////////////////////////////////////////////////////////
+    //  Constructors
+    ////////////////////////////////////////////////////////////////////
+
+        private ClueListsEdit( Map<Direction, List<Clue>> oldClueLists,
+                               Map<Direction, List<Clue>> newClueLists )
+        {
+            this.oldClueLists = oldClueLists;
+            this.newClueLists = newClueLists;
+        }
+
+        //--------------------------------------------------------------
+
+    ////////////////////////////////////////////////////////////////////
+    //  Instance methods : overriding methods
+    ////////////////////////////////////////////////////////////////////
+
+        @Override
+        public String getText( )
+        {
+            return TEXT;
+        }
+
+        //--------------------------------------------------------------
+
+        @Override
+        public void undo( CrosswordDocument document )
+        {
+            document.clueLists.clear( );
+            for ( Direction direction : oldClueLists.keySet( ) )
+                document.clueLists.put( direction, new ArrayList<>( oldClueLists.get( direction ) ) );
+            for ( Direction direction : Direction.DEFINED_DIRECTIONS )
+                document.getView( ).updateClues( direction );
+        }
+
+        //--------------------------------------------------------------
+
+        @Override
+        public void redo( CrosswordDocument document )
+        {
+            document.clueLists.clear( );
+            for ( Direction direction : newClueLists.keySet( ) )
+                document.clueLists.put( direction, new ArrayList<>( newClueLists.get( direction ) ) );
+            for ( Direction direction : Direction.DEFINED_DIRECTIONS )
+                document.getView( ).updateClues( direction );
+        }
+
+        //--------------------------------------------------------------
+
+    ////////////////////////////////////////////////////////////////////
+    //  Instance variables
+    ////////////////////////////////////////////////////////////////////
+
+        private Map<Direction, List<Clue>>  oldClueLists;
+        private Map<Direction, List<Clue>>  newClueLists;
+
+    }
+
+    //==================================================================
+
+
     // TEXT SECTIONS EDIT CLASS
 
 
@@ -2022,7 +2096,6 @@ class CrosswordDocument
         Command.EDIT_CLUE.setEnabled( (view != null) && (view.getSelectedClueId( ) != null) );
         Command.EDIT_GRID.setEnabled( !isClues );
         Command.COPY_CLUES_TO_CLIPBOARD.setEnabled( isClues );
-        Command.IMPORT_CLUES_FROM_CLIPBOARD.setEnabled( !isClues && Util.clipboardHasText( ) );
         Command.CLEAR_CLUES.setEnabled( isClues );
         Command.COPY_ENTRIES_TO_CLIPBOARD.setEnabled( isEntries );
         Command.IMPORT_ENTRIES_FROM_CLIPBOARD.setEnabled( Util.clipboardHasText( ) );
@@ -4034,6 +4107,11 @@ class CrosswordDocument
                                                                         clueSubstitutions );
         if ( result != null )
         {
+            // Create map of old clues
+            Map<Direction, List<Clue>> oldClueLists = new EnumMap<>( Direction.class );
+            for ( Direction direction : clueLists.keySet( ) )
+                oldClueLists.put( direction, new ArrayList<>( clueLists.get( direction ) ) );
+
             // Set clue substitutions
             clueSubstitutions = result.substitutions;
 
@@ -4047,21 +4125,22 @@ class CrosswordDocument
             // Validate clues
             if ( validateClues( AppConstants.CANCEL_STR ) )
             {
-                List<Clue> oldClues = new ArrayList<>( );
-                List<Clue> newClues = new ArrayList<>( );
+                // Create map of new clues
+                Map<Direction, List<Clue>> newClueLists = new EnumMap<>( Direction.class );
                 for ( Direction direction : clueLists.keySet( ) )
                 {
-                    for ( Clue clue : clueLists.get( direction ) )
-                    {
-                        oldClues.add( new Clue( clue.getFieldId( ) ) );
-                        newClues.add( clue );
-                    }
+                    newClueLists.put( direction, new ArrayList<>( clueLists.get( direction ) ) );
                     getView( ).updateClues( direction );
                 }
-                edit = new CluesEdit( oldClues, newClues );
+                edit = new ClueListsEdit( oldClueLists, newClueLists );
             }
             else
+            {
+                // Restore old clue lists
                 clueLists.clear( );
+                for ( Direction direction : oldClueLists.keySet( ) )
+                    clueLists.put( direction, oldClueLists.get( direction ) );
+            }
         }
         return edit;
     }

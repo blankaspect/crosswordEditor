@@ -55,20 +55,6 @@ class StyledText
     private static final    String  STYLE_REGEX     = "(\\\\\\\\|(?<!\\\\)\\" + STYLE_PREFIX +
                                                             "([a-z]+).|(?<!\\\\)\\" + STYLE_SUFFIX + ")";
 
-    private interface ElementName
-    {
-        String  B       = "b";
-        String  I       = "i";
-        String  SPAN    = "span";
-        String  SUB     = "sub";
-        String  SUP     = "sup";
-    }
-
-    private interface AttrName
-    {
-        String  CLASS   = "class";
-    }
-
 ////////////////////////////////////////////////////////////////////////
 //  Enumerated types
 ////////////////////////////////////////////////////////////////////////
@@ -90,7 +76,7 @@ class StyledText
             'b',
             "Bold",
             StyleConstants.Bold,
-            ElementName.B
+            HtmlConstants.ElementName.B
         ),
 
         ITALIC
@@ -98,7 +84,7 @@ class StyledText
             'i',
             "Italic",
             StyleConstants.Italic,
-            ElementName.I
+            HtmlConstants.ElementName.I
         ),
 
         SUPERSCRIPT
@@ -106,7 +92,7 @@ class StyledText
             'h',
             "Superscript",
             StyleConstants.Superscript,
-            ElementName.SUP
+            HtmlConstants.ElementName.SUP
         ),
 
         SUBSCRIPT
@@ -114,7 +100,7 @@ class StyledText
             'l',
             "Subscript",
             StyleConstants.Subscript,
-            ElementName.SUB
+            HtmlConstants.ElementName.SUB
         ),
 
         UNDERLINE
@@ -122,7 +108,7 @@ class StyledText
             'u',
             "Underline",
             StyleConstants.Underline,
-            ElementName.SPAN,
+            HtmlConstants.ElementName.SPAN,
             HtmlConstants.Class.UNDERLINE
         ),
 
@@ -131,7 +117,7 @@ class StyledText
             's',
             "Strikethrough",
             StyleConstants.StrikeThrough,
-            ElementName.SPAN,
+            HtmlConstants.ElementName.SPAN,
             HtmlConstants.Class.STRIKE
         );
 
@@ -159,7 +145,8 @@ class StyledText
                            String className )
         {
             this( key, text, attribute, elementName );
-            classAttrList = Collections.singletonList( new Attribute( AttrName.CLASS, className ) );
+            classAttrList = Collections.singletonList( new Attribute( HtmlConstants.AttrName.CLASS,
+                                                                      className ) );
         }
 
         //--------------------------------------------------------------
