@@ -42,7 +42,7 @@ class Clue
 
     public static final     char    REGEX_ALTERNATION_CHAR  = '|';
 
-    public static final     String  DEFAULT_LENGTH_REGEX    = "\\((\\d.*?)\\)$";
+    public static final     String  DEFAULT_LENGTH_REGEX    = "\\((\\d[^\\(]*?)\\)$";
 
     private static final    String  SPACE_REGEX             = " +";
     private static final    String  WHITESPACE_REGEX        = "[\\p{Zs}\\t]+";
