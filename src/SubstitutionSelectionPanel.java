@@ -300,44 +300,6 @@ class SubstitutionSelectionPanel
         //==============================================================
 
     ////////////////////////////////////////////////////////////////////
-    //  Member classes : inner classes
-    ////////////////////////////////////////////////////////////////////
-
-
-        // WINDOW EVENT HANDLER CLASS
-
-
-        private class WindowEventHandler
-            extends WindowAdapter
-        {
-
-        ////////////////////////////////////////////////////////////////
-        //  Constructors
-        ////////////////////////////////////////////////////////////////
-
-            private WindowEventHandler( )
-            {
-            }
-
-            //----------------------------------------------------------
-
-        ////////////////////////////////////////////////////////////////
-        //  Instance methods : overriding methods
-        ////////////////////////////////////////////////////////////////
-
-            @Override
-            public void windowClosing( WindowEvent event )
-            {
-                onClose( );
-            }
-
-            //----------------------------------------------------------
-
-        }
-
-        //==============================================================
-
-    ////////////////////////////////////////////////////////////////////
     //  Constructors
     ////////////////////////////////////////////////////////////////////
 
@@ -509,8 +471,15 @@ class SubstitutionSelectionPanel
             // Dispose of window explicitly
             setDefaultCloseOperation( DO_NOTHING_ON_CLOSE );
 
-            // Handle window events
-            addWindowListener( new WindowEventHandler( ) );
+            // Handle window closing
+            addWindowListener( new WindowAdapter( )
+            {
+                @Override
+                public void windowClosing( WindowEvent event )
+                {
+                    onClose( );
+                }
+            } );
 
             // Prevent dialog from being resized
             setResizable( false );

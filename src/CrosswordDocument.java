@@ -1581,6 +1581,114 @@ class CrosswordDocument
     //==================================================================
 
 
+    // INDICATIONS EDIT CLASS
+
+
+    private static class IndicationsEdit
+        extends EditList.Element<CrosswordDocument>
+    {
+
+    ////////////////////////////////////////////////////////////////////
+    //  Constants
+    ////////////////////////////////////////////////////////////////////
+
+        private static final    String  TEXT    = "indications";
+
+    ////////////////////////////////////////////////////////////////////
+    //  Constructors
+    ////////////////////////////////////////////////////////////////////
+
+        private IndicationsEdit( String             oldClueReferenceKeyword,
+                                 String             oldAnswerLengthPattern,
+                                 List<Substitution> oldAnswerLengthSubstitutions,
+                                 String             oldLineBreak,
+                                 String             newClueReferenceKeyword,
+                                 String             newAnswerLengthPattern,
+                                 List<Substitution> newAnswerLengthSubstitutions,
+                                 String             newLineBreak )
+        {
+            this.oldClueReferenceKeyword = oldClueReferenceKeyword;
+            this.oldAnswerLengthPattern = oldAnswerLengthPattern;
+            this.oldAnswerLengthSubstitutions = new ArrayList<>( );
+            for ( Substitution substitution : oldAnswerLengthSubstitutions )
+                this.oldAnswerLengthSubstitutions.add( substitution.clone( ) );
+            this.oldLineBreak = oldLineBreak;
+            this.newClueReferenceKeyword = newClueReferenceKeyword;
+            this.newAnswerLengthPattern = newAnswerLengthPattern;
+            this.newAnswerLengthSubstitutions = new ArrayList<>( );
+            for ( Substitution substitution : newAnswerLengthSubstitutions )
+                this.newAnswerLengthSubstitutions.add( substitution.clone( ) );
+            this.newLineBreak = newLineBreak;
+        }
+
+        //--------------------------------------------------------------
+
+    ////////////////////////////////////////////////////////////////////
+    //  Instance methods : overriding methods
+    ////////////////////////////////////////////////////////////////////
+
+        @Override
+        public String getText( )
+        {
+            return TEXT;
+        }
+
+        //--------------------------------------------------------------
+
+        @Override
+        public void undo( CrosswordDocument document )
+        {
+            setIndications( document, oldClueReferenceKeyword, oldAnswerLengthPattern,
+                            oldAnswerLengthSubstitutions, oldLineBreak );
+        }
+
+        //--------------------------------------------------------------
+
+        @Override
+        public void redo( CrosswordDocument document )
+        {
+            setIndications( document, newClueReferenceKeyword, newAnswerLengthPattern,
+                            newAnswerLengthSubstitutions, newLineBreak );
+        }
+
+        //--------------------------------------------------------------
+
+    ////////////////////////////////////////////////////////////////////
+    //  Instance methods
+    ////////////////////////////////////////////////////////////////////
+
+        private void setIndications( CrosswordDocument  document,
+                                     String             clueReferenceKeyword,
+                                     String             answerLengthPattern,
+                                     List<Substitution> answerLengthSubstitutions,
+                                     String             lineBreak )
+        {
+            document.clueReferenceKeyword = clueReferenceKeyword;
+            document.answerLengthPattern = answerLengthPattern;
+            document.answerLengthSubstitutions = answerLengthSubstitutions;
+            document.lineBreak = lineBreak;
+        }
+
+        //--------------------------------------------------------------
+
+    ////////////////////////////////////////////////////////////////////
+    //  Instance variables
+    ////////////////////////////////////////////////////////////////////
+
+        private String              oldClueReferenceKeyword;
+        private String              oldAnswerLengthPattern;
+        private List<Substitution>  oldAnswerLengthSubstitutions;
+        private String              oldLineBreak;
+        private String              newClueReferenceKeyword;
+        private String              newAnswerLengthPattern;
+        private List<Substitution>  newAnswerLengthSubstitutions;
+        private String              newLineBreak;
+
+    }
+
+    //==================================================================
+
+
     // COMPOUND EDIT CLASS
 
 
@@ -4038,6 +4146,7 @@ class CrosswordDocument
 
     private EditList.Element<CrosswordDocument> onEditIndications( )
     {
+        IndicationsEdit edit = null;
         IndicationsDialog.Params params = new IndicationsDialog.Params( clueReferenceKeyword,
                                                                         answerLengthPattern,
                                                                         answerLengthSubstitutions,
@@ -4045,12 +4154,16 @@ class CrosswordDocument
         IndicationsDialog.Params result = IndicationsDialog.showDialog( getWindow( ), params );
         if ( result != null )
         {
+            edit = new IndicationsEdit( clueReferenceKeyword, answerLengthPattern,
+                                        answerLengthSubstitutions, lineBreak,
+                                        result.clueReferenceKeyword, result.answerLengthPattern,
+                                        result.answerLengthSubstitutions, result.lineBreak );
             clueReferenceKeyword = result.clueReferenceKeyword;
             answerLengthPattern = result.answerLengthPattern;
             answerLengthSubstitutions = result.answerLengthSubstitutions;
             lineBreak = result.lineBreak;
         }
-        return null;
+        return edit;
     }
 
     //------------------------------------------------------------------

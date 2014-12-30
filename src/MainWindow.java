@@ -377,40 +377,6 @@ class MainWindow
 
     //==================================================================
 
-
-    // WINDOW EVENT HANDLER CLASS
-
-
-    private static class WindowEventHandler
-        extends WindowAdapter
-    {
-
-    ////////////////////////////////////////////////////////////////////
-    //  Constructors
-    ////////////////////////////////////////////////////////////////////
-
-        private WindowEventHandler( )
-        {
-        }
-
-        //--------------------------------------------------------------
-
-    ////////////////////////////////////////////////////////////////////
-    //  Instance methods : overriding methods
-    ////////////////////////////////////////////////////////////////////
-
-        @Override
-        public void windowClosing( WindowEvent event )
-        {
-            AppCommand.EXIT.execute( );
-        }
-
-        //--------------------------------------------------------------
-
-    }
-
-    //==================================================================
-
 ////////////////////////////////////////////////////////////////////////
 //  Member classes : inner classes
 ////////////////////////////////////////////////////////////////////////
@@ -708,8 +674,9 @@ class MainWindow
         menu = Menu.OPTIONS.menu;
         menu.addMenuListener( this );
 
-        menu.add( new FMenuItem( AppCommand.EDIT_PREFERENCES, KeyEvent.VK_P ) );
         menu.add( new FCheckBoxMenuItem( AppCommand.TOGGLE_SHOW_FULL_PATHNAMES, KeyEvent.VK_F ) );
+        menu.add( new FMenuItem( AppCommand.MANAGE_FILE_ASSOCIATIONS, KeyEvent.VK_A ) );
+        menu.add( new FMenuItem( AppCommand.EDIT_PREFERENCES, KeyEvent.VK_P ) );
 
         menuBar.add( menu );
 
@@ -746,8 +713,15 @@ class MainWindow
         // Dispose of window explicitly
         setDefaultCloseOperation( DO_NOTHING_ON_CLOSE );
 
-        // Handle window events
-        addWindowListener( new WindowEventHandler( ) );
+        // Handle window closing
+        addWindowListener( new WindowAdapter( )
+        {
+            @Override
+            public void windowClosing( WindowEvent event )
+            {
+                AppCommand.EXIT.execute( );
+            }
+        } );
 
         // Respond to changes to data flavours on system clipboard
         getToolkit( ).getSystemClipboard( ).addFlavorListener( this );

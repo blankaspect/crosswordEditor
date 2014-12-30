@@ -39,6 +39,8 @@ import uk.org.blankaspect.util.PropertyString;
 import uk.org.blankaspect.util.ResourceProperties;
 import uk.org.blankaspect.util.StringUtilities;
 
+import uk.org.blankaspect.windows.FileAssociations;
+
 //----------------------------------------------------------------------
 
 
@@ -66,8 +68,15 @@ class App
     private static final    String  RELEASE_PROPERTY_KEY    = "release";
     private static final    String  VIEW_KEY                = "view";
     private static final    String  DO_NOT_VIEW_KEY         = "doNotView";
+    private static final    String  OS_NAME_KEY             = "os.name";
 
     private static final    String  BUILD_PROPERTIES_PATHNAME   = "resources/build.properties";
+
+    private static final    String  ASSOC_FILE_KIND_KEY     = "BlankAspect." + SHORT_NAME + ".document";
+    private static final    String  ASSOC_FILE_KIND_TEXT    = "CrosswordEditor document";
+    private static final    String  ASSOC_FILE_OPEN_TEXT    = "&Open with CrosswordEditor";
+    private static final    String  ASSOC_SCRIPT_DIR_PREFIX = NAME_KEY + "_";
+    private static final    String  ASSOC_SCRIPT_FILENAME   = NAME_KEY + "Associations";
 
     private static final    String  DEBUG_STR               = " Debug";
     private static final    String  CONFIG_ERROR_STR        = "Configuration error";
@@ -100,6 +109,8 @@ class App
     private static final    String  VIEW_HTML_FILE_STR      = "Do you want to view the HTML file in an " +
                                                                 "external browser?";
     private static final    String  DO_NOT_SHOW_AGAIN_STR   = "Do not show this dialog again";
+    private static final    String  WINDOWS_STR             = "Windows";
+    private static final    String  FILE_ASSOCIATIONS_STR   = "File associations";
 
     private static final    QuestionDialog.Option[] VIEW_FILE_OPTIONS   =
     {
@@ -137,76 +148,6 @@ class App
 
         private CrosswordDocument   document;
         private CrosswordView       view;
-
-    }
-
-    //==================================================================
-
-////////////////////////////////////////////////////////////////////////
-//  Member classes : inner classes
-////////////////////////////////////////////////////////////////////////
-
-
-    // INITIALISATION CLASS
-
-
-    /**
-     * The run() method of this class creates the main window and performs the remaining initialisation of
-     * the application from the event-dispatching thread.
-     */
-
-    private class DoInitialisation
-        implements Runnable
-    {
-
-    ////////////////////////////////////////////////////////////////////
-    //  Constructors
-    ////////////////////////////////////////////////////////////////////
-
-        private DoInitialisation( String[] arguments )
-        {
-            this.arguments = arguments;
-        }
-
-        //--------------------------------------------------------------
-
-    ////////////////////////////////////////////////////////////////////
-    //  Instance methods : Runnable interface
-    ////////////////////////////////////////////////////////////////////
-
-        public void run( )
-        {
-            // Create main window
-            mainWindow = new MainWindow( );
-
-            // Start file-check timer
-            fileCheckTimer = new Timer( FILE_CHECK_TIMER_INTERVAL, AppCommand.CHECK_MODIFIED_FILE );
-            fileCheckTimer.setRepeats( false );
-            fileCheckTimer.start( );
-
-            // Open any files that were specified as command-line arguments
-            if ( arguments.length > 0 )
-            {
-                // Create list of files from command-line arguments
-                List<File> files = new ArrayList<>( );
-                for ( String argument : arguments )
-                    files.add( new File( PropertyString.parsePathname( argument ) ) );
-
-                // Open files
-                openFiles( files );
-
-                // Update title, menus and status
-                mainWindow.updateAll( );
-            }
-        }
-
-        //--------------------------------------------------------------
-
-    ////////////////////////////////////////////////////////////////////
-    //  Instance variables
-    ////////////////////////////////////////////////////////////////////
-
-        private String[]    arguments;
 
     }
 
@@ -416,6 +357,7 @@ class App
         CrosswordDocument document = getDocument( );
         boolean isDocument = (document != null);
         boolean notFull = !isDocumentsFull( );
+        boolean isWindows = System.getProperty( OS_NAME_KEY, "" ).contains( WINDOWS_STR );
 
         AppCommand.CHECK_MODIFIED_FILE.setEnabled( true );
         AppCommand.IMPORT_FILES.setEnabled( true );
@@ -435,6 +377,7 @@ class App
         AppCommand.TOGGLE_SHOW_FULL_PATHNAMES.setEnabled( true );
         AppCommand.TOGGLE_SHOW_FULL_PATHNAMES.
                                             setSelected( AppConfig.getInstance( ).isShowFullPathnames( ) );
+        AppCommand.MANAGE_FILE_ASSOCIATIONS.setEnabled( isWindows );
         AppCommand.EDIT_PREFERENCES.setEnabled( true );
     }
 
@@ -498,12 +441,16 @@ class App
                     onCreateSolutionDocument( );
                     break;
 
-                case EDIT_PREFERENCES:
-                    onEditPreferences( );
-                    break;
-
                 case TOGGLE_SHOW_FULL_PATHNAMES:
                     onToggleShowFullPathnames( );
+                    break;
+
+                case MANAGE_FILE_ASSOCIATIONS:
+                    onManageFileAssociations( );
+                    break;
+
+                case EDIT_PREFERENCES:
+                    onEditPreferences( );
                     break;
             }
         }
@@ -688,7 +635,7 @@ class App
 
     //------------------------------------------------------------------
 
-    private void init( String[] arguments )
+    private void init( final String[] arguments )
     {
         // Set runtime debug flag
         debug = (System.getProperty( DEBUG_PROPERTY_KEY ) != null);
@@ -740,7 +687,35 @@ class App
         initFileChoosers( );
 
         // Perform remaining initialisation from event-dispatching thread
-        SwingUtilities.invokeLater( new DoInitialisation( arguments ) );
+        SwingUtilities.invokeLater( new Runnable( )
+        {
+            @Override
+            public void run( )
+            {
+                // Create main window
+                mainWindow = new MainWindow( );
+
+                // Start file-check timer
+                fileCheckTimer = new Timer( FILE_CHECK_TIMER_INTERVAL, AppCommand.CHECK_MODIFIED_FILE );
+                fileCheckTimer.setRepeats( false );
+                fileCheckTimer.start( );
+
+                // Open any files that were specified as command-line arguments
+                if ( arguments.length > 0 )
+                {
+                    // Create list of files from command-line arguments
+                    List<File> files = new ArrayList<>( );
+                    for ( String argument : arguments )
+                        files.add( new File( PropertyString.parsePathname( argument ) ) );
+
+                    // Open files
+                    openFiles( files );
+
+                    // Update title, menus and status
+                    mainWindow.updateAll( );
+                }
+            }
+        } );
     }
 
     //------------------------------------------------------------------
@@ -1161,6 +1136,29 @@ class App
     private void onToggleShowFullPathnames( )
     {
         AppConfig.getInstance( ).setShowFullPathnames( !AppConfig.getInstance( ).isShowFullPathnames( ) );
+    }
+
+    //------------------------------------------------------------------
+
+    private void onManageFileAssociations( )
+        throws AppException
+    {
+        FileAssociationDialog.Result result = FileAssociationDialog.showDialog( mainWindow );
+        if ( result != null )
+        {
+            FileAssociations fileAssoc = new FileAssociations( );
+            fileAssoc.addParams( ASSOC_FILE_KIND_KEY, ASSOC_FILE_KIND_TEXT, ASSOC_FILE_OPEN_TEXT,
+                                 AppConfig.getInstance( ).getFilenameSuffix( ) );
+            TextOutputTaskDialog.showDialog( mainWindow, FILE_ASSOCIATIONS_STR,
+                                             new Task.SetFileAssociations( fileAssoc,
+                                                                           result.javaLauncherPathname,
+                                                                           result.jarPathname,
+                                                                           result.iconPathname,
+                                                                           ASSOC_SCRIPT_DIR_PREFIX,
+                                                                           ASSOC_SCRIPT_FILENAME,
+                                                                           result.removeEntries,
+                                                                           result.scriptLifeCycle ) );
+        }
     }
 
     //------------------------------------------------------------------

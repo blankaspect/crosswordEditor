@@ -124,6 +124,12 @@ enum AppCommand
         "Show full pathnames"
     ),
 
+    MANAGE_FILE_ASSOCIATIONS
+    (
+        "manageFileAssociations",
+        "Manage file associations" + AppConstants.ELLIPSIS_STR
+    ),
+
     EDIT_PREFERENCES
     (
         "editPreferences",
