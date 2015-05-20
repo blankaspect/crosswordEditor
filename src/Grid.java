@@ -1624,7 +1624,8 @@ abstract class Grid
 
         protected abstract void write( XmlWriter writer,
                                        int       indent,
-                                       int       cellSize )
+                                       int       cellSize,
+                                       boolean   showFieldNumber )
             throws IOException;
 
         //--------------------------------------------------------------
@@ -3286,7 +3287,8 @@ abstract class Grid
 
     public void writeHtml( XmlWriter writer,
                            int       indent,
-                           int       cellSize )
+                           int       cellSize,
+                           boolean   showFieldNumbers )
         throws IOException
     {
         // Write start tag, table division
@@ -3302,7 +3304,7 @@ abstract class Grid
 
             indent += INDENT_INCREMENT;
             for ( int column = 0; column < numColumns; ++column )
-                getCell( row, column ).write( writer, indent, cellSize );
+                getCell( row, column ).write( writer, indent, cellSize, showFieldNumbers );
             indent -= INDENT_INCREMENT;
 
             writer.writeElementEnd( HtmlConstants.ElementName.DIV, indent );

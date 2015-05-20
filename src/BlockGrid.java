@@ -185,7 +185,8 @@ class BlockGrid
         @Override
         protected void write( XmlWriter writer,
                               int       indent,
-                              int       cellSize )
+                              int       cellSize,
+                              boolean   showFieldNumber )
             throws IOException
         {
             List<Attribute> attributes = new ArrayList<>( );
@@ -203,7 +204,8 @@ class BlockGrid
             else
             {
                 writer.writeElementStart( HtmlConstants.ElementName.DIV, indent, false );
-                writeFieldNumber( writer );
+                if ( showFieldNumber )
+                    writeFieldNumber( writer );
             }
             writer.writeElementEnd( HtmlConstants.ElementName.DIV, 0 );
         }

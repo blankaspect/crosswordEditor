@@ -66,7 +66,6 @@ import uk.org.blankaspect.gui.FComboBox;
 import uk.org.blankaspect.gui.FIntegerSpinner;
 import uk.org.blankaspect.gui.FixedWidthLabel;
 import uk.org.blankaspect.gui.FLabel;
-import uk.org.blankaspect.gui.FPathnameField;
 import uk.org.blankaspect.gui.FTabbedPane;
 import uk.org.blankaspect.gui.FTextField;
 import uk.org.blankaspect.gui.GuiUtilities;
@@ -195,6 +194,8 @@ class CaptureDialog
     private static final    String  NO_PARAM_SET_FILE_STR   = "No parameter-set file has been specified " +
                                                                 "in the user preferences.\nDo you want " +
                                                                 "to choose a file?";
+
+    private static final    String  KEY = CaptureDialog.class.getCanonicalName( );
 
     // Commands
     private interface Command
@@ -2131,6 +2132,7 @@ class CaptureDialog
 
         // Panel: document directory
         documentDirectoryField = new FPathnameField( );
+        FPathnameField.addObserver( KEY, documentDirectoryField );
         JPanel documentDirectoryPanel = new PathnamePanel( documentDirectoryField,
                                                            Command.CHOOSE_DOCUMENT_DIRECTORY, this );
 
@@ -2163,6 +2165,7 @@ class CaptureDialog
 
         // Panel: HTML directory
         htmlDirectoryField = new FPathnameField( );
+        FPathnameField.addObserver( KEY, htmlDirectoryField );
         JPanel htmlDirectoryPanel = new PathnamePanel( htmlDirectoryField, Command.CHOOSE_HTML_DIRECTORY,
                                                        this );
 
@@ -2472,6 +2475,8 @@ class CaptureDialog
 
     private void onClose( )
     {
+        FPathnameField.removeObservers( KEY );
+
         location = getLocation( );
         tabIndex = tabbedPanel.getSelectedIndex( );
         setVisible( false );

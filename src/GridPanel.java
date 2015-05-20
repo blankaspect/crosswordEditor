@@ -1010,14 +1010,17 @@ abstract class GridPanel
             // Draw field number
             int x = column * cellSize;
             int y = row * cellSize;
-            int fieldNumber = grid.getCell( row, column ).getFieldNumber( );
-            if ( fieldNumber > 0 )
+            if ( document.isShowFieldNumbers( ) )
             {
-                gr.setColor( config.getViewColour( CrosswordView.Colour.FIELD_NUMBER_TEXT ) );
-                gr.setFont( AppFont.FIELD_NUMBER.getFont( ) );
-                int[] offsets = getFieldNumberOffsets( row, column );
-                gr.drawString( Integer.toString( fieldNumber ), x + offsets[0],
-                               y + gr.getFontMetrics( ).getAscent( ) + offsets[1] );
+                int fieldNumber = grid.getCell( row, column ).getFieldNumber( );
+                if ( fieldNumber > 0 )
+                {
+                    gr.setColor( config.getViewColour( CrosswordView.Colour.FIELD_NUMBER_TEXT ) );
+                    gr.setFont( AppFont.FIELD_NUMBER.getFont( ) );
+                    int[] offsets = getFieldNumberOffsets( row, column );
+                    gr.drawString( Integer.toString( fieldNumber ), x + offsets[0],
+                                   y + gr.getFontMetrics( ).getAscent( ) + offsets[1] );
+                }
             }
 
             // Draw entry character
@@ -1152,20 +1155,24 @@ abstract class GridPanel
             else
             {
                 // Draw field numbers
-                gr.setColor( config.getViewColour( CrosswordView.Colour.FIELD_NUMBER_TEXT ) );
-                gr.setFont( AppFont.FIELD_NUMBER.getFont( ) );
-                FontMetrics fontMetrics = gr.getFontMetrics( );
-                int textY = fontMetrics.getAscent( );
-                for ( row = 0; row < numRows; ++row )
+                if ( document.isShowFieldNumbers( ) )
                 {
-                    for ( column = 0; column < numColumns; ++column )
+                    gr.setColor( config.getViewColour( CrosswordView.Colour.FIELD_NUMBER_TEXT ) );
+                    gr.setFont( AppFont.FIELD_NUMBER.getFont( ) );
+                    FontMetrics fontMetrics = gr.getFontMetrics( );
+                    int textY = fontMetrics.getAscent( );
+                    for ( row = 0; row < numRows; ++row )
                     {
-                        int fieldNumber = grid.getCell( row, column ).getFieldNumber( );
-                        if ( fieldNumber > 0 )
+                        for ( column = 0; column < numColumns; ++column )
                         {
-                            int[] offsets = getFieldNumberOffsets( row, column );
-                            gr.drawString( Integer.toString( fieldNumber ), column * cellSize + offsets[0],
-                                           row * cellSize + textY + offsets[1] );
+                            int fieldNumber = grid.getCell( row, column ).getFieldNumber( );
+                            if ( fieldNumber > 0 )
+                            {
+                                int[] offsets = getFieldNumberOffsets( row, column );
+                                gr.drawString( Integer.toString( fieldNumber ),
+                                               column * cellSize + offsets[0],
+                                               row * cellSize + textY + offsets[1] );
+                            }
                         }
                     }
                 }
@@ -1173,7 +1180,7 @@ abstract class GridPanel
                 // Draw entries
                 gr.setColor( config.getViewColour( CrosswordView.Colour.GRID_ENTRY_TEXT ) );
                 gr.setFont( AppFont.GRID_ENTRY.getFont( ) );
-                fontMetrics = gr.getFontMetrics( );
+                FontMetrics fontMetrics = gr.getFontMetrics( );
                 for ( row = 0; row < numRows; ++row )
                 {
                     for ( column = 0; column < numColumns; ++column )
@@ -1239,21 +1246,20 @@ abstract class GridPanel
 
     //------------------------------------------------------------------
 
-    public void setEntryChar( char value,
-                              int  increment )
+    public boolean setEntryChar( char value,
+                                 int  increment )
     {
-        if ( caretPosition != null )
-        {
-            CrosswordDocument.Command command = CrosswordDocument.Command.SET_ENTRY_CHARACTER;
-            command.putValue( CrosswordDocument.Command.Property.GRID_ENTRY_VALUE,
-                              new Grid.EntryValue( caretPosition.row, caretPosition.column, value ) );
-            command.putValue( CrosswordDocument.Command.Property.DIRECTION, getSelectedFieldDirection( ) );
-            command.execute( );
-            repaint( caretPosition.column * cellSize + 1, caretPosition.row * cellSize + 1,
-                     cellSize - 1, cellSize - 1 );
-            if ( increment != 0 )
-                incrementCaretPosition( increment );
-        }
+        if ( caretPosition == null )
+            return false;
+
+        CrosswordDocument.Command command = CrosswordDocument.Command.SET_ENTRY_CHARACTER;
+        command.putValue( CrosswordDocument.Command.Property.GRID_ENTRY_VALUE,
+                          new Grid.EntryValue( caretPosition.row, caretPosition.column, value ) );
+        command.putValue( CrosswordDocument.Command.Property.DIRECTION, getSelectedFieldDirection( ) );
+        command.execute( );
+        repaint( caretPosition.column * cellSize + 1, caretPosition.row * cellSize + 1,
+                 cellSize - 1, cellSize - 1 );
+        return true;
     }
 
     //------------------------------------------------------------------

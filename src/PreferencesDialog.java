@@ -75,7 +75,6 @@ import uk.org.blankaspect.gui.FixedWidthLabel;
 import uk.org.blankaspect.gui.FLabel;
 import uk.org.blankaspect.gui.FontEx;
 import uk.org.blankaspect.gui.FontStyle;
-import uk.org.blankaspect.gui.FPathnameField;
 import uk.org.blankaspect.gui.FTabbedPane;
 import uk.org.blankaspect.gui.FTextField;
 import uk.org.blankaspect.gui.GuiUtilities;
@@ -108,6 +107,8 @@ class PreferencesDialog
 ////////////////////////////////////////////////////////////////////////
 //  Constants
 ////////////////////////////////////////////////////////////////////////
+
+    private static final    String  KEY = PreferencesDialog.class.getCanonicalName( );
 
     // Main panel
     private static final    String  TITLE_STR               = "Preferences";
@@ -1594,6 +1595,8 @@ class PreferencesDialog
 
     private void onClose( )
     {
+        FPathnameField.removeObservers( KEY );
+
         location = getLocation( );
         tabIndex = tabbedPanel.getSelectedIndex( );
         setVisible( false );
@@ -3395,6 +3398,7 @@ class PreferencesDialog
 
         // Panel: parameter-set pathname
         parameterSetPathnameField = new FPathnameField( config.getParameterSetFile( ) );
+        FPathnameField.addObserver( KEY, parameterSetPathnameField );
         JPanel parameterSetPathnamePanel = new PathnamePanel( parameterSetPathnameField,
                                                               Command.CHOOSE_PARAMETER_SET_FILE, this );
 

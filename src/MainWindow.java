@@ -666,6 +666,11 @@ class MainWindow
         menu = Menu.VIEW.menu;
         menu.addMenuListener( this );
 
+        menu.add( new FCheckBoxMenuItem( CrosswordDocument.Command.TOGGLE_FIELD_NUMBERS, KeyEvent.VK_F ) );
+        menu.add( new FCheckBoxMenuItem( CrosswordDocument.Command.TOGGLE_CLUES, KeyEvent.VK_C ) );
+
+        menu.addSeparator( );
+
         menu.add( new FMenuItem( CrosswordDocument.Command.RESIZE_WINDOW_TO_VIEW, KeyEvent.VK_R ) );
 
         menuBar.add( menu );

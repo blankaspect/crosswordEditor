@@ -513,6 +513,18 @@ class CrosswordDocument
             "Edit solution properties" + AppConstants.ELLIPSIS_STR
         ),
 
+        TOGGLE_FIELD_NUMBERS
+        (
+            "toggleFieldNumbers",
+            "Show field numbers"
+        ),
+
+        TOGGLE_CLUES
+        (
+            "toggleClues",
+            "Show clues"
+        ),
+
         RESIZE_WINDOW_TO_VIEW
         (
             "resizeWindowToView",
@@ -635,6 +647,13 @@ class CrosswordDocument
     ////////////////////////////////////////////////////////////////////
     //  Instance methods
     ////////////////////////////////////////////////////////////////////
+
+        public void setSelected( boolean selected )
+        {
+            putValue( Action.SELECTED_KEY, selected );
+        }
+
+        //--------------------------------------------------------------
 
         public void execute( )
         {
@@ -1773,6 +1792,8 @@ class CrosswordDocument
         clueSubstitutions = new ArrayList<>( );
         prologueParagraphs = new ArrayList<>( );
         epilogueParagraphs = new ArrayList<>( );
+        showFieldNumbers = true;
+        showClues = true;
         clueLists = new EnumMap<>( Direction.class );
         solutionProperties = new SolutionProperties( );
         editList = new EditList<>( config.getMaxEditListLength( ) );
@@ -1911,6 +1932,20 @@ class CrosswordDocument
     public List<String> getEpilogue( )
     {
         return epilogueParagraphs;
+    }
+
+    //------------------------------------------------------------------
+
+    public boolean isShowFieldNumbers( )
+    {
+        return showFieldNumbers;
+    }
+
+    //------------------------------------------------------------------
+
+    public boolean isShowClues( )
+    {
+        return showClues;
     }
 
     //------------------------------------------------------------------
@@ -2215,6 +2250,8 @@ class CrosswordDocument
         Command.LOAD_SOLUTION.setEnabled( solutionProperties.canLoad( ) );
         Command.CLEAR_SOLUTION.setEnabled( isSolution );
         Command.COPY_SOLUTION_TO_CLIPBOARD.setEnabled( isSolution );
+        Command.TOGGLE_FIELD_NUMBERS.setSelected( showFieldNumbers );
+        Command.TOGGLE_CLUES.setSelected( showClues );
         Command.RESIZE_WINDOW_TO_VIEW.setEnabled( !getWindow( ).isMaximised( ) );
     }
 
@@ -2327,6 +2364,14 @@ class CrosswordDocument
 
                     case EDIT_SOLUTION_PROPERTIES:
                         edit = onEditSolutionProperties( );
+                        break;
+
+                    case TOGGLE_FIELD_NUMBERS:
+                        edit = onToggleFieldNumbers( );
+                        break;
+
+                    case TOGGLE_CLUES:
+                        edit = onToggleClues( );
                         break;
 
                     case RESIZE_WINDOW_TO_VIEW:
@@ -3824,88 +3869,94 @@ class CrosswordDocument
         }
 
         // Write grid element
-        grid.writeHtml( writer, indent, styleProperties.cellSize );
+        grid.writeHtml( writer, indent, styleProperties.cellSize, showFieldNumbers );
 
-        // Write start tag, table division
-        attributes.clear( );
-        attributes.add( new Attribute( HtmlConstants.AttrName.ID, HtmlConstants.Id.CLUES ) );
-        writer.writeElementStart( HtmlConstants.ElementName.DIV, attributes, indent, true, false );
-
-        // Write lists of clues
-        indent += INDENT_INCREMENT;
-        for ( Direction direction : clueLists.keySet( ) )
+        // Write clues
+        if ( showClues )
         {
-            // Write start tag, cell division
-            writer.writeElementStart( HtmlConstants.ElementName.DIV, indent, true );
+            // Write start tag, table division
+            attributes.clear( );
+            attributes.add( new Attribute( HtmlConstants.AttrName.ID, HtmlConstants.Id.CLUES ) );
+            writer.writeElementStart( HtmlConstants.ElementName.DIV, attributes, indent, true, false );
 
-            // Write H4 element
+            // Write lists of clues
             indent += INDENT_INCREMENT;
-            if ( direction != Direction.NONE )
-                writer.writeEscapedTextElement( HtmlConstants.ElementName.H4, indent,
-                                                direction.toString( ) );
-
-            // Write start tag, list of clues
-            writer.writeElementStart( HtmlConstants.ElementName.DIV, indent, true );
-
-            // Write clues
-            indent += INDENT_INCREMENT;
-            for ( Clue clue : clueLists.get( direction ) )
+            for ( Direction direction : clueLists.keySet( ) )
             {
-                // Write start tag, clue
+                // Write start tag, cell division
                 writer.writeElementStart( HtmlConstants.ElementName.DIV, indent, true );
 
-                // Write primary field ID
+                // Write H4 element
                 indent += INDENT_INCREMENT;
-                List<String> idStrs = getClueIdStrings( direction, clue,
-                                                        AppConfig.getInstance( ).
-                                                                            isImplicitFieldDirection( ) );
-                writer.writeEscapedTextElement( HtmlConstants.ElementName.DIV, indent, idStrs.get( 0 ) );
+                if ( direction != Direction.NONE )
+                    writer.writeEscapedTextElement( HtmlConstants.ElementName.H4, indent,
+                                                    direction.toString( ) );
 
-                // Write start tag and secondary field IDs
-                if ( idStrs.size( ) == 1 )
-                    writer.writeElementStart( HtmlConstants.ElementName.DIV, indent, false );
-                else
+                // Write start tag, list of clues
+                writer.writeElementStart( HtmlConstants.ElementName.DIV, indent, true );
+
+                // Write clues
+                indent += INDENT_INCREMENT;
+                for ( Clue clue : clueLists.get( direction ) )
                 {
-                    attributes.clear( );
-                    attributes.add( new Attribute( HtmlConstants.AttrName.CLASS,
-                                                   HtmlConstants.Class.MULTI_FIELD_CLUE ) );
-                    writer.writeElementStart( HtmlConstants.ElementName.DIV, attributes, indent, false,
-                                              false );
-                    attributes.clear( );
-                    attributes.add( new Attribute( HtmlConstants.AttrName.CLASS,
-                                                   HtmlConstants.Class.SECONDARY_IDS ) );
-                    writer.writeElementStart( HtmlConstants.ElementName.SPAN, attributes, 0, false, false );
-                    idStrs.set( 0, new String( ) );
-                    writer.write( StringUtilities.join( FIELD_ID_SEPARATOR, idStrs ) );
-                    writer.writeEndTag( HtmlConstants.ElementName.SPAN );
+                    // Write start tag, clue
+                    writer.writeElementStart( HtmlConstants.ElementName.DIV, indent, true );
+
+                    // Write primary field ID
+                    indent += INDENT_INCREMENT;
+                    List<String> idStrs = getClueIdStrings( direction, clue,
+                                                            AppConfig.getInstance( ).
+                                                                            isImplicitFieldDirection( ) );
+                    writer.writeEscapedTextElement( HtmlConstants.ElementName.DIV, indent,
+                                                    idStrs.get( 0 ) );
+
+                    // Write start tag and secondary field IDs
+                    if ( idStrs.size( ) == 1 )
+                        writer.writeElementStart( HtmlConstants.ElementName.DIV, indent, false );
+                    else
+                    {
+                        attributes.clear( );
+                        attributes.add( new Attribute( HtmlConstants.AttrName.CLASS,
+                                                       HtmlConstants.Class.MULTI_FIELD_CLUE ) );
+                        writer.writeElementStart( HtmlConstants.ElementName.DIV, attributes, indent, false,
+                                                  false );
+                        attributes.clear( );
+                        attributes.add( new Attribute( HtmlConstants.AttrName.CLASS,
+                                                       HtmlConstants.Class.SECONDARY_IDS ) );
+                        writer.writeElementStart( HtmlConstants.ElementName.SPAN, attributes, 0, false,
+                                                  false );
+                        idStrs.set( 0, new String( ) );
+                        writer.write( StringUtilities.join( FIELD_ID_SEPARATOR, idStrs ) );
+                        writer.writeEndTag( HtmlConstants.ElementName.SPAN );
+                    }
+
+                    // Write clue text
+                    if ( clue.isReference( ) )
+                        writer.writeEscaped( getClueReferenceString( direction, clue ) );
+                    else
+                        clue.getText( ).write( writer );
+
+                    // Write end tag, clue text
+                    writer.writeElementEnd( HtmlConstants.ElementName.DIV, 0 );
+                    indent -= INDENT_INCREMENT;
+
+                    // Write end tag, clue
+                    writer.writeElementEnd( HtmlConstants.ElementName.DIV, indent );
                 }
-
-                // Write clue text
-                if ( clue.isReference( ) )
-                    writer.writeEscaped( getClueReferenceString( direction, clue ) );
-                else
-                    clue.getText( ).write( writer );
-
-                // Write end tag, clue text
-                writer.writeElementEnd( HtmlConstants.ElementName.DIV, 0 );
                 indent -= INDENT_INCREMENT;
 
-                // Write end tag, clue
+                // Write end tag, list of clues
+                writer.writeElementEnd( HtmlConstants.ElementName.DIV, indent );
+
+                // Write end tag, cell division
+                indent -= INDENT_INCREMENT;
                 writer.writeElementEnd( HtmlConstants.ElementName.DIV, indent );
             }
             indent -= INDENT_INCREMENT;
 
-            // Write end tag, list of clues
-            writer.writeElementEnd( HtmlConstants.ElementName.DIV, indent );
-
-            // Write end tag, cell division
-            indent -= INDENT_INCREMENT;
+            // Write end tag, table division
             writer.writeElementEnd( HtmlConstants.ElementName.DIV, indent );
         }
-        indent -= INDENT_INCREMENT;
-
-        // Write end tag, table division
-        writer.writeElementEnd( HtmlConstants.ElementName.DIV, indent );
 
         // Write epilogue
         if ( !epilogueParagraphs.isEmpty( ) )
@@ -4517,6 +4568,31 @@ class CrosswordDocument
 
     //------------------------------------------------------------------
 
+    private EditList.Element<CrosswordDocument> onToggleFieldNumbers( )
+    {
+        showFieldNumbers = !showFieldNumbers;
+        CrosswordView view = getView( );
+        if ( view != null )
+            view.redrawGrid( );
+        return null;
+    }
+
+    //------------------------------------------------------------------
+
+    private EditList.Element<CrosswordDocument> onToggleClues( )
+    {
+        showClues = !showClues;
+        CrosswordView view = getView( );
+        if ( view != null )
+        {
+            for ( Direction direction : Direction.DEFINED_DIRECTIONS )
+                getView( ).updateClues( direction );
+        }
+        return null;
+    }
+
+    //------------------------------------------------------------------
+
     private EditList.Element<CrosswordDocument> onResizeWindowToView( )
     {
         CrosswordView view = getView( );
@@ -4558,6 +4634,8 @@ class CrosswordDocument
     private String                      baseFilename;
     private File                        documentDirectory;
     private File                        htmlDirectory;
+    private boolean                     showFieldNumbers;
+    private boolean                     showClues;
     private Grid                        grid;
     private Map<Direction, List<Clue>>  clueLists;
     private SolutionProperties          solutionProperties;

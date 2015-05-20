@@ -1033,6 +1033,7 @@ class CrosswordView
             // Add clue panels
             int numCluePanels = Direction.DEFINED_DIRECTIONS.size( );
             cluePanelWidth = (contentWidth - (numCluePanels - 1) * HORIZONTAL_GAP) / numCluePanels;
+            directionLabels = new EnumMap<>( Direction.class );
             cluePanels = new EnumMap<>( Direction.class );
 
             gridX = 0;
@@ -1042,8 +1043,10 @@ class CrosswordView
 
                 // Label: direction
                 JLabel directionLabel = new JLabel( direction.toString( ) );
+                directionLabels.put( direction, directionLabel );
                 Font font = AppFont.MAIN.getFont( );
                 directionLabel.setFont( font.deriveFont( Font.BOLD, FONT_FACTOR * font.getSize2D( ) ) );
+                directionLabel.setVisible( document.isShowClues( ) );
 
                 gbc.gridx = gridX;
                 gbc.gridy = 0;
@@ -1243,11 +1246,11 @@ class CrosswordView
             switch ( event.getKeyCode( ) )
             {
                 case KeyEvent.VK_DELETE:
-                    gridPanel.setEntryChar( Grid.Entries.UNDEFINED_VALUE, 0 );
+                    setEntryChar( Grid.Entries.UNDEFINED_VALUE, 0 );
                     break;
 
                 case KeyEvent.VK_BACK_SPACE:
-                    gridPanel.setEntryChar( Grid.Entries.UNDEFINED_VALUE, -1 );
+                    setEntryChar( Grid.Entries.UNDEFINED_VALUE, -1 );
                     break;
             }
         }
@@ -1265,7 +1268,7 @@ class CrosswordView
         {
             char ch = Character.toUpperCase( event.getKeyChar( ) );
             if ( AppConfig.getInstance( ).getGridEntryCharacters( ).indexOf( ch ) >= 0 )
-                gridPanel.setEntryChar( ch, 1 );
+                setEntryChar( ch, 1 );
         }
 
         //--------------------------------------------------------------
@@ -1446,6 +1449,7 @@ class CrosswordView
             int height = panel.getPreferredSize( ).height;
             panel = new CluePanel( document, clues, 0 );
             panel.setPreferredSize( new Dimension( cluePanelWidth, height ) );
+            panel.setVisible( document.isShowClues( ) );
             panel.addMouseListener( this );
             return panel;
         }
@@ -1484,6 +1488,15 @@ class CrosswordView
         private void updateGrid( )
         {
             gridPanel.setGrid( document.getGrid( ) );
+        }
+
+        //--------------------------------------------------------------
+
+        private void updateDirectionLabel( Direction direction )
+        {
+            JLabel directionLabel = directionLabels.get( direction );
+            if ( directionLabel != null )
+                directionLabel.setVisible( document.isShowClues( ) );
         }
 
         //--------------------------------------------------------------
@@ -1693,6 +1706,15 @@ class CrosswordView
 
         //--------------------------------------------------------------
 
+        private void setEntryChar( char value,
+                                   int  increment )
+        {
+            if ( gridPanel.setEntryChar( value, increment ) )
+                updateSelectedClue( gridPanel.incrementCaretPosition( increment ) );
+        }
+
+        //--------------------------------------------------------------
+
         private void incrementCaretColumn( int increment )
         {
             updateSelectedClue( gridPanel.incrementCaretColumn( increment ) );
@@ -1883,6 +1905,7 @@ class CrosswordView
         private HorizontalLine              horizontalLine;
         private GridPanel                   gridPanel;
         private CluePanel                   selectedCluePanel;
+        private Map<Direction, JLabel>      directionLabels;
         private Map<Direction, CluePanel>   cluePanels;
         private TextSectionPanel            prologuePanel;
         private TextSectionPanel            epiloguePanel;
@@ -2009,6 +2032,7 @@ class CrosswordView
 
     public void updateClues( Direction direction )
     {
+        crosswordPanel.updateDirectionLabel( direction );
         crosswordPanel.updateCluePanel( direction );
         crosswordPanel.updateSelection( );
         revalidate( );

@@ -330,6 +330,20 @@ class AppConfig
 
     //------------------------------------------------------------------
 
+    public void addShowUnixPathnamesObserver( Property.Observer observer )
+    {
+        cpShowUnixPathnames.addObserver( observer );
+    }
+
+    //------------------------------------------------------------------
+
+    public void removeShowUnixPathnamesObserver( Property.Observer observer )
+    {
+        cpShowUnixPathnames.removeObserver( observer );
+    }
+
+    //------------------------------------------------------------------
+
 //--////////////////////////////////////////////////////////////////////
 //--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////

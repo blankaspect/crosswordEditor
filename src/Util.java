@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import uk.org.blankaspect.exception.AppException;
-import uk.org.blankaspect.exception.TaskCancelledException;
 import uk.org.blankaspect.exception.UnexpectedRuntimeException;
 
 import uk.org.blankaspect.util.PropertiesPathname;
@@ -252,33 +251,6 @@ class Util
         System.arraycopy( optionStrs, 0, strs, 0, optionStrs.length );
         strs[optionStrs.length] = AppConstants.CANCEL_STR;
         return strs;
-    }
-
-    //------------------------------------------------------------------
-
-    public static void confirmAction( String promptStr,
-                                      char   approveChar,
-                                      char   cancelChar )
-        throws TaskCancelledException
-    {
-        while ( true )
-        {
-            try
-            {
-                while ( System.in.available( ) > 0 )
-                    System.in.read( );
-                System.out.print( promptStr + " ? " );
-                char ch = Character.toUpperCase( (char)System.in.read( ) );
-                if ( ch == Character.toUpperCase( approveChar ) )
-                    break;
-                if ( ch == Character.toUpperCase( cancelChar ) )
-                    throw new TaskCancelledException( );
-            }
-            catch ( IOException e1 )
-            {
-                // ignore
-            }
-        }
     }
 
     //------------------------------------------------------------------

@@ -467,14 +467,16 @@ class BarGrid
         @Override
         protected void write( XmlWriter writer,
                               int       indent,
-                              int       cellSize )
+                              int       cellSize,
+                              boolean   showFieldNumber )
             throws IOException
         {
             List<Attribute> attributes = new ArrayList<>( );
             if ( !bars.isEmpty( ) )
                 attributes.add( new Attribute( HtmlConstants.AttrName.CLASS, getClassName( bars ) ) );
             writer.writeElementStart( HtmlConstants.ElementName.DIV, attributes, indent, false, false );
-            writeFieldNumber( writer );
+            if ( showFieldNumber )
+                writeFieldNumber( writer );
             writer.writeElementEnd( HtmlConstants.ElementName.DIV, 0 );
         }
 
