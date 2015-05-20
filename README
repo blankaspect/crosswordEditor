@@ -15,7 +15,7 @@ command:
 
 javac -d classes -sourcepath ../javaLibrary1/src src/*
 
-The Java version of the source code is 1.7 (Java SE 7). 
+The Java version of the source code is 1.8 (Java SE 8). 
 
 The complete source code of the CrosswordEditor application is distributed,
 along with an executable JAR, through SourceForge:
@@ -44,6 +44,7 @@ want to publish the entire contents of my local repo.  Git doesn't allow partial
 clones, so this repo is managed though a secondary local repo and some
 scripting.  Until I devise an efficient way of managing the publication of a
 specified subset of the contents of my local repo, updates of this one will be
-infrequent.
+infrequent, and commits are likely to have collective (and uninformative)
+comments.
 
 --------------------------------------------------------------------------------
