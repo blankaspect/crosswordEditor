@@ -315,7 +315,7 @@ class AppConfig
 		private CPShowUnixPathnames()
 		{
 			super(concatenateKeys(Key.GENERAL, Key.SHOW_UNIX_PATHNAMES));
-			value = Boolean.FALSE;
+			value = false;
 		}
 
 		//--------------------------------------------------------------
@@ -379,7 +379,7 @@ class AppConfig
 		private CPSelectTextOnFocusGained()
 		{
 			super(concatenateKeys(Key.GENERAL, Key.SELECT_TEXT_ON_FOCUS_GAINED));
-			value = Boolean.TRUE;
+			value = true;
 		}
 
 		//--------------------------------------------------------------
@@ -429,7 +429,7 @@ class AppConfig
 		private CPShowFullPathnames()
 		{
 			super(concatenateKeys(Key.GENERAL, Key.SHOW_FULL_PATHNAMES));
-			value = Boolean.FALSE;
+			value = false;
 		}
 
 		//--------------------------------------------------------------
@@ -689,7 +689,7 @@ class AppConfig
 		private CPClearEditListOnSave()
 		{
 			super(concatenateKeys(Key.GENERAL, Key.CLEAR_EDIT_LIST_ON_SAVE));
-			value = Boolean.FALSE;
+			value = false;
 		}
 
 		//--------------------------------------------------------------
@@ -1233,7 +1233,7 @@ class AppConfig
 		private CPNavigateOverGridSeparators()
 		{
 			super(concatenateKeys(Key.GRID, Key.NAVIGATE_OVER_SEPARATORS));
-			value = Boolean.TRUE;
+			value = true;
 		}
 
 		//--------------------------------------------------------------
@@ -1619,7 +1619,7 @@ class AppConfig
 		private CPImplicitFieldDirection()
 		{
 			super(concatenateKeys(Key.CLUE, Key.IMPLICIT_FIELD_DIRECTION));
-			value = Boolean.FALSE;
+			value = false;
 		}
 
 		//--------------------------------------------------------------
@@ -1669,7 +1669,7 @@ class AppConfig
 		private CPAllowMultipleFieldUse()
 		{
 			super(concatenateKeys(Key.CLUE, Key.ALLOW_MULTIPLE_FIELD_USE));
-			value = Boolean.FALSE;
+			value = false;
 		}
 
 		//--------------------------------------------------------------
@@ -2552,7 +2552,7 @@ class AppConfig
 		private CPBlockImagePrintOnly()
 		{
 			super(concatenateKeys(Key.HTML, Key.BLOCK_IMAGE, Key.PRINT_ONLY));
-			value = Boolean.FALSE;
+			value = false;
 		}
 
 		//--------------------------------------------------------------
@@ -2797,14 +2797,14 @@ class AppConfig
 
 	public static void showWarningMessage(AppException exception)
 	{
-		App.INSTANCE.showWarningMessage(App.SHORT_NAME + " | " + CONFIG_ERROR_STR, exception);
+		App.INSTANCE.showWarningMessage(App.SHORT_NAME + " : " + CONFIG_ERROR_STR, exception);
 	}
 
 	//------------------------------------------------------------------
 
 	public static void showErrorMessage(AppException exception)
 	{
-		App.INSTANCE.showErrorMessage(App.SHORT_NAME + " | " + CONFIG_ERROR_STR, exception);
+		App.INSTANCE.showErrorMessage(App.SHORT_NAME + " : " + CONFIG_ERROR_STR, exception);
 	}
 
 	//------------------------------------------------------------------
