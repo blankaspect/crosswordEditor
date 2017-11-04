@@ -2392,7 +2392,7 @@ class CaptureDialog
 				CaptureParameterSetList.createFile(file);
 
 			// Show the parameter-set dialog
-			CaptureParams params = ParameterSetDialog.showDialog(this, CAPTURE_STR + " | " + PARAMETER_SET_STR,
+			CaptureParams params = ParameterSetDialog.showDialog(this, CAPTURE_STR + " : " + PARAMETER_SET_STR,
 																 getParams(), new CaptureParams(),
 																 new CaptureParameterSetList(), file);
 

@@ -146,7 +146,7 @@ class PreferencesDialog
 	private static final	String	SELECTED_CLUE_NUM_COLUMNS_STR	= "Width of selected clue";
 	private static final	String	COLUMNS_STR						= "columns";
 	private static final	String	COLOURS_STR						= "Colours";
-	private static final	String	VIEW_COLOUR_STR					= "View colour | ";
+	private static final	String	VIEW_COLOUR_STR					= "View colour : ";
 
 	// Grid panel
 	private static final	int		GRID_IMAGE_VIEWPORT_FIELD_LENGTH	= 4;
@@ -168,7 +168,7 @@ class PreferencesDialog
 	private static final	Insets	EDIT_BUTTON_MARGINS		= new Insets(2, 4, 2, 4);
 
 	private static final	String	DIRECTION_KEYWORDS_STR			= "Direction keywords";
-	private static final	String	EDIT_DIRECTION_KEYWORDS_STR		= "Edit direction keywords | ";
+	private static final	String	EDIT_DIRECTION_KEYWORDS_STR		= "Edit direction keywords : ";
 	private static final	String	KEYWORD_STR						= "keyword";
 	private static final	String	CLUE_REFERENCE_KEYWORD_STR		= "Clue-reference keyword";
 	private static final	String	IMPLICIT_FIELD_DIRECTION_STR	= "Implicit direction of secondary fields";

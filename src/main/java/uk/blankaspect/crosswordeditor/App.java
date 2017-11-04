@@ -740,7 +740,7 @@ public class App
 			}
 		}
 		if (lookAndFeelName != null)
-			showWarningMessage(SHORT_NAME + " | " + CONFIG_ERROR_STR,
+			showWarningMessage(SHORT_NAME + " : " + CONFIG_ERROR_STR,
 							   LAF_ERROR1_STR + lookAndFeelName + LAF_ERROR2_STR);
 
 		// Select all text when a text field gains focus
