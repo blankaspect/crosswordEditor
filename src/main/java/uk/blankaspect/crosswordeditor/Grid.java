@@ -54,6 +54,8 @@ import uk.blankaspect.common.exception.UnexpectedRuntimeException;
 import uk.blankaspect.common.html.CssMediaRule;
 import uk.blankaspect.common.html.CssRuleSet;
 
+import uk.blankaspect.common.indexedsub.IndexedSub;
+
 import uk.blankaspect.common.misc.Base64Encoder;
 import uk.blankaspect.common.misc.ColourUtils;
 import uk.blankaspect.common.misc.IStringKeyed;
@@ -1677,13 +1679,13 @@ abstract class Grid
 
 			String cellSizeStr = Integer.toString(cellSize);
 			CssRuleSet.Decl decl = ruleSet.findDeclaration(CssConstants.Property.WIDTH);
-			decl.value = StringUtils.substitute(PIXEL_SIZE_STR, cellSizeStr);
+			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, cellSizeStr);
 			decl = ruleSet.findDeclaration(CssConstants.Property.HEIGHT);
-			decl.value = StringUtils.substitute(PIXEL_SIZE_STR, cellSizeStr);
+			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, cellSizeStr);
 
 			String colourStr = ColourUtils.colourToHexString(gridColour);
 			decl = ruleSet.findDeclaration(CssConstants.Property.BORDER);
-			decl.value = StringUtils.substitute(decl.value, colourStr);
+			decl.value = IndexedSub.sub(decl.value, colourStr);
 
 			ruleSets.add(ruleSet);
 
@@ -1692,13 +1694,13 @@ abstract class Grid
 
 			String offsetStr = Integer.toString(cellOffset + fieldNumOffset);
 			decl = ruleSet.findDeclaration(CssConstants.Property.TOP);
-			decl.value = StringUtils.substitute(PIXEL_SIZE_STR, offsetStr);
+			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, offsetStr);
 			decl = ruleSet.findDeclaration(CssConstants.Property.LEFT);
-			decl.value = StringUtils.substitute(PIXEL_SIZE_STR, offsetStr);
+			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, offsetStr);
 
 			String fontSizeStr = AppConstants.FORMAT_1_1.format(fieldNumFontSizeFactor * 100.0);
 			decl = ruleSet.findDeclaration(CssConstants.Property.FONT_SIZE);
-			decl.value = StringUtils.substitute(decl.value, fontSizeStr);
+			decl.value = IndexedSub.sub(decl.value, fontSizeStr);
 
 			ruleSets.add(ruleSet);
 
@@ -1707,13 +1709,13 @@ abstract class Grid
 
 			decl = ruleSet.findDeclaration(CssConstants.Property.TOP);
 			double offset = (double)cellOffset / (double)cellSize + ENTRY_TOP_OFFSET_FRACTION;
-			decl.value = StringUtils.substitute(decl.value, AppConstants.FORMAT_1_3.format(offset * 100.0));
+			decl.value = IndexedSub.sub(decl.value, AppConstants.FORMAT_1_3.format(offset * 100.0));
 			decl = ruleSet.findDeclaration(CssConstants.Property.LEFT);
-			decl.value = StringUtils.substitute(PIXEL_SIZE_STR, Integer.toString(cellOffset + ENTRY_LEFT_OFFSET));
+			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(cellOffset + ENTRY_LEFT_OFFSET));
 
 			colourStr = ColourUtils.colourToHexString(entryColour);
 			decl = ruleSet.findDeclaration(CssConstants.Property.COLOUR);
-			decl.value = StringUtils.substitute(decl.value, colourStr);
+			decl.value = IndexedSub.sub(decl.value, colourStr);
 
 			ruleSets.add(ruleSet);
 

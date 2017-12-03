@@ -35,9 +35,10 @@ import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.html.CssMediaRule;
 import uk.blankaspect.common.html.CssRuleSet;
 
+import uk.blankaspect.common.indexedsub.IndexedSub;
+
 import uk.blankaspect.common.misc.ColourUtils;
 import uk.blankaspect.common.misc.EditList;
-import uk.blankaspect.common.misc.StringUtils;
 
 import uk.blankaspect.common.xml.Attribute;
 import uk.blankaspect.common.xml.XmlWriter;
@@ -799,20 +800,20 @@ class BarGrid
 		int outerSize = cellSize + 1;
 		String cellSizeStr = Integer.toString(outerSize);
 		CssRuleSet.Decl decl = ruleSet.findDeclaration(CssConstants.Property.WIDTH);
-		decl.value = StringUtils.substitute(PIXEL_SIZE_STR, cellSizeStr);
+		decl.value = IndexedSub.sub(PIXEL_SIZE_STR, cellSizeStr);
 		decl = ruleSet.findDeclaration(CssConstants.Property.HEIGHT);
-		decl.value = StringUtils.substitute(PIXEL_SIZE_STR, cellSizeStr);
+		decl.value = IndexedSub.sub(PIXEL_SIZE_STR, cellSizeStr);
 
 		int offset = cellOffset - 1;
 		String offsetStr = Integer.toString(offset);
 		decl = ruleSet.findDeclaration(CssConstants.Property.TOP);
-		decl.value = StringUtils.substitute(PIXEL_SIZE_STR, offsetStr);
+		decl.value = IndexedSub.sub(PIXEL_SIZE_STR, offsetStr);
 		decl = ruleSet.findDeclaration(CssConstants.Property.LEFT);
-		decl.value = StringUtils.substitute(PIXEL_SIZE_STR, offsetStr);
+		decl.value = IndexedSub.sub(PIXEL_SIZE_STR, offsetStr);
 
 		String colourStr = ColourUtils.colourToHexString(barColour);
 		decl = ruleSet.findDeclaration(CssConstants.Property.BORDER);
-		decl.value = StringUtils.substitute(decl.value, colourStr);
+		decl.value = IndexedSub.sub(decl.value, colourStr);
 
 		// Add rule set for barred cell
 		ruleSets.add(1, ruleSet);
@@ -838,7 +839,7 @@ class BarGrid
 			{
 				int width = outerSize - ((numVerticalEdges == 1) ? halfBarWidth : barWidth);
 				ruleSet.addDeclaration(CssConstants.Property.WIDTH,
-									   StringUtils.substitute(PIXEL_SIZE_STR, Integer.toString(width)));
+									   IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(width)));
 			}
 
 			// Add a height declaration
@@ -847,22 +848,22 @@ class BarGrid
 			{
 				int height = outerSize - ((numHorizontalEdges == 1) ? halfBarWidth : barWidth);
 				ruleSet.addDeclaration(CssConstants.Property.HEIGHT,
-									   StringUtils.substitute(PIXEL_SIZE_STR, Integer.toString(height)));
+									   IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(height)));
 			}
 
 			// Add a top-offset declaration
 			offsetStr = Integer.toString(offset - halfBarWidth);
 			if (edges.contains(Edge.TOP))
-				ruleSet.addDeclaration(CssConstants.Property.TOP, StringUtils.substitute(PIXEL_SIZE_STR, offsetStr));
+				ruleSet.addDeclaration(CssConstants.Property.TOP, IndexedSub.sub(PIXEL_SIZE_STR, offsetStr));
 
 			// Add a left-offset declaration
 			if (edges.contains(Edge.LEFT))
-				ruleSet.addDeclaration(CssConstants.Property.LEFT, StringUtils.substitute(PIXEL_SIZE_STR, offsetStr));
+				ruleSet.addDeclaration(CssConstants.Property.LEFT, IndexedSub.sub(PIXEL_SIZE_STR, offsetStr));
 
 			// Add border-width declarations
 			for (Edge edge : edges)
-				ruleSet.addDeclaration(StringUtils.substitute(BORDER_WIDTH_PROPERTY, edge.text),
-									   StringUtils.substitute(PIXEL_SIZE_STR, Integer.toString(barWidth)));
+				ruleSet.addDeclaration(IndexedSub.sub(BORDER_WIDTH_PROPERTY, edge.text),
+									   IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(barWidth)));
 
 			// Add the rule set to the list
 			ruleSets.add(ruleSet);

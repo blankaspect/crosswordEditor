@@ -38,9 +38,10 @@ import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.html.CssMediaRule;
 import uk.blankaspect.common.html.CssRuleSet;
 
+import uk.blankaspect.common.indexedsub.IndexedSub;
+
 import uk.blankaspect.common.misc.ColourUtils;
 import uk.blankaspect.common.misc.EditList;
-import uk.blankaspect.common.misc.StringUtils;
 
 import uk.blankaspect.common.xml.Attribute;
 import uk.blankaspect.common.xml.XmlWriter;
@@ -469,7 +470,7 @@ class BlockGrid
 
 	public static String getBlockImagePathname(int size)
 	{
-		return StringUtils.substitute(BLOCK_IMAGE_PATHNAME, Integer.toString(size));
+		return IndexedSub.sub(BLOCK_IMAGE_PATHNAME, Integer.toString(size));
 	}
 
 	//------------------------------------------------------------------
@@ -615,7 +616,7 @@ class BlockGrid
 				{
 					String colourStr = ColourUtils.colourToHexString(config.getHtmlGridColour());
 					CssRuleSet.Decl decl = ruleSet.findDeclaration(CssConstants.Property.BACKGROUND_COLOUR);
-					decl.value = StringUtils.substitute(decl.value, colourStr);
+					decl.value = IndexedSub.sub(decl.value, colourStr);
 				}
 				mediaRule.addRuleSet(ruleSet);
 			}

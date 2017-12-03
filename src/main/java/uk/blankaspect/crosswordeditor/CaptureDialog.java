@@ -84,6 +84,8 @@ import uk.blankaspect.common.gui.PathnamePanel;
 import uk.blankaspect.common.gui.PropertyKeys;
 import uk.blankaspect.common.gui.TitledBorder;
 
+import uk.blankaspect.common.indexedsub.IndexedSub;
+
 import uk.blankaspect.common.misc.ClipboardImage;
 import uk.blankaspect.common.misc.FilenameSuffixFilter;
 import uk.blankaspect.common.misc.MaxValueMap;
@@ -2274,8 +2276,8 @@ class CaptureDialog
 				int endpointTolerance = gridLineEndpointToleranceSpinner.getIntValue();
 				gridInfo = Grid.findGrid(image, brightnessThreshold, minLineLength, minLineSeparation,
 										 endpointTolerance);
-				String messageStr = StringUtils.substitute(GRID_FOUND_STR, Integer.toString(gridInfo.numColumns),
-														   Integer.toString(gridInfo.numRows));
+				String messageStr = IndexedSub.sub(GRID_FOUND_STR, Integer.toString(gridInfo.numColumns),
+												   Integer.toString(gridInfo.numRows));
 				int result = JOptionPane.showConfirmDialog(this, messageStr, GET_GRID_IMAGE_STR,
 														   JOptionPane.YES_NO_CANCEL_OPTION);
 				if (result == JOptionPane.YES_OPTION)
@@ -2291,9 +2293,8 @@ class CaptureDialog
 
 		// Select grid in image
 		Dimension viewportSize = AppConfig.INSTANCE.getGridImageViewportSize();
-		image = ImageRegionSelectionDialog.showDialog(this, SELECT_GRID_STR, viewportSize.width,
-													  viewportSize.height, image,
-													  (gridInfo == null) ? null : gridInfo.getBounds());
+		image = ImageRegionSelectionDialog.showDialog(this, SELECT_GRID_STR, viewportSize.width, viewportSize.height,
+													  image, (gridInfo == null) ? null : gridInfo.getBounds());
 		if (image != null)
 		{
 			gridImage = image;

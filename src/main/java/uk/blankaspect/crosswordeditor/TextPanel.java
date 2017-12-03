@@ -77,6 +77,8 @@ import uk.blankaspect.common.gui.FMenuItem;
 import uk.blankaspect.common.gui.FTextArea;
 import uk.blankaspect.common.gui.GuiUtils;
 
+import uk.blankaspect.common.indexedsub.IndexedSub;
+
 import uk.blankaspect.common.misc.CollectionUtils;
 import uk.blankaspect.common.misc.InputMapUtils;
 import uk.blankaspect.common.misc.KeyAction;
@@ -876,8 +878,7 @@ class TextPanel
 		Matcher matcher = PARAGRAPH_SEPARATOR_PATTERN.matcher(text);
 		List<String> paragraphs = new ArrayList<>();
 		int index = 0;
-		String lineBreakRegex = StringUtils.substitute(CrosswordDocument.LINE_BREAK_REGEX, "!",
-													   RegexUtils.escape(lineBreak));
+		String lineBreakRegex = IndexedSub.sub(CrosswordDocument.LINE_BREAK_REGEX, "!", RegexUtils.escape(lineBreak));
 		while (matcher.find())
 		{
 			String paragraph = text.substring(index, matcher.start()).replaceAll(lineBreakRegex, " ");

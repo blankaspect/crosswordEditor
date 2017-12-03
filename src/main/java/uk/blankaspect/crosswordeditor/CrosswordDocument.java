@@ -65,6 +65,8 @@ import uk.blankaspect.common.html.CssMediaRule;
 import uk.blankaspect.common.html.CssRuleSet;
 import uk.blankaspect.common.html.CssUtils;
 
+import uk.blankaspect.common.indexedsub.IndexedSub;
+
 import uk.blankaspect.common.misc.ArraySet;
 import uk.blankaspect.common.misc.EditList;
 import uk.blankaspect.common.misc.FileWritingMode;
@@ -3216,7 +3218,7 @@ class CrosswordDocument
 
 	public String getLineBreakRegex()
 	{
-		return StringUtils.substitute(LINE_BREAK_REGEX, "=", RegexUtils.escape(lineBreak));
+		return IndexedSub.sub(LINE_BREAK_REGEX, "=", RegexUtils.escape(lineBreak));
 	}
 
 	//------------------------------------------------------------------
@@ -3689,7 +3691,7 @@ class CrosswordDocument
 		CssRuleSet ruleSet = DOCUMENT_RULE_SET.clone();
 
 		CssRuleSet.Decl decl = ruleSet.findDeclaration(CssConstants.Property.FONT_SIZE);
-		decl.value = StringUtils.substitute(decl.value, Integer.toString(styleProperties.fontSize));
+		decl.value = IndexedSub.sub(decl.value, Integer.toString(styleProperties.fontSize));
 
 		if (!styleProperties.fontNames.isEmpty())
 			ruleSet.addDeclaration(CssConstants.Property.FONT_FAMILY, styleProperties.fontNames.toQuotedString());
@@ -3707,8 +3709,8 @@ class CrosswordDocument
 	private String createStylesheet(StyleProperties styleProperties)
 	{
 		StringBuilder buffer = new StringBuilder(4096);
-		String headerComment = StringUtils.substitute(STYLESHEET_COMMENT_STR, grid.getSeparator().getKey(),
-													  Integer.toString(styleProperties.cellSize));
+		String headerComment = IndexedSub.sub(STYLESHEET_COMMENT_STR, grid.getSeparator().getKey(),
+											  Integer.toString(styleProperties.cellSize));
 		buffer.append(CssUtils.createHeaderComment(Arrays.asList("", headerComment, "")));
 		buffer.append('\n');
 
