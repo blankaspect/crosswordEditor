@@ -2,7 +2,7 @@
 
 Direction.java
 
-Direction enumeration.
+Enumeration: direction.
 
 \*====================================================================*/
 
@@ -29,12 +29,13 @@ import java.util.List;
 import java.util.Map;
 
 import uk.blankaspect.common.misc.IStringKeyed;
-import uk.blankaspect.common.misc.StringUtils;
+
+import uk.blankaspect.common.string.StringUtils;
 
 //----------------------------------------------------------------------
 
 
-// DIRECTION ENUMERATION
+// ENUMERATION: DIRECTION
 
 
 enum Direction
@@ -70,51 +71,9 @@ enum Direction
 
 	public static final		EnumSet<Direction>	DEFINED_DIRECTIONS	= EnumSet.of(ACROSS, DOWN);
 
-	public static final		KeywordComparator	KEYWORD_COMPARATOR	= new KeywordComparator();
+	public static final		Comparator<String>	KEYWORD_COMPARATOR;
 
 	private static final	Map<Direction, List<String>>	KEYWORD_LISTS;
-
-////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
-////////////////////////////////////////////////////////////////////////
-
-
-	// KEYWORD COMPARATOR CLASS
-
-
-	private static class KeywordComparator
-		implements Comparator<String>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private KeywordComparator()
-		{
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : Comparator interface
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public int compare(String keyword1,
-						   String keyword2)
-		{
-			int result = Integer.compare(keyword2.length(), keyword1.length());
-			if (result == 0)
-				result = keyword1.compareTo(keyword2);
-			return result;
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -213,16 +172,22 @@ enum Direction
 
 	static
 	{
+		KEYWORD_COMPARATOR = (keyword1, keyword2) ->
+		{
+			int result = Integer.compare(keyword2.length(), keyword1.length());
+			if (result == 0)
+				result = keyword1.compareTo(keyword2);
+			return result;
+		};
+
 		Map<Direction, List<String>> lists = new EnumMap<>(Direction.class);
-		lists.put(Direction.ACROSS,
-				  Arrays.asList("Across", " Across", " across", "Ac", " ac", "A", " a"));
-		lists.put(Direction.DOWN,
-				  Arrays.asList("Down",   " Down",   " down",   "Dn", " dn", "D", " d"));
+		lists.put(Direction.ACROSS, Arrays.asList("Across", " Across", " across", "Ac", " ac", "A", " a"));
+		lists.put(Direction.DOWN,   Arrays.asList("Down",   " Down",   " down",   "Dn", " dn", "D", " d"));
 		KEYWORD_LISTS = Collections.unmodifiableMap(lists);
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	String	key;

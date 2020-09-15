@@ -59,15 +59,21 @@ import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import uk.blankaspect.common.gui.FButton;
-import uk.blankaspect.common.gui.FCheckBox;
-import uk.blankaspect.common.gui.FComboBox;
-import uk.blankaspect.common.gui.FLabel;
-import uk.blankaspect.common.gui.FMenuItem;
-import uk.blankaspect.common.gui.GuiUtils;
-import uk.blankaspect.common.gui.TextRendering;
+import uk.blankaspect.common.swing.action.KeyAction;
 
-import uk.blankaspect.common.misc.KeyAction;
+import uk.blankaspect.common.swing.button.FButton;
+
+import uk.blankaspect.common.swing.checkbox.FCheckBox;
+
+import uk.blankaspect.common.swing.combobox.FComboBox;
+
+import uk.blankaspect.common.swing.label.FLabel;
+
+import uk.blankaspect.common.swing.menu.FMenuItem;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
+
+import uk.blankaspect.common.swing.text.TextRendering;
 
 //----------------------------------------------------------------------
 
@@ -162,7 +168,7 @@ class GridDialog
 			// Set font
 			AppFont.TEXT_FIELD.apply(this);
 
-			// Initialise instance fields
+			// Initialise instance variables
 			numFields = -1;
 
 			// Set preferred size
@@ -234,7 +240,7 @@ class GridDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	int	numFields;
@@ -283,7 +289,7 @@ class GridDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	ActionListener	listener;
@@ -764,7 +770,7 @@ class GridDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class fields
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
 	private static	boolean	highlightFullyIntersecting;
@@ -782,7 +788,7 @@ class GridDialog
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	boolean						accepted;

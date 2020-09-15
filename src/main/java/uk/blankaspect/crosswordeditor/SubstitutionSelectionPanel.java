@@ -62,19 +62,25 @@ import javax.swing.event.ListSelectionListener;
 
 import uk.blankaspect.common.exception.AppException;
 
-import uk.blankaspect.common.gui.FButton;
-import uk.blankaspect.common.gui.FCheckBox;
-import uk.blankaspect.common.gui.FLabel;
-import uk.blankaspect.common.gui.FTextField;
-import uk.blankaspect.common.gui.GuiUtils;
-import uk.blankaspect.common.gui.PropertyKeys;
-import uk.blankaspect.common.gui.SingleSelectionList;
-import uk.blankaspect.common.gui.TextRendering;
-
-import uk.blankaspect.common.misc.KeyAction;
-
 import uk.blankaspect.common.regex.RegexUtils;
 import uk.blankaspect.common.regex.Substitution;
+
+import uk.blankaspect.common.swing.action.KeyAction;
+
+import uk.blankaspect.common.swing.button.FButton;
+
+import uk.blankaspect.common.swing.checkbox.FCheckBox;
+
+import uk.blankaspect.common.swing.label.FLabel;
+
+import uk.blankaspect.common.swing.list.SingleSelectionList;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.common.swing.misc.PropertyKeys;
+
+import uk.blankaspect.common.swing.text.TextRendering;
+
+import uk.blankaspect.common.swing.textfield.FTextField;
 
 //----------------------------------------------------------------------
 
@@ -221,7 +227,7 @@ class SubstitutionSelectionPanel
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	int	regexStrWidth;
@@ -299,7 +305,7 @@ class SubstitutionSelectionPanel
 			//----------------------------------------------------------
 
 		////////////////////////////////////////////////////////////////
-		//  Instance fields
+		//  Instance variables
 		////////////////////////////////////////////////////////////////
 
 			private	String	message;
@@ -632,13 +638,13 @@ class SubstitutionSelectionPanel
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Class fields
+	//  Class variables
 	////////////////////////////////////////////////////////////////////
 
 		private static	Point	location;
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	boolean		accepted;
@@ -915,7 +921,7 @@ class SubstitutionSelectionPanel
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	SubstitutionList	substitutionList;

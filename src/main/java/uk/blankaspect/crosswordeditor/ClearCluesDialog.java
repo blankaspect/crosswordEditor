@@ -46,11 +46,13 @@ import javax.swing.JRadioButton;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
-import uk.blankaspect.common.gui.FButton;
-import uk.blankaspect.common.gui.FLabel;
-import uk.blankaspect.common.gui.GuiUtils;
+import uk.blankaspect.common.swing.action.KeyAction;
 
-import uk.blankaspect.common.misc.KeyAction;
+import uk.blankaspect.common.swing.button.FButton;
+
+import uk.blankaspect.common.swing.label.FLabel;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
 
 //----------------------------------------------------------------------
 
@@ -400,14 +402,14 @@ class ClearCluesDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class fields
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
 	private static	boolean	clearWithEmptyClue;
 	private static	Point	location;
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	boolean			accepted;

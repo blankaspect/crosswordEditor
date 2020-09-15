@@ -36,6 +36,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -56,18 +57,25 @@ import javax.swing.KeyStroke;
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.FileException;
 
-import uk.blankaspect.common.gui.FButton;
-import uk.blankaspect.common.gui.FCheckBox;
-import uk.blankaspect.common.gui.FComboBox;
-import uk.blankaspect.common.gui.FLabel;
-import uk.blankaspect.common.gui.GuiUtils;
-import uk.blankaspect.common.gui.PathnamePanel;
-
 import uk.blankaspect.common.misc.FilenameSuffixFilter;
-import uk.blankaspect.common.misc.KeyAction;
-import uk.blankaspect.common.misc.PropertyString;
 
-import uk.blankaspect.common.windows.FileAssociations;
+import uk.blankaspect.common.platform.windows.FileAssociations;
+
+import uk.blankaspect.common.property.PropertyString;
+
+import uk.blankaspect.common.swing.action.KeyAction;
+
+import uk.blankaspect.common.swing.button.FButton;
+
+import uk.blankaspect.common.swing.checkbox.FCheckBox;
+
+import uk.blankaspect.common.swing.combobox.FComboBox;
+
+import uk.blankaspect.common.swing.container.PathnamePanel;
+
+import uk.blankaspect.common.swing.label.FLabel;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
 
 //----------------------------------------------------------------------
 
@@ -169,7 +177,7 @@ class FileAssociationDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	text;
@@ -229,7 +237,7 @@ class FileAssociationDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	message;
@@ -287,16 +295,16 @@ class FileAssociationDialog
 			StringBuilder buffer = new StringBuilder(256);
 			for (PropertyString.Span span : PropertyString.getSpans(pathname))
 			{
-				if (span.value != null)
+				if (span.getValue() != null)
 				{
-					if (span.kind == PropertyString.Span.Kind.ENVIRONMENT)
+					if (span.getKind() == PropertyString.Span.Kind.ENVIRONMENT)
 					{
 						buffer.append(ENV_VAR_PREFIX);
-						buffer.append(span.key);
+						buffer.append(span.getKey());
 						buffer.append(ENV_VAR_SUFFIX);
 					}
 					else
-						buffer.append(span.value.replace(UNIX_FILE_SEPARATOR, WINDOWS_FILE_SEPARATOR));
+						buffer.append(span.getValue().replace(UNIX_FILE_SEPARATOR, WINDOWS_FILE_SEPARATOR));
 				}
 			}
 			return buffer.toString();
@@ -305,7 +313,7 @@ class FileAssociationDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		String								javaLauncherPathname;
@@ -331,7 +339,7 @@ class FileAssociationDialog
 		// Set icons
 		setIconImages(owner.getIconImages());
 
-		// Initialise instance fields
+		// Initialise instance variables
 		javaLauncherFileChooser = new JFileChooser(System.getProperty(JAVA_HOME_KEY));
 		javaLauncherFileChooser.setDialogTitle(JAVA_LAUNCHER_FILE_STR);
 		javaLauncherFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -768,8 +776,8 @@ class FileAssociationDialog
 
 	private Result getResult()
 	{
-		return (accepted ? new Result(javaLauncherPathname, jarPathname, iconPathname,
-									  action == Action.REMOVE, scriptLifeCycle)
+		return (accepted ? new Result(javaLauncherPathname, jarPathname, iconPathname, action == Action.REMOVE,
+									  scriptLifeCycle)
 						 : null);
 	}
 
@@ -963,7 +971,7 @@ class FileAssociationDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class fields
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
 	private static	Point								location;
@@ -1002,10 +1010,8 @@ class FileAssociationDialog
 		// JAR path
 		try
 		{
-			Path path = Paths.get(FileAssociationDialog.class.getProtectionDomain().getCodeSource().
-																				getLocation().toURI());
-			if (path.getFileName().toString().endsWith(AppConstants.JAR_FILE_SUFFIX) &&
-				 Files.exists(path))
+			Path path = Paths.get(FileAssociationDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+			if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) && path.toString().endsWith(AppConstants.JAR_FILE_SUFFIX))
 				defaultJarPath = path.toAbsolutePath();
 		}
 		catch (Exception e)
@@ -1015,7 +1021,7 @@ class FileAssociationDialog
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	boolean										accepted;

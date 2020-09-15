@@ -24,7 +24,7 @@ import org.w3c.dom.Element;
 
 import uk.blankaspect.common.exception.AppException;
 
-import uk.blankaspect.common.misc.ParameterSetList;
+import uk.blankaspect.common.property.ParameterSetList;
 
 import uk.blankaspect.common.xml.XmlParseException;
 

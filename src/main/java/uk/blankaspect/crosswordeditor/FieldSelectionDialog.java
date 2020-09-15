@@ -49,13 +49,17 @@ import javax.swing.JDialog;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
-import uk.blankaspect.common.gui.Colours;
-import uk.blankaspect.common.gui.GuiUtils;
-import uk.blankaspect.common.gui.TextRendering;
+import uk.blankaspect.common.number.NumberUtils;
 
-import uk.blankaspect.common.misc.KeyAction;
-import uk.blankaspect.common.misc.NumberUtils;
-import uk.blankaspect.common.misc.StringUtils;
+import uk.blankaspect.common.string.StringUtils;
+
+import uk.blankaspect.common.swing.action.KeyAction;
+
+import uk.blankaspect.common.swing.colour.Colours;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
+
+import uk.blankaspect.common.swing.text.TextRendering;
 
 //----------------------------------------------------------------------
 
@@ -229,7 +233,7 @@ class FieldSelectionDialog
 
 		private FieldSelectionPanel(Grid.Field.Id selectedId)
 		{
-			// Initialise instance fields
+			// Initialise instance variables
 			this.selectedId = selectedId;
 
 			// Initialise cell dimensions
@@ -711,7 +715,7 @@ class FieldSelectionDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	int						numColumns;
@@ -738,7 +742,7 @@ class FieldSelectionDialog
 		// Call superclass constructor
 		super(GuiUtils.getWindow(parent), Dialog.ModalityType.APPLICATION_MODAL);
 
-		// Initialise instance fields
+		// Initialise instance variables
 		this.fieldMap = fieldMap;
 
 
@@ -841,7 +845,7 @@ class FieldSelectionDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	boolean									accepted;

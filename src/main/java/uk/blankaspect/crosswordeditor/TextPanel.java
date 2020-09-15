@@ -71,20 +71,27 @@ import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoableEdit;
 import javax.swing.undo.UndoManager;
 
-import uk.blankaspect.common.exception.UnexpectedRuntimeException;
+import uk.blankaspect.common.collection.CollectionUtils;
 
-import uk.blankaspect.common.gui.FMenuItem;
-import uk.blankaspect.common.gui.FTextArea;
-import uk.blankaspect.common.gui.GuiUtils;
+import uk.blankaspect.common.exception.UnexpectedRuntimeException;
 
 import uk.blankaspect.common.indexedsub.IndexedSub;
 
-import uk.blankaspect.common.misc.CollectionUtils;
-import uk.blankaspect.common.misc.InputMapUtils;
-import uk.blankaspect.common.misc.KeyAction;
-import uk.blankaspect.common.misc.StringUtils;
-
 import uk.blankaspect.common.regex.RegexUtils;
+
+import uk.blankaspect.common.string.StringUtils;
+
+import uk.blankaspect.common.swing.action.KeyAction;
+
+import uk.blankaspect.common.swing.font.FontUtils;
+
+import uk.blankaspect.common.swing.inputmap.InputMapUtils;
+
+import uk.blankaspect.common.swing.menu.FMenuItem;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
+
+import uk.blankaspect.common.swing.textarea.FTextArea;
 
 //----------------------------------------------------------------------
 
@@ -409,9 +416,8 @@ class TextPanel
 				int height = getHeight();
 
 				// Fill interior
-				gr.setColor(isEnabled() ? (isSelected() != getModel().isArmed())
-																			? HIGHLIGHTED_BACKGROUND_COLOUR
-																			: BACKGROUND_COLOUR
+				gr.setColor(isEnabled() ? (isSelected() != getModel().isArmed()) ? HIGHLIGHTED_BACKGROUND_COLOUR
+																				 : BACKGROUND_COLOUR
 										: getBackground());
 				gr.fillRect(0, 0, width, height);
 
@@ -501,6 +507,7 @@ class TextPanel
 	//  Instance methods : overriding methods
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public boolean addEdit(UndoableEdit edit)
 		{
 			return ((compoundEdit == null) ? super.addEdit(edit) : compoundEdit.addEdit(edit));
@@ -533,7 +540,7 @@ class TextPanel
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	CompoundEdit	compoundEdit;
@@ -574,6 +581,7 @@ class TextPanel
 	//  Instance methods : ActionListener interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public void actionPerformed(ActionEvent event)
 		{
 			listener.actionPerformed(event);
@@ -582,7 +590,7 @@ class TextPanel
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	ActionListener	listener;
@@ -605,9 +613,7 @@ class TextPanel
 	public TextPanel(int          numRows,
 					 List<String> paragraphs)
 	{
-		this(numRows,
-			 CollectionUtils.isNullOrEmpty(paragraphs) ? null : StringUtils.join("\n\n", paragraphs),
-			 false);
+		this(numRows, CollectionUtils.isNullOrEmpty(paragraphs) ? null : StringUtils.join("\n\n", paragraphs), false);
 		textArea.setCaretPosition(0);
 	}
 
@@ -617,7 +623,7 @@ class TextPanel
 					 String  text,
 					 boolean noLfs)
 	{
-		// Initialise instance fields
+		// Initialise instance variables
 		undoManager = new TextAreaUndoManager();
 		undoManager.setLimit(AppConfig.INSTANCE.getMaxEditListLength());
 
@@ -637,8 +643,7 @@ class TextPanel
 									   new HashSet<KeyStroke>(FOCUS_BACKWARD_KEYS));
 		if (noLfs)
 		{
-			inputMapKey = InputMapUtils.removeFromInputMap(textArea, JComponent.WHEN_FOCUSED,
-														   ENTER_KEY);
+			inputMapKey = InputMapUtils.removeFromInputMap(textArea, JComponent.WHEN_FOCUSED, ENTER_KEY);
 			textArea.addPropertyChangeListener(this);
 		}
 		textArea.setText(text);
@@ -649,7 +654,7 @@ class TextPanel
 
 		// Set size of viewport
 		FontMetrics fontMetrics = textArea.getFontMetrics(textArea.getFont());
-		int width = NUM_COLUMNS * GuiUtils.getCharWidth('0', fontMetrics);
+		int width = NUM_COLUMNS * FontUtils.getCharWidth('0', fontMetrics);
 		int height = numRows * fontMetrics.getHeight();
 		textAreaScrollPane.getViewport().setPreferredSize(new Dimension(width, height));
 		GuiUtils.setViewportBorder(textAreaScrollPane, VERTICAL_MARGIN, HORIZONTAL_MARGIN);
@@ -727,8 +732,7 @@ class TextPanel
 		{
 			int keyCode = KeyEvent.getExtendedKeyCodeForChar(attr.getKeyChar());
 			KeyStroke keyStroke = KeyStroke.getKeyStroke(keyCode, KeyEvent.CTRL_DOWN_MASK);
-			styleCommands.add(new KeyAction.KeyCommandPair(keyStroke,
-														   Command.APPLY_STYLE + attr.getKey()));
+			styleCommands.add(new KeyAction.KeyCommandPair(keyStroke, Command.APPLY_STYLE + attr.getKey()));
 		}
 		KeyAction.create(textArea, JComponent.WHEN_FOCUSED, this, styleCommands);
 	}
@@ -739,6 +743,7 @@ class TextPanel
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void actionPerformed(ActionEvent event)
 	{
 		String command = event.getActionCommand();
@@ -771,6 +776,7 @@ class TextPanel
 //  Instance methods : CaretListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void caretUpdate(CaretEvent event)
 	{
 		GuiUtils.setAllEnabled(styleButtonPanel, isSelection());
@@ -782,6 +788,7 @@ class TextPanel
 //  Instance methods : MouseListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void mouseClicked(MouseEvent event)
 	{
 		// do nothing
@@ -789,6 +796,7 @@ class TextPanel
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void mouseEntered(MouseEvent event)
 	{
 		// do nothing
@@ -796,6 +804,7 @@ class TextPanel
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void mouseExited(MouseEvent event)
 	{
 		// do nothing
@@ -803,6 +812,7 @@ class TextPanel
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void mousePressed(MouseEvent event)
 	{
 		showContextMenu(event);
@@ -810,6 +820,7 @@ class TextPanel
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void mouseReleased(MouseEvent event)
 	{
 		showContextMenu(event);
@@ -821,6 +832,7 @@ class TextPanel
 //  Instance methods : PropertyChangeListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void propertyChange(PropertyChangeEvent event)
 	{
 		if (event.getPropertyName().equals(ANCESTOR_PROPERTY_NAME) && (event.getNewValue() == null))
@@ -983,8 +995,8 @@ class TextPanel
 			try
 			{
 				Document document = textArea.getDocument();
-				Matcher matcher = PARAGRAPH_SEPARATOR_PATTERN.
-										matcher(document.getText(startOffset, endOffset - startOffset));
+				Matcher matcher = PARAGRAPH_SEPARATOR_PATTERN.matcher(document.getText(startOffset,
+																					   endOffset - startOffset));
 				List<Integer> offsets = new ArrayList<>();
 				offsets.add(startOffset);
 				while (matcher.find())
@@ -1108,7 +1120,7 @@ class TextPanel
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	int					inputMapKey;

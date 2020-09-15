@@ -46,11 +46,13 @@ import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import uk.blankaspect.common.gui.GuiUtils;
-import uk.blankaspect.common.gui.TextRendering;
+import uk.blankaspect.common.collection.ArraySet;
 
-import uk.blankaspect.common.misc.ArraySet;
-import uk.blankaspect.common.misc.KeyAction;
+import uk.blankaspect.common.swing.action.KeyAction;
+
+import uk.blankaspect.common.swing.font.FontUtils;
+
+import uk.blankaspect.common.swing.text.TextRendering;
 
 //----------------------------------------------------------------------
 
@@ -148,8 +150,7 @@ abstract class GridPanel
 
 		private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS	=
 		{
-			new KeyAction.KeyCommandPair(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0),
-										 Command.TOGGLE_BLOCK)
+			new KeyAction.KeyCommandPair(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), Command.TOGGLE_BLOCK)
 		};
 
 	////////////////////////////////////////////////////////////////////
@@ -172,7 +173,7 @@ abstract class GridPanel
 			// Call superclass constructor
 			super(document);
 
-			// Initialise instance fields
+			// Initialise instance variables
 			this.grid = (BlockGrid)document.getGrid();
 		}
 
@@ -218,7 +219,7 @@ abstract class GridPanel
 		protected int[] getFieldNumberOffsets(int row,
 											  int column)
 		{
-			return new int[]{ 1, 0 };
+			return new int[] { 1, 0 };
 		}
 
 		//--------------------------------------------------------------
@@ -231,8 +232,7 @@ abstract class GridPanel
 				for (int column = 0; column < numColumns; column++)
 				{
 					if (grid.getCell(row, column).isBlocked())
-						gr.fillRect(column * cellSize + 1, row * cellSize + 1,
-									cellSize - 1, cellSize - 1);
+						gr.fillRect(column * cellSize + 1, row * cellSize + 1, cellSize - 1, cellSize - 1);
 				}
 			}
 		}
@@ -283,7 +283,7 @@ abstract class GridPanel
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	BlockGrid	grid;
@@ -365,7 +365,7 @@ abstract class GridPanel
 			// Call superclass constructor
 			super(document);
 
-			// Initialise instance fields
+			// Initialise instance variables
 			this.grid = (BarGrid)document.getGrid();
 		}
 
@@ -437,8 +437,8 @@ abstract class GridPanel
 											  int column)
 		{
 			int barWidthIn = (AppConfig.INSTANCE.getBarGridBarWidth() - 1) / 2;
-			return new int[]{ cellHasLeftBar(row, column) ? barWidthIn + 1 : 1,
-							  cellHasTopBar(row, column) ? barWidthIn : 0 };
+			return new int[] { cellHasLeftBar(row, column) ? barWidthIn + 1 : 1,
+							   cellHasTopBar(row, column) ? barWidthIn : 0 };
 		}
 
 		//--------------------------------------------------------------
@@ -461,8 +461,7 @@ abstract class GridPanel
 						int width = cellSize - 1;
 						boolean left0 = (row > 0) && cellHasLeftBar(row - 1, column);
 						boolean left1 = cellHasLeftBar(row, column);
-						if ((column > 0) && (left0 || left1) &&
-							 !(cellHasTopBar(row, column - 1) || (left0 && left1)))
+						if ((column > 0) && (left0 || left1) && !(cellHasTopBar(row, column - 1) || (left0 && left1)))
 						{
 							x -= barWidthOut + 1;
 							width += barWidthOut + 1;
@@ -471,8 +470,7 @@ abstract class GridPanel
 						{
 							left0 = (row > 0) && cellHasLeftBar(row - 1, column + 1);
 							left1 = cellHasLeftBar(row, column + 1);
-							if ((left0 || left1) &&
-								 !(cellHasTopBar(row, column + 1) || (left0 && left1)))
+							if ((left0 || left1) && !(cellHasTopBar(row, column + 1) || (left0 && left1)))
 								width += barWidthIn + 1;
 						}
 						gr.fillRect(x, y, width, barWidth);
@@ -486,8 +484,7 @@ abstract class GridPanel
 						int height = cellSize - 1;
 						boolean top0 = (column > 0) && cellHasTopBar(row, column - 1);
 						boolean top1 = cellHasTopBar(row, column);
-						if ((row > 0) && (top0 || top1) &&
-							 !(cellHasLeftBar(row - 1, column) || (top0 && top1)))
+						if ((row > 0) && (top0 || top1) && !(cellHasLeftBar(row - 1, column) || (top0 && top1)))
 						{
 							y -= barWidthOut + 1;
 							height += barWidthOut + 1;
@@ -496,8 +493,7 @@ abstract class GridPanel
 						{
 							top0 = (column > 0) && cellHasTopBar(row + 1, column - 1);
 							top1 = cellHasTopBar(row + 1, column);
-							if ((top0 || top1) &&
-								 !(cellHasLeftBar(row + 1, column) || (top0 && top1)))
+							if ((top0 || top1) && !(cellHasLeftBar(row + 1, column) || (top0 && top1)))
 								height += barWidthIn + 1;
 						}
 						gr.fillRect(x, y, barWidth, height);
@@ -522,11 +518,9 @@ abstract class GridPanel
 			if (cell.hasBar(BarGrid.Edge.LEFT))
 				gr.fillRect(column * cellSize + 1, row * cellSize + 1, barWidthIn, cellSize - 1);
 			if (cell.hasBar(BarGrid.Edge.BOTTOM))
-				gr.fillRect(column * cellSize + 1, (row + 1) * cellSize - barWidthOut, cellSize - 1,
-							barWidthOut);
+				gr.fillRect(column * cellSize + 1, (row + 1) * cellSize - barWidthOut, cellSize - 1, barWidthOut);
 			if (cell.hasBar(BarGrid.Edge.RIGHT))
-				gr.fillRect((column + 1) * cellSize - barWidthOut, row * cellSize + 1, barWidthOut,
-							cellSize - 1);
+				gr.fillRect((column + 1) * cellSize - barWidthOut, row * cellSize + 1, barWidthOut, cellSize - 1);
 		}
 
 		//--------------------------------------------------------------
@@ -659,7 +653,7 @@ abstract class GridPanel
 		}
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	BarGrid	grid;
@@ -740,7 +734,7 @@ abstract class GridPanel
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	boolean	visible;
@@ -783,7 +777,7 @@ abstract class GridPanel
 	private GridPanel(int numColumns,
 					  int numRows)
 	{
-		// Initialise instance fields
+		// Initialise instance variables
 		this.numColumns = numColumns;
 		this.numRows = numRows;
 		cellSize = AppConfig.INSTANCE.getGridCellSize(Grid.Separator.BLOCK);
@@ -997,8 +991,8 @@ abstract class GridPanel
 					if (field.containsCell(row, column))
 					{
 						fillColour = config.getViewColour((isFocusOwner() && selectedFields.enabled)
-													? CrosswordView.Colour.FOCUSED_SELECTED_FIELD_BACKGROUND
-													: CrosswordView.Colour.SELECTED_FIELD_BACKGROUND);
+															? CrosswordView.Colour.FOCUSED_SELECTED_FIELD_BACKGROUND
+															: CrosswordView.Colour.SELECTED_FIELD_BACKGROUND);
 						break;
 					}
 				}
@@ -1038,7 +1032,7 @@ abstract class GridPanel
 				FontMetrics fontMetrics = gr.getFontMetrics();
 				char ch = grid.getEntryValue(row, column);
 				gr.drawString(Character.toString(ch), x + (cellSize - fontMetrics.charWidth(ch)) / 2,
-							  y + GuiUtils.getBaselineOffset(cellSize, fontMetrics));
+							  y + FontUtils.getBaselineOffset(cellSize, fontMetrics));
 			}
 
 			// Draw caret
@@ -1069,8 +1063,8 @@ abstract class GridPanel
 
 			// Fill background of selected fields
 			gr.setColor(config.getViewColour((isFocusOwner() && selectedFields.enabled)
-													? CrosswordView.Colour.FOCUSED_SELECTED_FIELD_BACKGROUND
-													: CrosswordView.Colour.SELECTED_FIELD_BACKGROUND));
+															? CrosswordView.Colour.FOCUSED_SELECTED_FIELD_BACKGROUND
+															: CrosswordView.Colour.SELECTED_FIELD_BACKGROUND));
 			for (Grid.Field field : selectedFields.fields)
 			{
 				int x = field.getColumn() * cellSize;
@@ -1183,7 +1177,7 @@ abstract class GridPanel
 							char ch = grid.getEntryValue(row, column);
 							int charWidth = fontMetrics.charWidth(ch);
 							x = column * cellSize + 1 + (cellSize - charWidth) / 2;
-							y = row * cellSize + 1 + GuiUtils.getBaselineOffset(cellSize, fontMetrics);
+							y = row * cellSize + 1 + FontUtils.getBaselineOffset(cellSize, fontMetrics);
 							gr.drawString(Character.toString(ch), x, y);
 						}
 					}
@@ -1241,8 +1235,7 @@ abstract class GridPanel
 						 new Grid.EntryValue(caretPosition.row, caretPosition.column, value));
 		command.putValue(CrosswordDocument.Command.Property.DIRECTION, getSelectedFieldDirection());
 		command.execute();
-		repaint(caretPosition.column * cellSize + 1, caretPosition.row * cellSize + 1,
-				cellSize - 1, cellSize - 1);
+		repaint(caretPosition.column * cellSize + 1, caretPosition.row * cellSize + 1, cellSize - 1, cellSize - 1);
 		return true;
 	}
 
@@ -1475,8 +1468,7 @@ abstract class GridPanel
 						fields = incrementCaretRow(position, increment);
 					else
 					{
-						List<Grid.Field> flds = grid.findFields(position.row, position.column,
-																Direction.DOWN);
+						List<Grid.Field> flds = grid.findFields(position.row, position.column, Direction.DOWN);
 						if (!flds.isEmpty())
 						{
 							position.row += increment;
@@ -1485,8 +1477,7 @@ abstract class GridPanel
 								Grid.Field.Id id = flds.get(0).getId();
 								flds = grid.findFields(position.row, position.column, Direction.DOWN);
 								if (!flds.isEmpty() && flds.get(0).getId().equals(id))
-									fields = getClueFields(position.row, position.column,
-														   Direction.ACROSS);
+									fields = getClueFields(position.row, position.column, Direction.ACROSS);
 							}
 						}
 					}
@@ -1694,8 +1685,7 @@ abstract class GridPanel
 				flds.addAll(grid.findFields(position.row, position.column, Direction.ACROSS));
 				for (Grid.Field field : flds)
 				{
-					fields = getClueFields(position.row, position.column,
-										   field.getDirection());
+					fields = getClueFields(position.row, position.column, field.getDirection());
 					if (fields != null)
 						break;
 				}
@@ -1788,13 +1778,13 @@ abstract class GridPanel
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class fields
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
 	private static	Caret	caret	= new Caret();
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	protected	CrosswordDocument		document;

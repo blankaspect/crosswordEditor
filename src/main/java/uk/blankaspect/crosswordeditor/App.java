@@ -21,6 +21,11 @@ package uk.blankaspect.crosswordeditor;
 import java.awt.Point;
 
 import java.io.File;
+import java.io.IOException;
+
+import java.time.LocalDateTime;
+
+import java.time.format.DateTimeFormatter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,25 +39,35 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 
+import uk.blankaspect.common.cls.ClassUtils;
+
+import uk.blankaspect.common.config.PortNumber;
+
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.ExceptionUtils;
 
-import uk.blankaspect.common.gui.GuiUtils;
-import uk.blankaspect.common.gui.QuestionDialog;
-import uk.blankaspect.common.gui.TextRendering;
+import uk.blankaspect.common.exception2.LocationException;
 
-import uk.blankaspect.common.misc.CalendarTime;
-import uk.blankaspect.common.misc.ClassUtils;
+import uk.blankaspect.common.filesystem.PathnameUtils;
+
+import uk.blankaspect.common.logging.ErrorLogger;
+
 import uk.blankaspect.common.misc.DataTxChannel;
 import uk.blankaspect.common.misc.FilenameSuffixFilter;
-import uk.blankaspect.common.misc.PortNumber;
-import uk.blankaspect.common.misc.PropertyString;
-import uk.blankaspect.common.misc.ResourceProperties;
-import uk.blankaspect.common.misc.StringUtils;
 
-import uk.blankaspect.common.textfield.TextFieldUtils;
+import uk.blankaspect.common.platform.windows.FileAssociations;
 
-import uk.blankaspect.common.windows.FileAssociations;
+import uk.blankaspect.common.resource.ResourceProperties;
+
+import uk.blankaspect.common.string.StringUtils;
+
+import uk.blankaspect.common.swing.dialog.QuestionDialog;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
+
+import uk.blankaspect.common.swing.text.TextRendering;
+
+import uk.blankaspect.common.swing.textfield.TextFieldUtils;
 
 //----------------------------------------------------------------------
 
@@ -80,13 +95,16 @@ public class App
 	private static final	String	VERSION_PROPERTY_KEY	= "version";
 	private static final	String	BUILD_PROPERTY_KEY		= "build";
 	private static final	String	RELEASE_PROPERTY_KEY	= "release";
-	private static final	String	VIEW_KEY				= "view";
-	private static final	String	DO_NOT_VIEW_KEY			= "doNotView";
-	private static final	String	OS_NAME_KEY				= "os.name";
 
-	private static final	String	RX_ID	= App.class.getCanonicalName();
+	private static final	String	VERSION_DATE_TIME_PATTERN	= "uuuuMMdd-HHmmss";
 
 	private static final	String	BUILD_PROPERTIES_FILENAME	= "build.properties";
+
+	private static final	String	VIEW_KEY		= "view";
+	private static final	String	DO_NOT_VIEW_KEY	= "doNotView";
+	private static final	String	OS_NAME_KEY		= "os.name";
+
+	private static final	String	RX_ID	= App.class.getCanonicalName();
 
 	private static final	String	ASSOC_FILE_KIND_KEY		= "BlankAspect." + SHORT_NAME + ".document";
 	private static final	String	ASSOC_FILE_KIND_TEXT	= "CrosswordEditor document";
@@ -156,7 +174,7 @@ public class App
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	CrosswordDocument	document;
@@ -295,11 +313,8 @@ public class App
 			}
 			else
 			{
-				long time = System.currentTimeMillis();
 				buffer.append('b');
-				buffer.append(CalendarTime.dateToString(time));
-				buffer.append('-');
-				buffer.append(CalendarTime.hoursMinsToString(time));
+				buffer.append(DateTimeFormatter.ofPattern(VERSION_DATE_TIME_PATTERN).format(LocalDateTime.now()));
 			}
 			versionStr = buffer.toString();
 		}
@@ -388,15 +403,7 @@ public class App
 
 	public void executeCommand(AppCommand command)
 	{
-		// If a command is running, restart file-check timer if necessary ...
-		if (executingCommand)
-		{
-			if (command == AppCommand.CHECK_MODIFIED_FILE)
-				fileCheckTimer.restart();
-		}
-
-		// ... otherwise, execute command
-		else
+		if (!executingCommand)
 		{
 			// Prevent another command until current command is finished
 			executingCommand = true;
@@ -489,7 +496,6 @@ public class App
 				openFiles(pendingFiles);
 				pendingFiles.clear();
 				mainWindow.updateAll();
-				fileCheckTimer.start();
 			}
 
 			// Allow another command
@@ -664,17 +670,40 @@ public class App
 
 	private void init(String[] args)
 	{
-		// Initialise instance fields
+		// Log stack trace of uncaught exception
+		if (ClassUtils.isFromJar(getClass()))
+		{
+			Thread.setDefaultUncaughtExceptionHandler((thread, exception) ->
+			{
+				try
+				{
+					ErrorLogger.INSTANCE.write(exception);
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+			});
+		}
+
+		// Initialise instance variables
 		documentsViews = new ArrayList<>();
 		showViewHtmlFileMessage = true;
 		pendingFiles = new ArrayList<>();
 
 		// Read build properties
-		buildProperties = new ResourceProperties(BUILD_PROPERTIES_FILENAME, getClass());
+		try
+		{
+			buildProperties = new ResourceProperties(BUILD_PROPERTIES_FILENAME);
+		}
+		catch (LocationException e)
+		{
+			e.printStackTrace();
+		}
 
 		// Create list of files from command-line arguments
 		List<File> files = Arrays.stream(args)
-									.map(arg -> new File(PropertyString.parsePathname(arg)))
+									.map(arg -> new File(PathnameUtils.parsePathname(arg)))
 									.collect(Collectors.toList());
 
 		// Read TX port number from file
@@ -705,7 +734,7 @@ public class App
 				SwingUtilities.invokeLater(() ->
 				{
 					// Add pathnames to list of pending files
-					List<String> pathnames = Arrays.asList(data.split("\\n"));
+					List<String> pathnames = StringUtils.split(data, '\n');
 					if (!pathnames.isEmpty())
 						pendingFiles.addAll(pathnames.stream()
 														.filter(pathname -> !pathname.isEmpty())
@@ -767,9 +796,7 @@ public class App
 			mainWindow = new MainWindow();
 
 			// Start file-check timer
-			fileCheckTimer = new Timer(FILE_CHECK_TIMER_INTERVAL, AppCommand.CHECK_MODIFIED_FILE);
-			fileCheckTimer.setRepeats(false);
-			fileCheckTimer.start();
+			new Timer(FILE_CHECK_TIMER_INTERVAL, AppCommand.CHECK_MODIFIED_FILE).start();
 
 			// Open any files that were specified as command-line arguments
 			if (!files.isEmpty())
@@ -822,8 +849,7 @@ public class App
 	private File chooseSave(File file)
 	{
 		String filenameSuffix = AppConfig.INSTANCE.getFilenameSuffix();
-		saveFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.CROSSWORD_FILES_STR,
-															   filenameSuffix));
+		saveFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.CROSSWORD_FILES_STR, filenameSuffix));
 		saveFileChooser.setSelectedFile((file == null) ? new File("") : file.getAbsoluteFile());
 		saveFileChooser.rescanCurrentDirectory();
 		return ((saveFileChooser.showSaveDialog(mainWindow) == JFileChooser.APPROVE_OPTION)
@@ -839,9 +865,8 @@ public class App
 															 : file.getAbsoluteFile());
 		exportHtmlFileChooser.rescanCurrentDirectory();
 		return ((exportHtmlFileChooser.showSaveDialog(mainWindow) == JFileChooser.APPROVE_OPTION)
-											? Utils.appendSuffix(exportHtmlFileChooser.getSelectedFile(),
-																 AppConstants.HTML_FILE_SUFFIX)
-											: null);
+							? Utils.appendSuffix(exportHtmlFileChooser.getSelectedFile(), AppConstants.HTML_FILE_SUFFIX)
+							: null);
 	}
 
 	//------------------------------------------------------------------
@@ -889,8 +914,8 @@ public class App
 				{
 					String[] optionStrs = Utils.getOptionStrings(AppConstants.CONTINUE_STR);
 					if (JOptionPane.showOptionDialog(mainWindow, e, OPEN_FILE_STR, JOptionPane.OK_CANCEL_OPTION,
-													 JOptionPane.ERROR_MESSAGE, null, optionStrs,
-													 optionStrs[1]) != JOptionPane.OK_OPTION)
+													 JOptionPane.ERROR_MESSAGE, null, optionStrs, optionStrs[1])
+																							!= JOptionPane.OK_OPTION)
 						break;
 				}
 			}
@@ -914,18 +939,25 @@ public class App
 				{
 					String messageStr = Utils.getPathname(file) + MODIFIED_MESSAGE_STR;
 					if (JOptionPane.showConfirmDialog(mainWindow, messageStr, MODIFIED_FILE_STR,
-													  JOptionPane.YES_NO_OPTION,
-													  JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
+													  JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
+																							== JOptionPane.YES_OPTION)
 					{
-						revertDocument(file);
-						mainWindow.updateAll();
+						try
+						{
+							revertDocument(file);
+							mainWindow.updateAll();
+						}
+						catch (AppException e)
+						{
+							document.setTimestamp(currentTimestamp);
+							throw e;
+						}
 					}
 					else
 						document.setTimestamp(currentTimestamp);
 				}
 			}
 		}
-		fileCheckTimer.start();
 	}
 
 	//------------------------------------------------------------------
@@ -985,10 +1017,9 @@ public class App
 			{
 				String messageStr = Utils.getPathname(file) + REVERT_MESSAGE_STR;
 				String[] optionStrs = Utils.getOptionStrings(REVERT_STR);
-				if (JOptionPane.showOptionDialog(mainWindow, messageStr, REVERT_FILE_STR,
-												 JOptionPane.OK_CANCEL_OPTION,
-												 JOptionPane.QUESTION_MESSAGE, null, optionStrs,
-												 optionStrs[1]) == JOptionPane.OK_OPTION)
+				if (JOptionPane.showOptionDialog(mainWindow, messageStr, REVERT_FILE_STR, JOptionPane.OK_CANCEL_OPTION,
+												 JOptionPane.QUESTION_MESSAGE, null, optionStrs, optionStrs[1])
+																							== JOptionPane.OK_OPTION)
 					revertDocument(file);
 			}
 		}
@@ -1066,10 +1097,9 @@ public class App
 			// Specify export parameters
 			Grid.Separator separator = document.getGrid().getSeparator();
 			AppConfig config = AppConfig.INSTANCE;
-			ExportHtmlDialog.Result result =
-										ExportHtmlDialog.showDialog(mainWindow, separator,
-																	config.getHtmlStylesheetKind(),
-																	config.getHtmlCellSize(separator));
+			ExportHtmlDialog.Result result = ExportHtmlDialog.showDialog(mainWindow, separator,
+																		 config.getHtmlStylesheetKind(),
+																		 config.getHtmlCellSize(separator));
 			if (result == null)
 				return;
 
@@ -1088,8 +1118,8 @@ public class App
 				{
 					String filename = file.getName();
 					filename = filename.endsWith(config.getFilenameSuffix())
-									? StringUtils.removeSuffix(filename, config.getFilenameSuffix())
-									: StringUtils.removeFromLast(filename, '.');
+														? StringUtils.removeSuffix(filename, config.getFilenameSuffix())
+														: StringUtils.getPrefixLast(filename, '.');
 					file = new File(file.getParentFile(), filename + AppConstants.HTML_FILE_SUFFIX);
 				}
 			}
@@ -1103,25 +1133,22 @@ public class App
 
 			// Write HTML file
 			CrosswordDocument.StyleProperties styleProperties =
-									new CrosswordDocument.StyleProperties(config.getHtmlFontNames(),
-																		  config.getHtmlFontSize(),
-																		  result.cellSize,
-																		  config.getHtmlGridColour(),
-																		  config.getHtmlEntryColour(),
-																		  config.getHtmlFieldNumberFontSizeFactor());
-			Task task = new Task.ExportDocumentAsHtml(document, file, result.stylesheetKind,
-													  styleProperties, result.writeStylesheet,
-													  result.writeBlockImage, result.writeEntries);
+							new CrosswordDocument.StyleProperties(config.getHtmlFontNames(), config.getHtmlFontSize(),
+																  result.cellSize, config.getHtmlGridColour(),
+																  config.getHtmlEntryColour(),
+																  config.getHtmlFieldNumFontSizeFactor());
+			Task task = new Task.ExportDocumentAsHtml(document, file, result.stylesheetKind, styleProperties,
+													  result.writeStylesheet, result.writeBlockImage,
+													  result.writeEntries);
 			TaskProgressDialog.showDialog(mainWindow, EXPORT_AS_HTML_STR, task);
 
 			// Show "View HTML file" message
 			if (showViewHtmlFileMessage)
 			{
-				QuestionDialog.Result viewResult =
-										QuestionDialog.showDialog(mainWindow, VIEW_FILE_STR,
-																  new String[]{ VIEW_HTML_FILE_STR },
-																  VIEW_FILE_OPTIONS, 0, DO_NOT_VIEW_KEY,
-																  DO_NOT_SHOW_AGAIN_STR);
+				QuestionDialog.Result viewResult = QuestionDialog.showDialog(mainWindow, VIEW_FILE_STR,
+																			 new String[] { VIEW_HTML_FILE_STR },
+																			 VIEW_FILE_OPTIONS, 0, DO_NOT_VIEW_KEY,
+																			 DO_NOT_SHOW_AGAIN_STR);
 				if (viewResult.checkBoxSelected)
 					showViewHtmlFileMessage = false;
 				if (viewResult.selectedKey.equals(QuestionDialog.CANCEL_KEY))
@@ -1131,7 +1158,11 @@ public class App
 
 			// View output file
 			if (viewHtmlFile)
-				Utils.viewHtmlFile(file);
+			{
+				String command = config.getHtmlViewerCommand();
+				if (command != null)
+					HtmlViewer.viewHtmlFile(command, file);
+			}
 		}
 	}
 
@@ -1214,14 +1245,10 @@ public class App
 			fileAssoc.addParams(ASSOC_FILE_KIND_KEY, ASSOC_FILE_KIND_TEXT, ASSOC_FILE_OPEN_TEXT,
 								AppConfig.INSTANCE.getFilenameSuffix());
 			TextOutputTaskDialog.showDialog(mainWindow, FILE_ASSOCIATIONS_STR,
-											new Task.SetFileAssociations(fileAssoc,
-																		 result.javaLauncherPathname,
-																		 result.jarPathname,
-																		 result.iconPathname,
-																		 ASSOC_SCRIPT_DIR_PREFIX,
-																		 ASSOC_SCRIPT_FILENAME,
-																		 result.removeEntries,
-																		 result.scriptLifeCycle));
+											new Task.SetFileAssociations(fileAssoc, result.javaLauncherPathname,
+																		 result.jarPathname, result.iconPathname,
+																		 ASSOC_SCRIPT_DIR_PREFIX, ASSOC_SCRIPT_FILENAME,
+																		 result.removeEntries, result.scriptLifeCycle));
 		}
 	}
 
@@ -1240,13 +1267,12 @@ public class App
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	ResourceProperties	buildProperties;
 	private	String				versionStr;
 	private	MainWindow			mainWindow;
-	private	Timer				fileCheckTimer;
 	private	List<DocumentView>	documentsViews;
 	private	JFileChooser		openFileChooser;
 	private	JFileChooser		saveFileChooser;

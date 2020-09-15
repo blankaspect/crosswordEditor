@@ -40,10 +40,11 @@ import uk.blankaspect.common.html.CssRuleSet;
 
 import uk.blankaspect.common.indexedsub.IndexedSub;
 
-import uk.blankaspect.common.misc.ColourUtils;
 import uk.blankaspect.common.misc.EditList;
 
-import uk.blankaspect.common.xml.Attribute;
+import uk.blankaspect.common.swing.colour.ColourUtils;
+
+import uk.blankaspect.common.xml.AttributeList;
 import uk.blankaspect.common.xml.XmlWriter;
 
 //----------------------------------------------------------------------
@@ -145,7 +146,7 @@ class BlockGrid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	message;
@@ -198,13 +199,13 @@ class BlockGrid
 		{
 			if (blocked)
 			{
-				List<Attribute> attributes = new ArrayList<>();
-				attributes.add(new Attribute(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.BLOCK));
+				AttributeList attributes = new AttributeList();
+				attributes.add(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.BLOCK);
 				writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, indent, false, false);
 
 				attributes.clear();
-				attributes.add(new Attribute(HtmlConstants.AttrName.ALT, ""));
-				attributes.add(new Attribute(HtmlConstants.AttrName.SRC, getBlockImagePathname(cellSize)));
+				attributes.add(HtmlConstants.AttrName.ALT, "");
+				attributes.add(HtmlConstants.AttrName.SRC, getBlockImagePathname(cellSize));
 				writer.writeEmptyElement(HtmlConstants.ElementName.IMG, attributes, 0, false, false);
 
 				writer.writeElementEnd(HtmlConstants.ElementName.DIV, 0);
@@ -231,7 +232,7 @@ class BlockGrid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	boolean	blocked;
@@ -300,7 +301,7 @@ class BlockGrid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	Symmetry	oldSymmetry;
@@ -320,7 +321,7 @@ class BlockGrid
 					 int      numRows,
 					 Symmetry symmetry)
 	{
-		// Initialise instance fields
+		// Initialise instance variables
 		this(numColumns, numRows);
 		this.symmetry = symmetry;
 
@@ -336,7 +337,7 @@ class BlockGrid
 					 String   definition)
 		throws AppException
 	{
-		// Initialise instance fields
+		// Initialise instance variables
 		this(numColumns, numRows);
 		this.symmetry = symmetry;
 
@@ -375,7 +376,7 @@ class BlockGrid
 					 int           sampleSize,
 					 double        brightnessThreshold)
 	{
-		// Initialise instance fields
+		// Initialise instance variables
 		this(numColumns, numRows);
 
 		// Extract grid from image
@@ -429,7 +430,7 @@ class BlockGrid
 
 	private BlockGrid(BlockGrid grid)
 	{
-		// Initialise instance fields
+		// Initialise instance variables
 		this(grid.numColumns, grid.numRows);
 		symmetry = grid.symmetry;
 		editList = new EditList<>(AppConfig.INSTANCE.getMaxEditListLength());
@@ -453,7 +454,7 @@ class BlockGrid
 		// Call superclass contructor
 		super(numColumns, numRows);
 
-		// Initialise instance fields
+		// Initialise instance variables
 		cells = new Cell[numRows][numColumns];
 		for (int row = 0; row < numRows; row++)
 		{
@@ -593,8 +594,10 @@ class BlockGrid
 	{
 		List<CssRuleSet> ruleSets = new ArrayList<>();
 		ruleSets.addAll(RULE_SETS);
-		ruleSets.addAll(Cell.getStyleRuleSets(cellSize, AppConfig.INSTANCE.getHtmlCellOffset(), gridColour,
-											  entryColour, 0, fieldNumberFontSizeFactor));
+		AppConfig config = AppConfig.INSTANCE;
+		ruleSets.addAll(Cell.getStyleRuleSets(cellSize, config.getHtmlCellOffsetTop(), config.getHtmlCellOffsetLeft(),
+											  gridColour, entryColour, config.getHtmlFieldNumOffsetTop(),
+											  config.getHtmlFieldNumOffsetLeft(), fieldNumberFontSizeFactor));
 		ruleSets.add(IMAGE_RULE_SET);
 		return ruleSets;
 	}
@@ -680,7 +683,7 @@ class BlockGrid
 			Symmetry oldSymmetry = this.symmetry;
 			Cell[][] oldCells = copyCells(cells);
 
-			// Set instance field
+			// Set instance variable
 			this.symmetry = symmetry;
 
 			// Make list of blocked state of cells of specified region
@@ -891,7 +894,7 @@ class BlockGrid
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	Cell[][]			cells;

@@ -50,6 +50,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
@@ -64,16 +65,23 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 
+import uk.blankaspect.common.collection.CollectionUtils;
+
 import uk.blankaspect.common.exception.UnexpectedRuntimeException;
 
-import uk.blankaspect.common.gui.Colours;
-import uk.blankaspect.common.gui.FMenuItem;
-import uk.blankaspect.common.gui.GuiUtils;
-
-import uk.blankaspect.common.misc.CollectionUtils;
 import uk.blankaspect.common.misc.IStringKeyed;
-import uk.blankaspect.common.misc.KeyAction;
-import uk.blankaspect.common.misc.StringUtils;
+
+import uk.blankaspect.common.string.StringUtils;
+
+import uk.blankaspect.common.swing.action.KeyAction;
+
+import uk.blankaspect.common.swing.colour.Colours;
+
+import uk.blankaspect.common.swing.font.FontUtils;
+
+import uk.blankaspect.common.swing.menu.FMenuItem;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
 
 //----------------------------------------------------------------------
 
@@ -95,6 +103,9 @@ class CrosswordView
 
 	private static final	int	MIN_WIDTH	= 128;
 	private static final	int	MIN_HEIGHT	= 64;
+
+	private static final	int	SCROLL_UNIT_INCREMENT_FACTOR	= 1;
+	private static final	int	SCROLL_BLOCK_INCREMENT_FACTOR	= 10;
 
 ////////////////////////////////////////////////////////////////////////
 //  Enumerated types
@@ -297,7 +308,7 @@ class CrosswordView
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	key;
@@ -359,7 +370,7 @@ class CrosswordView
 			//----------------------------------------------------------
 
 		////////////////////////////////////////////////////////////////
-		//  Instance fields
+		//  Instance variables
 		////////////////////////////////////////////////////////////////
 
 			private	Clue.Id	clueId;
@@ -425,7 +436,7 @@ class CrosswordView
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	List<Entry>	entries;
@@ -519,7 +530,7 @@ class CrosswordView
 			// Call superclass constructor
 			super(new DefaultStyledDocument(new StyleContext()));
 
-			// Initialise instance fields
+			// Initialise instance variables
 			clueElementMap = new ClueElementMap();
 
 			// Set font
@@ -692,7 +703,7 @@ class CrosswordView
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	ClueElementMap	clueElementMap;
@@ -964,7 +975,7 @@ class CrosswordView
 
 		private CrosswordPanel(CrosswordDocument document)
 		{
-			// Initialise instance fields
+			// Initialise instance variables
 			this.document = document;
 
 			// Set border
@@ -1010,12 +1021,9 @@ class CrosswordView
 
 			// Panel: selected clue
 			selectedCluePanel = new CluePanel(document);
-			int width = GuiUtils.getCharWidth('0',
-											  selectedCluePanel.
-														getFontMetrics(selectedCluePanel.getFont()));
+			int width = FontUtils.getCharWidth('0', selectedCluePanel.getFontMetrics(selectedCluePanel.getFont()));
 			width *= AppConfig.INSTANCE.getSelectedClueNumColumns();
-			selectedCluePanel.setPreferredSize(new Dimension(width,
-															 gridPanel.getPreferredSize().height));
+			selectedCluePanel.setPreferredSize(new Dimension(width, gridPanel.getPreferredSize().height));
 			selectedCluePanel.addMouseListener(this);
 
 			gbc.gridx = gridX++;
@@ -1292,8 +1300,7 @@ class CrosswordView
 				Component component = event.getComponent();
 
 				// Text-section panels
-				if ((component == titleLabel) || (component == prologuePanel) ||
-					 (component == epiloguePanel))
+				if ((component == titleLabel) || (component == prologuePanel) || (component == epiloguePanel))
 					document.executeCommand(CrosswordDocument.Command.EDIT_TEXT_SECTIONS);
 
 				// Clue panels
@@ -1342,8 +1349,7 @@ class CrosswordView
 					if ((row >= 0) && (row < grid.getNumRows()) &&
 						 (column >= 0) && (column < grid.getNumColumns()))
 					{
-						List<Grid.Field> cellFields =
-													document.getGrid().getCell(row, column).getFields();
+						List<Grid.Field> cellFields = document.getGrid().getCell(row, column).getFields();
 						if (!cellFields.isEmpty())
 						{
 							// Create a list of clues for the fields of the cell, and a list of fields
@@ -1400,9 +1406,7 @@ class CrosswordView
 						CluePanel cluePanel = cluePanels.get(direction);
 						if (component == cluePanel)
 						{
-//XXX
-//							int pos = cluePanel.viewToModel2D(event.getPoint());
-							int pos = cluePanel.viewToModel(event.getPoint());
+							int pos = cluePanel.viewToModel2D(event.getPoint());
 							Element element = cluePanel.getStyledDocument().getParagraphElement(pos);
 							setSelection(cluePanel.clueElementMap.getClueId(element));
 							break;
@@ -1428,6 +1432,61 @@ class CrosswordView
 	//  Instance methods
 	////////////////////////////////////////////////////////////////////
 
+		public void updateTitle()
+		{
+			Container parent = titleLabel.getParent();
+			for (int i = 0; i < parent.getComponentCount(); i++)
+			{
+				if (parent.getComponent(i) == titleLabel)
+				{
+					GridBagConstraints constraints = ((GridBagLayout)parent.getLayout()).getConstraints(titleLabel);
+					parent.remove(i);
+					titleLabel = createTitleLabel();
+					horizontalLine.setVisible(titleLabel.isVisible());
+					parent.add(titleLabel, constraints, i);
+					break;
+				}
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		public void updatePrologue()
+		{
+			Container parent = prologuePanel.getParent();
+			for (int i = 0; i < parent.getComponentCount(); i++)
+			{
+				if (parent.getComponent(i) == prologuePanel)
+				{
+					GridBagConstraints constraints = ((GridBagLayout)parent.getLayout()).getConstraints(prologuePanel);
+					parent.remove(i);
+					prologuePanel = createTextSectionPanel(document.getPrologue(), false);
+					parent.add(prologuePanel, constraints, i);
+					break;
+				}
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		public void updateEpilogue()
+		{
+			Container parent = epiloguePanel.getParent();
+			for (int i = 0; i < parent.getComponentCount(); i++)
+			{
+				if (parent.getComponent(i) == epiloguePanel)
+				{
+					GridBagConstraints constraints = ((GridBagLayout)parent.getLayout()).getConstraints(epiloguePanel);
+					parent.remove(i);
+					epiloguePanel = createTextSectionPanel(document.getEpilogue(), true);
+					parent.add(epiloguePanel, constraints, i);
+					break;
+				}
+			}
+		}
+
+		//--------------------------------------------------------------
+
 		private CluePanel createCluePanel(Direction direction)
 		{
 			// Create a list of clues that contains undefined clues for fields that do not have clues
@@ -1442,7 +1501,7 @@ class CrosswordView
 					undefinedClues.add(clue);
 			}
 			clues.addAll(undefinedClues);
-			Collections.sort(clues, Clue.IdComparator.INSTANCE);
+			clues.sort(Clue.ID_COMPARATOR);
 
 			// Create panel
 			CluePanel panel = new CluePanel(document, clues, cluePanelWidth);
@@ -1511,72 +1570,13 @@ class CrosswordView
 				{
 					if (parent.getComponent(i) == cluePanel)
 					{
-						GridBagConstraints constraints =
-										((GridBagLayout)parent.getLayout()).getConstraints(cluePanel);
+						GridBagConstraints constraints = ((GridBagLayout)parent.getLayout()).getConstraints(cluePanel);
 						parent.remove(i);
 						cluePanel = createCluePanel(direction);
 						parent.add(cluePanel, constraints, i);
 						cluePanels.put(direction, cluePanel);
 						break;
 					}
-				}
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		public void updateTitle()
-		{
-			Container parent = titleLabel.getParent();
-			for (int i = 0; i < parent.getComponentCount(); i++)
-			{
-				if (parent.getComponent(i) == titleLabel)
-				{
-					GridBagConstraints constraints =
-										((GridBagLayout)parent.getLayout()).getConstraints(titleLabel);
-					parent.remove(i);
-					titleLabel = createTitleLabel();
-					horizontalLine.setVisible(titleLabel.isVisible());
-					parent.add(titleLabel, constraints, i);
-					break;
-				}
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		public void updatePrologue()
-		{
-			Container parent = prologuePanel.getParent();
-			for (int i = 0; i < parent.getComponentCount(); i++)
-			{
-				if (parent.getComponent(i) == prologuePanel)
-				{
-					GridBagConstraints constraints =
-									((GridBagLayout)parent.getLayout()).getConstraints(prologuePanel);
-					parent.remove(i);
-					prologuePanel = createTextSectionPanel(document.getPrologue(), false);
-					parent.add(prologuePanel, constraints, i);
-					break;
-				}
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		public void updateEpilogue()
-		{
-			Container parent = epiloguePanel.getParent();
-			for (int i = 0; i < parent.getComponentCount(); i++)
-			{
-				if (parent.getComponent(i) == epiloguePanel)
-				{
-					GridBagConstraints constraints =
-									((GridBagLayout)parent.getLayout()).getConstraints(epiloguePanel);
-					parent.remove(i);
-					epiloguePanel = createTextSectionPanel(document.getEpilogue(), true);
-					parent.add(epiloguePanel, constraints, i);
-					break;
 				}
 			}
 		}
@@ -1596,8 +1596,7 @@ class CrosswordView
 						Clue primaryClue = clue;
 						if ((clue != null) && clue.isReference())
 							primaryClue = document.findClue(clue.getReferentId());
-						if ((primaryClue != null) &&
-							 selectedFields.matches(document.getGrid().getFields(primaryClue)))
+						if ((primaryClue != null) && selectedFields.matches(document.getGrid().getFields(primaryClue)))
 						{
 							clueId = clue.getId();
 							break;
@@ -1746,23 +1745,19 @@ class CrosswordView
 					contextMenu.addSeparator();
 
 					contextMenu.add(new FMenuItem(CrosswordDocument.Command.COPY_CLUES_TO_CLIPBOARD));
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.
-																		IMPORT_CLUES_FROM_CLIPBOARD));
+					contextMenu.add(new FMenuItem(CrosswordDocument.Command.IMPORT_CLUES_FROM_CLIPBOARD));
 					contextMenu.add(new FMenuItem(CrosswordDocument.Command.CLEAR_CLUES));
 
 					contextMenu.addSeparator();
 
 					contextMenu.add(new FMenuItem(CrosswordDocument.Command.COPY_ENTRIES_TO_CLIPBOARD));
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.
-																		IMPORT_ENTRIES_FROM_CLIPBOARD));
+					contextMenu.add(new FMenuItem(CrosswordDocument.Command.IMPORT_ENTRIES_FROM_CLIPBOARD));
 					contextMenu.add(new FMenuItem(CrosswordDocument.Command.CLEAR_ENTRIES));
 
 					contextMenu.addSeparator();
 
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.
-																		COPY_FIELD_NUMBERS_TO_CLIPBOARD));
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.
-																		COPY_FIELD_IDS_TO_CLIPBOARD));
+					contextMenu.add(new FMenuItem(CrosswordDocument.Command.COPY_FIELD_NUMBERS_TO_CLIPBOARD));
+					contextMenu.add(new FMenuItem(CrosswordDocument.Command.COPY_FIELD_IDS_TO_CLIPBOARD));
 				}
 
 				// Update commands for menu items
@@ -1894,7 +1889,7 @@ class CrosswordView
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	CrosswordDocument			document;
@@ -1928,8 +1923,23 @@ class CrosswordView
 		crosswordPanel = new CrosswordPanel(document);
 		setViewportView(crosswordPanel);
 		viewport.setFocusable(true);
-		getVerticalScrollBar().setFocusable(false);
-		getHorizontalScrollBar().setFocusable(false);
+
+		// Get font metrics
+		FontMetrics fontMetrics = getFontMetrics(AppFont.CLUE.getFont());
+
+		// Set vertical scrolling increments
+		JScrollBar vScrollBar = getVerticalScrollBar();
+		vScrollBar.setFocusable(false);
+		int scrollUnit = fontMetrics.getHeight();
+		vScrollBar.setUnitIncrement(SCROLL_UNIT_INCREMENT_FACTOR * scrollUnit);
+		vScrollBar.setBlockIncrement(SCROLL_BLOCK_INCREMENT_FACTOR * scrollUnit);
+
+		// Set horizontal scrolling increments
+		JScrollBar hScrollBar = getHorizontalScrollBar();
+		hScrollBar.setFocusable(false);
+		scrollUnit = fontMetrics.charWidth('n');
+		hScrollBar.setUnitIncrement(SCROLL_UNIT_INCREMENT_FACTOR * scrollUnit);
+		hScrollBar.setBlockIncrement(SCROLL_BLOCK_INCREMENT_FACTOR * scrollUnit);
 
 		// Set component attributes
 		setBorder(null);
@@ -2084,7 +2094,7 @@ class CrosswordView
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	CrosswordPanel	crosswordPanel;

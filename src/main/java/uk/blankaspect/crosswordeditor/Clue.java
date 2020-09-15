@@ -20,7 +20,6 @@ package uk.blankaspect.crosswordeditor;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -30,10 +29,10 @@ import java.util.regex.Pattern;
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.UnexpectedRuntimeException;
 
-import uk.blankaspect.common.misc.StringUtils;
-
 import uk.blankaspect.common.regex.RegexUtils;
 import uk.blankaspect.common.regex.Substitution;
+
+import uk.blankaspect.common.string.StringUtils;
 
 //----------------------------------------------------------------------
 
@@ -51,6 +50,8 @@ class Clue
 	public static final		char	REGEX_ALTERNATION_CHAR	= '|';
 
 	public static final		String	DEFAULT_LENGTH_REGEX	= "\\((\\d[^\\(]*?)\\)$";
+
+	public static final		Comparator<Clue>	ID_COMPARATOR;
 
 	private static final	String	SPACE_REGEX				= " +";
 	private static final	String	WHITESPACE_REGEX		= "[\\p{Zs}\\t]+";
@@ -129,7 +130,7 @@ class Clue
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	message;
@@ -237,7 +238,7 @@ class Clue
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		Grid.Field.Id	fieldId;
@@ -378,7 +379,7 @@ class Clue
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		List<Grid.Field>	fields;
@@ -431,7 +432,7 @@ class Clue
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	Pattern				pattern;
@@ -488,54 +489,6 @@ class Clue
 	//==================================================================
 
 
-	// CLUE ID COMPARATOR CLASS
-
-
-	public static class IdComparator
-		implements Comparator<Clue>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		public static final	IdComparator	INSTANCE	= new IdComparator();
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private IdComparator()
-		{
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : Comparator interface
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public int compare(Clue clue1,
-						   Clue clue2)
-		{
-			Grid.Field.Id id1 = clue1.fieldIds.get(0);
-			Grid.Field.Id id2 = clue2.fieldIds.get(0);
-			int result = Integer.compare(id1.direction.ordinal(), id2.direction.ordinal());
-			if (result == 0)
-				result = Integer.compare(id1.number, id2.number);
-			if (result == 0)
-				result = Integer.compare(clue1.index, clue2.index);
-			return result;
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
-
-
 	// PARSE EXCEPTION CLASS
 
 
@@ -567,9 +520,9 @@ class Clue
 		private ParseException(AppException.IId id,
 							   int              lineNum,
 							   String           text,
-							   String...        substitutionStrs)
+							   CharSequence...  replacements)
 		{
-			super(id, substitutionStrs);
+			super(id, replacements);
 			this.lineNum = lineNum;
 			this.text = text;
 		}
@@ -609,7 +562,7 @@ class Clue
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	int		lineNum;
@@ -767,7 +720,7 @@ class Clue
 				keywords.add(direction.getSuffix());
 			directionKeywords.addAll(keywords);
 		}
-		Collections.sort(directionKeywords, Direction.KEYWORD_COMPARATOR);
+		directionKeywords.sort(Direction.KEYWORD_COMPARATOR);
 
 		// Escape direction keywords for use in regular expression, and divide keywords into two lists:
 		// those with leading spaces and those without
@@ -797,8 +750,7 @@ class Clue
 																	+ SPACE_REGEX + fieldIdRegex + CLUE_INDEX_REGEX);
 
 		// Split the input text into lines and add an empty line
-		List<String> lines = new ArrayList<>();
-		Collections.addAll(lines, text.split("\\n"));
+		List<String> lines = StringUtils.split(text, '\n');
 		lines.add("");
 
 		// Process the lines of input text
@@ -1208,7 +1160,26 @@ class Clue
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Static initialiser
+////////////////////////////////////////////////////////////////////////
+
+	static
+	{
+		ID_COMPARATOR = (clue1, clue2) ->
+		{
+			Grid.Field.Id id1 = clue1.fieldIds.get(0);
+			Grid.Field.Id id2 = clue2.fieldIds.get(0);
+			int result = Integer.compare(id1.direction.ordinal(), id2.direction.ordinal());
+			if (result == 0)
+				result = Integer.compare(id1.number, id2.number);
+			if (result == 0)
+				result = Integer.compare(clue1.index, clue2.index);
+			return result;
+		};
+	}
+
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	List<Grid.Field.Id>	fieldIds;

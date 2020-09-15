@@ -24,10 +24,12 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,6 +46,8 @@ import javax.swing.SwingUtilities;
 
 import org.w3c.dom.Element;
 
+import uk.blankaspect.common.base64.Base64Encoder;
+
 import uk.blankaspect.common.crypto.HmacSha256;
 import uk.blankaspect.common.crypto.Salsa20;
 
@@ -56,13 +60,15 @@ import uk.blankaspect.common.html.CssRuleSet;
 
 import uk.blankaspect.common.indexedsub.IndexedSub;
 
-import uk.blankaspect.common.misc.Base64Encoder;
-import uk.blankaspect.common.misc.ColourUtils;
 import uk.blankaspect.common.misc.IStringKeyed;
-import uk.blankaspect.common.misc.NumberUtils;
-import uk.blankaspect.common.misc.StringUtils;
 
-import uk.blankaspect.common.xml.Attribute;
+import uk.blankaspect.common.number.NumberUtils;
+
+import uk.blankaspect.common.string.StringUtils;
+
+import uk.blankaspect.common.swing.colour.ColourUtils;
+
+import uk.blankaspect.common.xml.AttributeList;
 import uk.blankaspect.common.xml.XmlParseException;
 import uk.blankaspect.common.xml.XmlUtils;
 import uk.blankaspect.common.xml.XmlWriter;
@@ -88,9 +94,29 @@ abstract class Grid
 	public static final		int	MAX_NUM_ROWS		= MAX_NUM_COLUMNS;
 	public static final		int	DEFAULT_NUM_ROWS	= DEFAULT_NUM_COLUMNS;
 
+	public static final		int	MIN_CELL_SIZE		= 8;
+	public static final		int	MAX_CELL_SIZE		= 80;
+	public static final		int	DEFAULT_CELL_SIZE	= 24;
+
+	public static final		int						MIN_HTML_CELL_SIZE		= 8;
+	public static final		int						MAX_HTML_CELL_SIZE		= 80;
+	public static final		Map<Separator, Integer>	DEFAULT_HTML_CELL_SIZES;
+
+	public static final		int	MIN_HTML_FONT_SIZE		= 6;
+	public static final		int	MAX_HTML_FONT_SIZE		= 128;
+	public static final		int	DEFAULT_HTML_FONT_SIZE	= 8;
+
 	public static final		int	MIN_HTML_CELL_OFFSET		= -9;
 	public static final		int	MAX_HTML_CELL_OFFSET		= 9;
 	public static final		int	DEFAULT_HTML_CELL_OFFSET	= 0;
+
+	public static final		int	MIN_HTML_FIELD_NUM_OFFSET		= -9;
+	public static final		int	MAX_HTML_FIELD_NUM_OFFSET		= 9;
+	public static final		int	DEFAULT_HTML_FIELD_NUM_OFFSET	= 0;
+
+	public static final		double	MIN_HTML_FIELD_NUM_FONT_SIZE_FACTOR		= 0.05;
+	public static final		double	MAX_HTML_FIELD_NUM_FONT_SIZE_FACTOR		= 1.0;
+	public static final		double	DEFAULT_HTML_FIELD_NUM_FONT_SIZE_FACTOR	= 0.667;
 
 	public static final		Separator	DEFAULT_SEPARATOR	= Separator.BLOCK;
 
@@ -125,7 +151,7 @@ abstract class Grid
 
 	private static final	int	SOLUTION_LINE_LENGTH	= 72;
 
-	private static final	String	SOLUTION_ENCODING_NAME	= "UTF-8";
+	private static final	Charset	SOLUTION_ENCODING	= StandardCharsets.UTF_8;
 
 	private static final	String	RECTANGULAR_ORTHOGONAL_STR	= "rectangular-orthogonal";
 	private static final	String	SOLUTION_STR				= "Solution";
@@ -342,7 +368,7 @@ abstract class Grid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	key;
@@ -373,7 +399,7 @@ abstract class Grid
 			public int[] getPrincipalDimensions(int numColumns,
 												int numRows)
 			{
-				return new int[]{ numColumns, numRows };
+				return new int[] { numColumns, numRows };
 			}
 		},
 
@@ -387,7 +413,7 @@ abstract class Grid
 			public int[] getPrincipalDimensions(int numColumns,
 												int numRows)
 			{
-				return new int[]{ numColumns, (numRows + 1) / 2 };
+				return new int[] { numColumns, (numRows + 1) / 2 };
 			}
 		},
 
@@ -401,7 +427,7 @@ abstract class Grid
 			public int[] getPrincipalDimensions(int numColumns,
 												int numRows)
 			{
-				return new int[]{ (numColumns + 1) / 2, (numRows + 1) / 2 };
+				return new int[] { (numColumns + 1) / 2, (numRows + 1) / 2 };
 			}
 
 			//----------------------------------------------------------
@@ -426,7 +452,7 @@ abstract class Grid
 			public int[] getPrincipalDimensions(int numColumns,
 												int numRows)
 			{
-				return new int[]{ (numColumns + 1) / 2, numRows };
+				return new int[] { (numColumns + 1) / 2, numRows };
 			}
 		},
 
@@ -440,7 +466,7 @@ abstract class Grid
 			public int[] getPrincipalDimensions(int numColumns,
 												int numRows)
 			{
-				return new int[]{ numColumns, (numRows + 1) / 2 };
+				return new int[] { numColumns, (numRows + 1) / 2 };
 			}
 		},
 
@@ -454,7 +480,7 @@ abstract class Grid
 			public int[] getPrincipalDimensions(int numColumns,
 												int numRows)
 			{
-				return new int[]{ (numColumns + 1) / 2, (numRows + 1) / 2 };
+				return new int[] { (numColumns + 1) / 2, (numRows + 1) / 2 };
 			}
 		};
 
@@ -532,7 +558,7 @@ abstract class Grid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	key;
@@ -608,7 +634,7 @@ abstract class Grid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	key;
@@ -718,7 +744,7 @@ abstract class Grid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	message;
@@ -771,7 +797,7 @@ abstract class Grid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		int	x;
@@ -868,7 +894,7 @@ abstract class Grid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		int	row;
@@ -1095,7 +1121,7 @@ abstract class Grid
 			}
 
 		////////////////////////////////////////////////////////////////
-		//  Instance fields
+		//  Instance variables
 		////////////////////////////////////////////////////////////////
 
 			int			number;
@@ -1301,12 +1327,10 @@ abstract class Grid
 					break;
 
 				case ACROSS:
-					return ((row == this.row) &&
-							 (column >= this.column) && (column < this.column + length));
+					return (row == this.row) && (column >= this.column) && (column < this.column + length);
 
 				case DOWN:
-					return ((column == this.column) &&
-							 (row >= this.row) && (row < this.row + length));
+					return (column == this.column) && (row >= this.row) && (row < this.row + length);
 			}
 			return false;
 		}
@@ -1314,7 +1338,7 @@ abstract class Grid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	int			row;
@@ -1350,7 +1374,7 @@ abstract class Grid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		int		row;
@@ -1382,7 +1406,7 @@ abstract class Grid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		Field.Id	fieldId;
@@ -1514,7 +1538,7 @@ abstract class Grid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	int			numCells;
@@ -1573,7 +1597,7 @@ abstract class Grid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	byte[]	nonce;
@@ -1666,10 +1690,12 @@ abstract class Grid
 	////////////////////////////////////////////////////////////////////
 
 		public static List<CssRuleSet> getStyleRuleSets(int    cellSize,
-														int    cellOffset,
+														int    cellOffsetTop,
+														int    cellOffsetLeft,
 														Color  gridColour,
 														Color  entryColour,
-														int    fieldNumOffset,
+														int    fieldNumOffsetTop,
+														int    fieldNumOffsetLeft,
 														double fieldNumFontSizeFactor)
 		{
 			List<CssRuleSet> ruleSets = new ArrayList<>();
@@ -1692,11 +1718,10 @@ abstract class Grid
 			// Add rule set for field number
 			ruleSet = FIELD_NUMBER_RULE_SET.clone();
 
-			String offsetStr = Integer.toString(cellOffset + fieldNumOffset);
 			decl = ruleSet.findDeclaration(CssConstants.Property.TOP);
-			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, offsetStr);
+			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(cellOffsetTop + fieldNumOffsetTop));
 			decl = ruleSet.findDeclaration(CssConstants.Property.LEFT);
-			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, offsetStr);
+			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(cellOffsetLeft + fieldNumOffsetLeft));
 
 			String fontSizeStr = AppConstants.FORMAT_1_1.format(fieldNumFontSizeFactor * 100.0);
 			decl = ruleSet.findDeclaration(CssConstants.Property.FONT_SIZE);
@@ -1708,10 +1733,10 @@ abstract class Grid
 			ruleSet = ENTRY_RULE_SET.clone();
 
 			decl = ruleSet.findDeclaration(CssConstants.Property.TOP);
-			double offset = (double)cellOffset / (double)cellSize + ENTRY_TOP_OFFSET_FRACTION;
+			double offset = (double)cellOffsetTop / (double)cellSize + ENTRY_TOP_OFFSET_FRACTION;
 			decl.value = IndexedSub.sub(decl.value, AppConstants.FORMAT_1_3.format(offset * 100.0));
 			decl = ruleSet.findDeclaration(CssConstants.Property.LEFT);
-			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(cellOffset + ENTRY_LEFT_OFFSET));
+			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(cellOffsetLeft + ENTRY_LEFT_OFFSET));
 
 			colourStr = ColourUtils.colourToHexString(entryColour);
 			decl = ruleSet.findDeclaration(CssConstants.Property.COLOUR);
@@ -1850,10 +1875,10 @@ abstract class Grid
 									 char      entry)
 			throws IOException
 		{
-			List<Attribute> attributes = new ArrayList<>();
+			AttributeList attributes = new AttributeList();
 			if (fieldNumber > 0)
 			{
-				attributes.add(new Attribute(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.FIELD_NUMBER));
+				attributes.add(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.FIELD_NUMBER);
 				writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, 0, false, false);
 				writer.write(Integer.toString(fieldNumber));
 				writer.writeEndTag(HtmlConstants.ElementName.DIV);
@@ -1862,7 +1887,7 @@ abstract class Grid
 			if (entry != Entries.UNDEFINED_VALUE)
 			{
 				attributes.clear();
-				attributes.add(new Attribute(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.ENTRY));
+				attributes.add(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.ENTRY);
 				writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, 0, false, false);
 				writer.write(entry);
 				writer.writeEndTag(HtmlConstants.ElementName.DIV);
@@ -1872,7 +1897,7 @@ abstract class Grid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	Map<Direction, Field>	fields;
@@ -1932,7 +1957,7 @@ abstract class Grid
 			//----------------------------------------------------------
 
 		////////////////////////////////////////////////////////////////
-		//  Instance fields
+		//  Instance variables
 		////////////////////////////////////////////////////////////////
 
 			private	String	text;
@@ -1995,7 +2020,7 @@ abstract class Grid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	Orientation	orientation;
@@ -2033,7 +2058,7 @@ abstract class Grid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	int	x1;
@@ -2111,13 +2136,13 @@ abstract class Grid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Class fields
+	//  Class variables
 	////////////////////////////////////////////////////////////////////
 
 		private static	Random	nonceGenerator	= new Random();
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	Salsa20	prng;
@@ -2263,7 +2288,7 @@ abstract class Grid
 		}
 		catch (AppException e)
 		{
-			throw new XmlParseException(e.getId(), elementPath, e.getSubstitutionStrings());
+			throw new XmlParseException(e.getId(), elementPath, e.getReplacements());
 		}
 		return grid;
 	}
@@ -2671,9 +2696,8 @@ abstract class Grid
 
 	public List<Field> getFields(Direction direction)
 	{
-		return (fieldLists.containsKey(direction)
-											? Collections.unmodifiableList(fieldLists.get(direction))
-											: new ArrayList<Field>());
+		return (fieldLists.containsKey(direction) ? Collections.unmodifiableList(fieldLists.get(direction))
+												  : new ArrayList<Field>());
 	}
 
 	//------------------------------------------------------------------
@@ -2766,7 +2790,7 @@ abstract class Grid
 		// Set entries
 		this.entries.clear();
 		for (int i = 0; i < fields.size(); i++)
-			setEntry(fields.get(i), entries.get(i));
+			setEntry(fields.get(i), entries.get(i), true);
 
 		// Invalidate "incorrect entry" flags
 		incorrectEntries = null;
@@ -2892,9 +2916,8 @@ abstract class Grid
 			for (int j = 0; j < field.length; j++)
 			{
 				char ch0 = answer.charAt(j);
-				if (!Character.isLetterOrDigit(ch0))
-					throw new AppException(ErrorId.ILLEGAL_CHARACTER_IN_ANSWER, idStr,
-										   Character.toString(ch0));
+				if (AppConfig.INSTANCE.getGridEntryCharacters().indexOf(ch0) < 0)
+					throw new AppException(ErrorId.ILLEGAL_CHARACTER_IN_ANSWER, idStr, Character.toString(ch0));
 
 				switch (field.direction)
 				{
@@ -2906,8 +2929,7 @@ abstract class Grid
 					{
 						char ch1 = solution.values[field.row][field.column + j];
 						if ((ch1 != Entries.NO_VALUE) && (ch1 != ch0))
-							throw new AppException(ErrorId.CONFLICTING_ANSWER,
-												   new String[]{ idStr, Integer.toString(j) });
+							throw new AppException(ErrorId.CONFLICTING_ANSWER, idStr, Integer.toString(j));
 						solution.setValue(field.row, field.column + j, ch0);
 						break;
 					}
@@ -2916,8 +2938,7 @@ abstract class Grid
 					{
 						char ch1 = solution.values[field.row + j][field.column];
 						if ((ch1 != Entries.NO_VALUE) && (ch1 != ch0))
-							throw new AppException(ErrorId.CONFLICTING_ANSWER,
-												   new String[]{ idStr, Integer.toString(j) });
+							throw new AppException(ErrorId.CONFLICTING_ANSWER, idStr, Integer.toString(j));
 						solution.setValue(field.row + j, field.column, ch0);
 						break;
 					}
@@ -3064,11 +3085,11 @@ abstract class Grid
 			// Set entry
 			try
 			{
-				setEntry(field, element.getTextContent());
+				setEntry(field, element.getTextContent(), false);
 			}
 			catch (AppException e)
 			{
-				throw new XmlParseException(e.getId(), elementPath, e.getSubstitutionStrings());
+				throw new XmlParseException(e.getId(), elementPath, e.getReplacements());
 			}
 		}
 	}
@@ -3196,15 +3217,7 @@ abstract class Grid
 				throw new AppException(ErrorId.INCORRECT_PASSPHRASE);
 
 			// Convert solution to string
-			String str = null;
-			try
-			{
-				str = new String(data, SOLUTION_ENCODING_NAME);
-			}
-			catch (UnsupportedEncodingException e)
-			{
-				throw new UnexpectedRuntimeException();
-			}
+			String str = new String(data, SOLUTION_ENCODING);
 
 			// Extract answers from solution string
 			List<String> answers = new ArrayList<>();
@@ -3217,8 +3230,7 @@ abstract class Grid
 				index = endIndex;
 			}
 			if (index != str.length())
-				throw new XmlParseException(ErrorId.SOLUTION_LENGTH_NOT_CONSISTENT_WITH_GRID,
-											elementPath);
+				throw new XmlParseException(ErrorId.SOLUTION_LENGTH_NOT_CONSISTENT_WITH_GRID, elementPath);
 
 			// Set solution
 			try
@@ -3227,7 +3239,7 @@ abstract class Grid
 			}
 			catch (AppException e)
 			{
-				throw new XmlParseException(e.getId(), elementPath, e.getSubstitutionStrings());
+				throw new XmlParseException(e.getId(), elementPath, e.getReplacements());
 			}
 		}
 		return new CrosswordDocument.SolutionProperties(location, passphrase, hashValue);
@@ -3240,12 +3252,12 @@ abstract class Grid
 		throws IOException
 	{
 		// Write start tag, grid
-		List<Attribute> attributes = new ArrayList<>();
-		attributes.add(new Attribute(AttrName.KIND, RECTANGULAR_ORTHOGONAL_STR));
-		attributes.add(new Attribute(AttrName.SEPARATOR, getSeparator().key));
-		attributes.add(new Attribute(AttrName.NUM_COLUMNS, numColumns));
-		attributes.add(new Attribute(AttrName.NUM_ROWS, numRows));
-		attributes.add(new Attribute(AttrName.SYMMETRY, symmetry.key));
+		AttributeList attributes = new AttributeList();
+		attributes.add(AttrName.KIND, RECTANGULAR_ORTHOGONAL_STR);
+		attributes.add(AttrName.SEPARATOR, getSeparator().key);
+		attributes.add(AttrName.NUM_COLUMNS, numColumns);
+		attributes.add(AttrName.NUM_ROWS, numRows);
+		attributes.add(AttrName.SYMMETRY, symmetry.key);
 		writer.writeElementStart(ElementName.GRID, attributes, indent, true, true);
 
 		// Write grid definition
@@ -3273,13 +3285,13 @@ abstract class Grid
 
 		// Write entries
 		indent += INDENT_INCREMENT;
-		List<Attribute> attributes = new ArrayList<>();
+		AttributeList attributes = new AttributeList();
 		for (Direction direction : Direction.DEFINED_DIRECTIONS)
 		{
 			for (Entry entry : getEntries(direction))
 			{
 				attributes.clear();
-				attributes.add(new Attribute(AttrName.ID, entry.fieldId));
+				attributes.add(AttrName.ID, entry.fieldId);
 				writer.writeEscapedTextElement(ElementName.ENTRY, attributes, indent, false, entry.text);
 			}
 		}
@@ -3294,15 +3306,7 @@ abstract class Grid
 	public EncodedSolution getEncodedSolution(String passphrase)
 	{
 		// Convert solution string to bytes
-		byte[] data = null;
-		try
-		{
-			data = getSolutionString(null).getBytes(SOLUTION_ENCODING_NAME);
-		}
-		catch (UnsupportedEncodingException e)
-		{
-			throw new UnexpectedRuntimeException();
-		}
+		byte[] data = getSolutionString(null).getBytes(SOLUTION_ENCODING);
 
 		// Initialise PRNG
 		byte[] nonce = Prng.createNonce();
@@ -3330,16 +3334,14 @@ abstract class Grid
 		EncodedSolution encodedSolution = getEncodedSolution(passphrase);
 
 		// Write start tag, solution
-		List<Attribute> attributes = new ArrayList<>();
-		NumberUtils.setHexLower();
+		AttributeList attributes = new AttributeList();
+		NumberUtils.setLower();
 		EncryptionKind encryptionKind = passphrase.isEmpty() ? EncryptionKind.NONE
 															 : EncryptionKind.SALSA20;
-		attributes.add(new Attribute(AttrName.ENCRYPTION, encryptionKind.key));
-		attributes.add(new Attribute(AttrName.NONCE,
-									 NumberUtils.bytesToHexString(encodedSolution.nonce)));
-		attributes.add(new Attribute(AttrName.HASH,
-									 NumberUtils.bytesToHexString(encodedSolution.hashValue)));
-		NumberUtils.setHexUpper();
+		attributes.add(AttrName.ENCRYPTION, encryptionKind.key);
+		attributes.add(AttrName.NONCE, NumberUtils.bytesToHexString(encodedSolution.nonce));
+		attributes.add(AttrName.HASH, NumberUtils.bytesToHexString(encodedSolution.hashValue));
+		NumberUtils.setUpper();
 		writer.writeElementStart(ElementName.SOLUTION, attributes, indent, true, true);
 
 		// Write solution, encoded as Base64
@@ -3364,11 +3366,11 @@ abstract class Grid
 							  byte[]    hashValue)
 		throws IOException
 	{
-		List<Attribute> attributes = new ArrayList<>();
-		NumberUtils.setHexLower();
-		attributes.add(new Attribute(AttrName.LOCATION, location, true));
-		attributes.add(new Attribute(AttrName.HASH, NumberUtils.bytesToHexString(hashValue)));
-		NumberUtils.setHexUpper();
+		AttributeList attributes = new AttributeList();
+		NumberUtils.setLower();
+		attributes.add(AttrName.LOCATION, location, true);
+		attributes.add(AttrName.HASH, NumberUtils.bytesToHexString(hashValue));
+		NumberUtils.setUpper();
 		writer.writeEmptyElement(ElementName.SOLUTION, attributes, indent, true);
 	}
 
@@ -3382,8 +3384,8 @@ abstract class Grid
 		throws IOException
 	{
 		// Write start tag, table division
-		List<Attribute> attributes = new ArrayList<>();
-		attributes.add(new Attribute(HtmlConstants.AttrName.ID, HtmlConstants.Id.GRID));
+		AttributeList attributes = new AttributeList();
+		attributes.add(HtmlConstants.AttrName.ID, HtmlConstants.Id.GRID);
 		writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, indent, true, false);
 
 		// Write grid
@@ -3487,8 +3489,9 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	private void setEntry(Field  field,
-						  String entry)
+	private void setEntry(Field   field,
+						  String  entry,
+						  boolean validateChars)
 		throws AppException
 	{
 		// Compare length of entry with length of field
@@ -3502,9 +3505,8 @@ abstract class Grid
 			char ch0 = entry.charAt(i);
 			if (ch0 != Entries.UNDEFINED_VALUE)
 			{
-				if (!Character.isLetterOrDigit(ch0))
-					throw new AppException(ErrorId.ILLEGAL_CHARACTER_IN_ENTRY, idStr,
-										   Character.toString(ch0));
+				if (validateChars && (AppConfig.INSTANCE.getGridEntryCharacters().indexOf(ch0) < 0))
+					throw new AppException(ErrorId.ILLEGAL_CHARACTER_IN_ENTRY, idStr, Character.toString(ch0));
 
 				switch (field.direction)
 				{
@@ -3516,8 +3518,7 @@ abstract class Grid
 					{
 						char ch1 = entries.values[field.row][field.column + i];
 						if ((ch1 != Entries.UNDEFINED_VALUE) && (ch1 != ch0))
-							throw new AppException(ErrorId.CONFLICTING_ENTRY,
-												   new String[]{ idStr, Integer.toString(i) });
+							throw new AppException(ErrorId.CONFLICTING_ENTRY, idStr, Integer.toString(i));
 						entries.setValue(field.row, field.column + i, ch0);
 						break;
 					}
@@ -3526,8 +3527,7 @@ abstract class Grid
 					{
 						char ch1 = entries.values[field.row + i][field.column];
 						if ((ch1 != Entries.UNDEFINED_VALUE) && (ch1 != ch0))
-							throw new AppException(ErrorId.CONFLICTING_ENTRY,
-												   new String[]{ idStr, Integer.toString(i) });
+							throw new AppException(ErrorId.CONFLICTING_ENTRY, idStr, Integer.toString(i));
 						entries.setValue(field.row + i, field.column, ch0);
 						break;
 					}
@@ -3539,7 +3539,18 @@ abstract class Grid
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Static initialiser
+////////////////////////////////////////////////////////////////////////
+
+	static
+	{
+		DEFAULT_HTML_CELL_SIZES = new EnumMap<>(Separator.class);
+		DEFAULT_HTML_CELL_SIZES.put(Separator.BLOCK, 20);
+		DEFAULT_HTML_CELL_SIZES.put(Separator.BAR,   20);
+	}
+
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	protected	int							numRows;

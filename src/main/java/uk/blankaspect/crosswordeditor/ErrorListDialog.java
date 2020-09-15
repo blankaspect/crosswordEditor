@@ -47,10 +47,11 @@ import javax.swing.text.TabStop;
 
 import uk.blankaspect.common.exception.AppException;
 
-import uk.blankaspect.common.gui.AbstractNonEditableTextPaneDialog;
-import uk.blankaspect.common.gui.GuiUtils;
+import uk.blankaspect.common.swing.action.KeyAction;
 
-import uk.blankaspect.common.misc.KeyAction;
+import uk.blankaspect.common.swing.dialog.AbstractNonEditableTextPaneDialog;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
 
 //----------------------------------------------------------------------
 
@@ -185,7 +186,7 @@ class ErrorListDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	key;
@@ -254,7 +255,7 @@ class ErrorListDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	key;
@@ -288,7 +289,7 @@ class ErrorListDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String				text;
@@ -340,7 +341,7 @@ class ErrorListDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	ActionListener	listener;
@@ -481,7 +482,7 @@ class ErrorListDialog
 		TabStop tab1 = new TabStop(indent1, TabStop.ALIGN_RIGHT, TabStop.LEAD_NONE);
 		TabStop tab2 = new TabStop(indent2);
 		StyleConstants.setTabSet(document.getStyle(ParagraphStyle.ID_LISTS.key),
-								 new TabSet(new TabStop[]{ tab1, tab2 }));
+								 new TabSet(new TabStop[] { tab1, tab2 }));
 
 		// Set text
 		for (IdList idList : idLists)
@@ -569,7 +570,7 @@ class ErrorListDialog
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	boolean	accepted;

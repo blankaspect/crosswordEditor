@@ -28,11 +28,12 @@ import java.awt.Graphics2D;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-import uk.blankaspect.common.gui.Colours;
-import uk.blankaspect.common.gui.TextRendering;
+import uk.blankaspect.common.string.StringUtils;
 
-import uk.blankaspect.common.misc.StringUtils;
-import uk.blankaspect.common.misc.TextUtils;
+import uk.blankaspect.common.swing.colour.Colours;
+
+import uk.blankaspect.common.swing.text.TextRendering;
+import uk.blankaspect.common.swing.text.TextUtils;
 
 //----------------------------------------------------------------------
 
@@ -86,7 +87,7 @@ abstract class AbstractStatusPanel
 			// Set font
 			AppFont.MAIN.apply(this);
 
-			// Initialise instance fields
+			// Initialise instance variables
 			FontMetrics fontMetrics = getFontMetrics(getFont());
 			preferredWidth = 2 * HORIZONTAL_MARGIN + SEPARATOR_WIDTH +
 																fontMetrics.stringWidth(PROTOTYPE_STR);
@@ -134,8 +135,7 @@ abstract class AbstractStatusPanel
 				// Draw text
 				FontMetrics fontMetrics = gr.getFontMetrics();
 				int maxWidth = width - 2 * HORIZONTAL_MARGIN - SEPARATOR_WIDTH;
-				String str = TextUtils.getLimitedWidthString(text, fontMetrics, maxWidth,
-															 TextUtils.RemovalMode.END);
+				String str = TextUtils.getLimitedWidthString(text, fontMetrics, maxWidth, TextUtils.RemovalMode.END);
 				gr.setColor(AppConfig.INSTANCE.getStatusTextColour());
 				gr.drawString(str, HORIZONTAL_MARGIN, VERTICAL_MARGIN + fontMetrics.getAscent());
 			}
@@ -168,7 +168,7 @@ abstract class AbstractStatusPanel
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	int		preferredWidth;
@@ -185,7 +185,7 @@ abstract class AbstractStatusPanel
 
 	protected AbstractStatusPanel(boolean topBorder)
 	{
-		// Initialise instance fields
+		// Initialise instance variables
 		this.topBorder = topBorder;
 
 		// Lay out components explicitly
@@ -272,7 +272,7 @@ abstract class AbstractStatusPanel
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	boolean	topBorder;

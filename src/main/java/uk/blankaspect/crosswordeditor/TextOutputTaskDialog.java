@@ -58,14 +58,20 @@ import javax.swing.event.DocumentListener;
 
 import uk.blankaspect.common.exception.AppException;
 
-import uk.blankaspect.common.gui.AlternativeTextButton;
-import uk.blankaspect.common.gui.FButton;
-import uk.blankaspect.common.gui.FTextArea;
-import uk.blankaspect.common.gui.GuiUtils;
-import uk.blankaspect.common.gui.IProgressView;
-
 import uk.blankaspect.common.misc.IProcessOutputWriter;
-import uk.blankaspect.common.misc.KeyAction;
+
+import uk.blankaspect.common.swing.action.KeyAction;
+
+import uk.blankaspect.common.swing.button.AlternativeTextButton;
+import uk.blankaspect.common.swing.button.FButton;
+
+import uk.blankaspect.common.swing.font.FontUtils;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
+
+import uk.blankaspect.common.swing.textarea.FTextArea;
+
+import uk.blankaspect.common.ui.progress.IProgressView;
 
 //----------------------------------------------------------------------
 
@@ -144,7 +150,7 @@ class TextOutputTaskDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	message;
@@ -290,7 +296,7 @@ class TextOutputTaskDialog
 		// Set icons
 		setIconImages(owner.getIconImages());
 
-		// Initialise instance fields
+		// Initialise instance variables
 		this.task = task;
 
 
@@ -306,7 +312,7 @@ class TextOutputTaskDialog
 		JScrollPane textAreaScrollPane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 														 JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		FontMetrics fontMetrics = textArea.getFontMetrics(textArea.getFont());
-		int width = TEXT_AREA_NUM_COLUMNS * GuiUtils.getCharWidth('0', fontMetrics);
+		int width = TEXT_AREA_NUM_COLUMNS * FontUtils.getCharWidth('0', fontMetrics);
 		int height = TEXT_AREA_NUM_ROWS * fontMetrics.getHeight();
 		textAreaScrollPane.getViewport().setPreferredSize(new Dimension(width, height));
 		GuiUtils.setViewportBorder(textAreaScrollPane, TEXT_AREA_VERTICAL_MARGIN,
@@ -560,13 +566,13 @@ class TextOutputTaskDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class fields
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
 	private static	Point	location;
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private volatile	boolean				stopped;

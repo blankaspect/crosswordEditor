@@ -37,10 +37,11 @@ import uk.blankaspect.common.html.CssRuleSet;
 
 import uk.blankaspect.common.indexedsub.IndexedSub;
 
-import uk.blankaspect.common.misc.ColourUtils;
 import uk.blankaspect.common.misc.EditList;
 
-import uk.blankaspect.common.xml.Attribute;
+import uk.blankaspect.common.swing.colour.ColourUtils;
+
+import uk.blankaspect.common.xml.AttributeList;
 import uk.blankaspect.common.xml.XmlWriter;
 
 //----------------------------------------------------------------------
@@ -144,7 +145,7 @@ class BarGrid
 			//----------------------------------------------------------
 
 		////////////////////////////////////////////////////////////////
-		//  Instance fields
+		//  Instance variables
 		////////////////////////////////////////////////////////////////
 
 			private	Set<Edge>	remove;
@@ -272,7 +273,7 @@ class BarGrid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	char	key;
@@ -326,7 +327,7 @@ class BarGrid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	message;
@@ -421,9 +422,8 @@ class BarGrid
 			writer.writeElementStart(HtmlConstants.ElementName.DIV, indent, false);
 			if (!bars.isEmpty())
 			{
-				List<Attribute> attributes = new ArrayList<>();
-				attributes.add(new Attribute(HtmlConstants.AttrName.CLASS,
-											 HtmlConstants.Class.BARS + " " + getClassName(bars)));
+				AttributeList attributes = new AttributeList();
+				attributes.add(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.BARS + " " + getClassName(bars));
 				writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, 0, false, false);
 				writer.writeEndTag(HtmlConstants.ElementName.DIV);
 			}
@@ -452,7 +452,7 @@ class BarGrid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	EnumSet<Edge>	bars;
@@ -521,7 +521,7 @@ class BarGrid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	Symmetry	oldSymmetry;
@@ -541,7 +541,7 @@ class BarGrid
 				   int      numRows,
 				   Symmetry symmetry)
 	{
-		// Initialise instance fields
+		// Initialise instance variables
 		this(numColumns, numRows);
 		this.symmetry = symmetry;
 
@@ -557,7 +557,7 @@ class BarGrid
 				   String   definition)
 		throws AppException
 	{
-		// Initialise instance fields
+		// Initialise instance variables
 		this(numColumns, numRows);
 		this.symmetry = symmetry;
 
@@ -569,7 +569,7 @@ class BarGrid
 			int index = GRID_DEF_CHARS.indexOf(Character.toUpperCase(ch));
 			if (index < 0)
 				throw new AppException(ErrorId.ILLEGAL_CHARACTER_IN_GRID_DEFINITION,
-									   new String[]{ Character.toString(ch) });
+									   new String[] { Character.toString(ch) });
 			barSets.add(SECONDARY_BAR_SETS.get(index));
 		}
 		int[] dimensions = symmetry.getPrincipalDimensions(numColumns, numRows);
@@ -595,7 +595,7 @@ class BarGrid
 				   int           barWidthThreshold)
 		throws AppException
 	{
-		// Initialise instance fields
+		// Initialise instance variables
 		this(numColumns, numRows);
 
 		// Initialise local variables
@@ -672,7 +672,7 @@ class BarGrid
 
 	private BarGrid(BarGrid grid)
 	{
-		// Initialise instance fields
+		// Initialise instance variables
 		this(grid.numColumns, grid.numRows);
 		symmetry = grid.symmetry;
 		editList = new EditList<>(AppConfig.INSTANCE.getMaxEditListLength());
@@ -696,7 +696,7 @@ class BarGrid
 		// Call superclass contructor
 		super(numColumns, numRows);
 
-		// Initialise instance fields
+		// Initialise instance variables
 		cells = new Cell[numRows][numColumns];
 		for (int row = 0; row < numRows; row++)
 		{
@@ -784,14 +784,20 @@ class BarGrid
 													   Color  entryColour,
 													   double fieldNumberFontSizeFactor,
 													   int    barWidth,
-													   int    cellOffset)
+													   int    cellOffsetTop,
+													   int    cellOffsetLeft,
+													   int    fieldNumOffsetTop,
+													   int    fieldNumOffsetLeft)
 	{
 		// Initialise local variables
 		int halfBarWidth = barWidth / 2;
 
 		// Generate the rule sets for the base cell style
-		List<CssRuleSet> ruleSets = Cell.getStyleRuleSets(cellSize, cellOffset, gridColour, entryColour,
-														  (barWidth - 1) / 2, fieldNumberFontSizeFactor);
+		int fieldNumOffsetBase = (barWidth - 1) / 2;
+		List<CssRuleSet> ruleSets = Cell.getStyleRuleSets(cellSize, cellOffsetTop, cellOffsetLeft, gridColour,
+														  entryColour, fieldNumOffsetBase + fieldNumOffsetTop,
+														  fieldNumOffsetBase + fieldNumOffsetLeft,
+														  fieldNumberFontSizeFactor);
 
 		// Get rule set for barred cell
 		CssRuleSet ruleSet = Cell.RULE_SET.clone();
@@ -804,12 +810,10 @@ class BarGrid
 		decl = ruleSet.findDeclaration(CssConstants.Property.HEIGHT);
 		decl.value = IndexedSub.sub(PIXEL_SIZE_STR, cellSizeStr);
 
-		int offset = cellOffset - 1;
-		String offsetStr = Integer.toString(offset);
 		decl = ruleSet.findDeclaration(CssConstants.Property.TOP);
-		decl.value = IndexedSub.sub(PIXEL_SIZE_STR, offsetStr);
+		decl.value = IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(cellOffsetTop - 1));
 		decl = ruleSet.findDeclaration(CssConstants.Property.LEFT);
-		decl.value = IndexedSub.sub(PIXEL_SIZE_STR, offsetStr);
+		decl.value = IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(cellOffsetLeft - 1));
 
 		String colourStr = ColourUtils.colourToHexString(barColour);
 		decl = ruleSet.findDeclaration(CssConstants.Property.BORDER);
@@ -852,13 +856,16 @@ class BarGrid
 			}
 
 			// Add a top-offset declaration
-			offsetStr = Integer.toString(offset - halfBarWidth);
 			if (edges.contains(Edge.TOP))
-				ruleSet.addDeclaration(CssConstants.Property.TOP, IndexedSub.sub(PIXEL_SIZE_STR, offsetStr));
+				ruleSet.addDeclaration(CssConstants.Property.TOP,
+									   IndexedSub.sub(PIXEL_SIZE_STR,
+													  Integer.toString(cellOffsetTop - halfBarWidth - 1)));
 
 			// Add a left-offset declaration
 			if (edges.contains(Edge.LEFT))
-				ruleSet.addDeclaration(CssConstants.Property.LEFT, IndexedSub.sub(PIXEL_SIZE_STR, offsetStr));
+				ruleSet.addDeclaration(CssConstants.Property.LEFT,
+									   IndexedSub.sub(PIXEL_SIZE_STR,
+													  Integer.toString(cellOffsetLeft - halfBarWidth - 1)));
 
 			// Add border-width declarations
 			for (Edge edge : edges)
@@ -948,7 +955,8 @@ class BarGrid
 		AppConfig config = AppConfig.INSTANCE;
 		ruleSets.addAll(createCellRuleSets(cellSize, gridColour, config.getHtmlBarColour(), entryColour,
 										   fieldNumberFontSizeFactor, config.getHtmlBarGridBarWidth(),
-										   config.getHtmlCellOffset()));
+										   config.getHtmlCellOffsetTop(), config.getHtmlCellOffsetLeft(),
+										   config.getHtmlFieldNumOffsetTop(), config.getHtmlFieldNumOffsetLeft()));
 		return ruleSets;
 	}
 
@@ -1015,7 +1023,7 @@ class BarGrid
 			Symmetry oldSymmetry = this.symmetry;
 			Cell[][] oldCells = copyCells(cells);
 
-			// Set instance field
+			// Set instance variable
 			this.symmetry = symmetry;
 
 			// Make list of secondary bars of cells of specified region
@@ -1296,7 +1304,7 @@ class BarGrid
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	Cell[][]			cells;

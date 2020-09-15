@@ -72,34 +72,48 @@ import javax.swing.event.ListSelectionListener;
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.FileException;
 
-import uk.blankaspect.common.gui.BooleanComboBox;
-import uk.blankaspect.common.gui.ColourSampleIcon;
-import uk.blankaspect.common.gui.DimensionsSpinnerPanel;
-import uk.blankaspect.common.gui.FButton;
-import uk.blankaspect.common.gui.FComboBox;
-import uk.blankaspect.common.gui.FDoubleSpinner;
-import uk.blankaspect.common.gui.FIntegerSpinner;
-import uk.blankaspect.common.gui.FixedWidthLabel;
-import uk.blankaspect.common.gui.FLabel;
-import uk.blankaspect.common.gui.FontEx;
-import uk.blankaspect.common.gui.FontStyle;
-import uk.blankaspect.common.gui.FTabbedPane;
-import uk.blankaspect.common.gui.FTextField;
-import uk.blankaspect.common.gui.GuiUtils;
-import uk.blankaspect.common.gui.InformationField;
-import uk.blankaspect.common.gui.IntegerSpinner;
-import uk.blankaspect.common.gui.PathnamePanel;
-import uk.blankaspect.common.gui.SelectionList;
-import uk.blankaspect.common.gui.TextRendering;
-import uk.blankaspect.common.gui.TitledBorder;
-
 import uk.blankaspect.common.misc.FilenameSuffixFilter;
-import uk.blankaspect.common.misc.KeyAction;
 import uk.blankaspect.common.misc.MaxValueMap;
-import uk.blankaspect.common.misc.StringUtils;
 
-import uk.blankaspect.common.textfield.ConstrainedTextField;
-import uk.blankaspect.common.textfield.IntegerValueField;
+import uk.blankaspect.common.string.StringUtils;
+
+import uk.blankaspect.common.swing.action.KeyAction;
+
+import uk.blankaspect.common.swing.border.TitledBorder;
+
+import uk.blankaspect.common.swing.button.FButton;
+
+import uk.blankaspect.common.swing.combobox.BooleanComboBox;
+import uk.blankaspect.common.swing.combobox.FComboBox;
+
+import uk.blankaspect.common.swing.container.DimensionsSpinnerPanel;
+import uk.blankaspect.common.swing.container.PathnamePanel;
+
+import uk.blankaspect.common.swing.font.FontEx;
+import uk.blankaspect.common.swing.font.FontStyle;
+import uk.blankaspect.common.swing.font.FontUtils;
+
+import uk.blankaspect.common.swing.icon.ColourSampleIcon;
+
+import uk.blankaspect.common.swing.label.FixedWidthLabel;
+import uk.blankaspect.common.swing.label.FLabel;
+
+import uk.blankaspect.common.swing.list.SelectionList;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
+
+import uk.blankaspect.common.swing.spinner.FDoubleSpinner;
+import uk.blankaspect.common.swing.spinner.FIntegerSpinner;
+import uk.blankaspect.common.swing.spinner.IntegerSpinner;
+
+import uk.blankaspect.common.swing.tabbedpane.FTabbedPane;
+
+import uk.blankaspect.common.swing.text.TextRendering;
+
+import uk.blankaspect.common.swing.textfield.ConstrainedTextField;
+import uk.blankaspect.common.swing.textfield.FTextField;
+import uk.blankaspect.common.swing.textfield.InformationField;
+import uk.blankaspect.common.swing.textfield.IntegerValueField;
 
 //----------------------------------------------------------------------
 
@@ -183,34 +197,38 @@ class PreferencesDialog
 	private static final	int		HTML_VIEWER_COMMAND_FIELD_NUM_COLUMNS			= 40;
 	private static final	int		HTML_FONT_NAMES_FIELD_NUM_COLUMNS				= 56;
 	private static final	int		HTML_FONT_SIZE_FIELD_LENGTH						= 3;
-	private static final	int		HTML_FIELD_NUMBER_FONT_SIZE_FACTOR_FIELD_LENGTH	= 5;
+	private static final	int		HTML_FIELD_NUM_FONT_SIZE_FACTOR_FIELD_LENGTH	= 5;
+	private static final	int		HTML_FIELD_NUM_OFFSET_FIELD_LENGTH				= 2;
 	private static final	int		HTML_CELL_OFFSET_FIELD_LENGTH					= 2;
 	private static final	int		HTML_CELL_SIZE_FIELD_LENGTH						= 2;
 	private static final	int		BLOCK_IMAGE_NUM_LINES_FIELD_LENGTH				= 2;
 	private static final	int		BLOCK_IMAGE_LINE_WIDTH_FIELD_LENGTH				= 4;
 
-	private static final	double	DELTA_FIELD_NUMBER_FONT_SIZE_FACTOR	= 0.001;
+	private static final	double	DELTA_FIELD_NUM_FONT_SIZE_FACTOR	= 0.001;
 	private static final	double	DELTA_BLOCK_IMAGE_LINE_WIDTH		= 0.1;
 
-	private static final	String	VIEWER_COMMAND_STR					= "Viewer command";
-	private static final	String	FONT_NAMES_STR						= "Font names";
-	private static final	String	EDIT_STR							= "Edit";
-	private static final	String	EDIT_FONT_NAMES_STR					= "Edit font names";
-	private static final	String	FONT_NAME_STR						= "font name";
-	private static final	String	FONT_SIZE_STR						= "Font size";
-	private static final	String	FIELD_NUMBER_FONT_SIZE_FACTOR_STR	= "Field number font-size factor";
-	private static final	String	CELL_OFFSET_STR						= "Cell offset";
-	private static final	String	GRID_COLOUR_STR						= "Grid colour";
-	private static final	String	ENTRY_COLOUR_STR					= "Grid-entry colour";
-	private static final	String	NUM_LINES_STR						= "Number of lines";
-	private static final	String	LINE_WIDTH_STR						= "Line width";
-	private static final	String	COLOUR_STR							= "Colour";
-	private static final	String	PRINT_ONLY_STR						= "Print only";
-	private static final	String	BAR_COLOUR_STR						= "Bar colour";
-	private static final	String	HTML_GRID_COLOUR_STR				= "HTML grid colour";
-	private static final	String	HTML_ENTRY_COLOUR_STR				= "HTML entry colour";
-	private static final	String	HTML_BLOCK_IMAGE_COLOUR_STR			= "HTML block-image colour";
-	private static final	String	HTML_BAR_COLOUR_STR					= "HTML bar colour";
+	private static final	String	VIEWER_COMMAND_STR				= "Viewer command";
+	private static final	String	FONT_NAMES_STR					= "Font names";
+	private static final	String	EDIT_STR						= "Edit";
+	private static final	String	EDIT_FONT_NAMES_STR				= "Edit font names";
+	private static final	String	FONT_NAME_STR					= "font name";
+	private static final	String	FONT_SIZE_STR					= "Font size";
+	private static final	String	FIELD_NUM_FONT_SIZE_FACTOR_STR	= "Field-number font-size factor";
+	private static final	String	TOP_STR							= "    Top";
+	private static final	String	LEFT_STR						= "Left";
+	private static final	String	FIELD_NUM_OFFSET_STR			= "Field-number offset:" + TOP_STR;
+	private static final	String	CELL_OFFSET_STR					= "Cell offset:" + TOP_STR;
+	private static final	String	GRID_COLOUR_STR					= "Grid colour";
+	private static final	String	ENTRY_COLOUR_STR				= "Grid-entry colour";
+	private static final	String	NUM_LINES_STR					= "Number of lines";
+	private static final	String	LINE_WIDTH_STR					= "Line width";
+	private static final	String	COLOUR_STR						= "Colour";
+	private static final	String	PRINT_ONLY_STR					= "Print only";
+	private static final	String	BAR_COLOUR_STR					= "Bar colour";
+	private static final	String	HTML_GRID_COLOUR_STR			= "HTML grid colour";
+	private static final	String	HTML_ENTRY_COLOUR_STR			= "HTML entry colour";
+	private static final	String	HTML_BLOCK_IMAGE_COLOUR_STR		= "HTML block-image colour";
+	private static final	String	HTML_BAR_COLOUR_STR				= "HTML bar colour";
 
 	private static final	String[]	GENERIC_FONT_NAMES	= { "serif", "sans-serif", "monospace" };
 
@@ -563,7 +581,7 @@ class PreferencesDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	text;
@@ -619,7 +637,7 @@ class PreferencesDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	message;
@@ -843,7 +861,7 @@ class PreferencesDialog
 	//==================================================================
 
 
-	// GRID ENTRY CHARACTERS FIELD CLASS
+	// GRID-ENTRY CHARACTERS FIELD CLASS
 
 
 	private static class EntryCharsField
@@ -876,7 +894,7 @@ class PreferencesDialog
 		@Override
 		protected int getColumnWidth()
 		{
-			return GuiUtils.getCharWidth('0', getFontMetrics(getFont()));
+			return FontUtils.getCharWidth('0', getFontMetrics(getFont()));
 		}
 
 		//--------------------------------------------------------------
@@ -894,8 +912,7 @@ class PreferencesDialog
 		protected boolean acceptCharacter(char ch,
 										  int  index)
 		{
-			return (Character.isLetterOrDigit(ch) &&
-					 (getText().indexOf(Character.toUpperCase(ch)) < 0));
+			return (getText().indexOf(Character.toUpperCase(ch)) < 0) && !Character.isISOControl(ch);
 		}
 
 		//--------------------------------------------------------------
@@ -905,7 +922,7 @@ class PreferencesDialog
 	//==================================================================
 
 
-	// FILENAME SUFFIX FIELD CLASS
+	// FILENAME-SUFFIX FIELD CLASS
 
 
 	private static class FilenameSuffixField
@@ -985,7 +1002,7 @@ class PreferencesDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	StringList	strings;
@@ -1006,7 +1023,7 @@ class PreferencesDialog
 	//  Constants
 	////////////////////////////////////////////////////////////////////
 
-		private static final	int	WIDTH	= CrosswordDocument.MAX_HTML_CELL_SIZE + 2;
+		private static final	int	WIDTH	= Grid.MAX_HTML_CELL_SIZE + 2;
 		private static final	int	HEIGHT	= WIDTH;
 
 		private static final	Color	IMAGE_BACKGROUND_COLOUR	= Color.WHITE;
@@ -1075,7 +1092,7 @@ class PreferencesDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	BufferedImage	image;
@@ -1193,7 +1210,7 @@ class PreferencesDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	FComboBox<String>		nameComboBox;
@@ -2264,7 +2281,7 @@ class PreferencesDialog
 														   CaptureDialog.MIN_GRID_IMAGE_VIEWPORT_HEIGHT,
 														   CaptureDialog.MAX_GRID_IMAGE_VIEWPORT_HEIGHT,
 														   GRID_IMAGE_VIEWPORT_FIELD_LENGTH,
-														   new String[]{ WIDTH_STR, HEIGHT_STR });
+														   new String[] { WIDTH_STR, HEIGHT_STR });
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -2308,10 +2325,8 @@ class PreferencesDialog
 			separatorPanel.add(label);
 
 			// Spinner: cell width
-			FIntegerSpinner spinner = new FIntegerSpinner(config.getGridCellSize(separator),
-														  CrosswordDocument.MIN_CELL_SIZE,
-														  CrosswordDocument.MAX_CELL_SIZE,
-														  GRID_CELL_SIZE_FIELD_LENGTH);
+			FIntegerSpinner spinner = new FIntegerSpinner(config.getGridCellSize(separator), Grid.MIN_CELL_SIZE,
+														  Grid.MAX_CELL_SIZE, GRID_CELL_SIZE_FIELD_LENGTH);
 			gridCellSizeSpinners.put(separator, spinner);
 
 			gbc.gridx = 1;
@@ -2867,8 +2882,8 @@ class PreferencesDialog
 		controlPanel.add(fontSizePanel);
 
 		// Spinner: font size
-		htmlFontSizeSpinner = new FIntegerSpinner(config.getHtmlFontSize(), CrosswordDocument.MIN_HTML_FONT_SIZE,
-												  CrosswordDocument.MAX_HTML_FONT_SIZE, HTML_FONT_SIZE_FIELD_LENGTH);
+		htmlFontSizeSpinner = new FIntegerSpinner(config.getHtmlFontSize(), Grid.MIN_HTML_FONT_SIZE,
+												  Grid.MAX_HTML_FONT_SIZE, HTML_FONT_SIZE_FIELD_LENGTH);
 
 		gbc.gridx = 0;
 		gbc.gridy = 0;
@@ -2898,7 +2913,7 @@ class PreferencesDialog
 		fontSizePanel.add(ptLabel);
 
 		// Label: field number font-size factor
-		JLabel fieldNumberFontSizeFactorLabel = new HtmlPanelLabel(FIELD_NUMBER_FONT_SIZE_FACTOR_STR);
+		JLabel fieldNumberFontSizeFactorLabel = new HtmlPanelLabel(FIELD_NUM_FONT_SIZE_FACTOR_STR);
 
 		gbc.gridx = 0;
 		gbc.gridy = gridY;
@@ -2913,12 +2928,12 @@ class PreferencesDialog
 		controlPanel.add(fieldNumberFontSizeFactorLabel);
 
 		// Spinner: field number font-size factor
-		fieldNumberFontSizeFactorSpinner = new FDoubleSpinner(config.getHtmlFieldNumberFontSizeFactor(),
-															  CrosswordDocument.MIN_HTML_FIELD_NUMBER_FONT_SIZE_FACTOR,
-															  CrosswordDocument.MAX_HTML_FIELD_NUMBER_FONT_SIZE_FACTOR,
-															  DELTA_FIELD_NUMBER_FONT_SIZE_FACTOR,
-															  HTML_FIELD_NUMBER_FONT_SIZE_FACTOR_FIELD_LENGTH,
-															  AppConstants.FORMAT_1_3);
+		htmlFieldNumFontSizeFactorSpinner = new FDoubleSpinner(config.getHtmlFieldNumFontSizeFactor(),
+															   Grid.MIN_HTML_FIELD_NUM_FONT_SIZE_FACTOR,
+															   Grid.MAX_HTML_FIELD_NUM_FONT_SIZE_FACTOR,
+															   DELTA_FIELD_NUM_FONT_SIZE_FACTOR,
+															   HTML_FIELD_NUM_FONT_SIZE_FACTOR_FIELD_LENGTH,
+															   AppConstants.FORMAT_1_3);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -2929,8 +2944,89 @@ class PreferencesDialog
 		gbc.anchor = GridBagConstraints.LINE_START;
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.insets = AppConstants.COMPONENT_INSETS;
-		gridBag.setConstraints(fieldNumberFontSizeFactorSpinner, gbc);
-		controlPanel.add(fieldNumberFontSizeFactorSpinner);
+		gridBag.setConstraints(htmlFieldNumFontSizeFactorSpinner, gbc);
+		controlPanel.add(htmlFieldNumFontSizeFactorSpinner);
+
+		// Label: field number offset
+		JLabel fieldNumOffsetLabel = new FLabel(FIELD_NUM_OFFSET_STR);
+
+		gbc.gridx = 0;
+		gbc.gridy = gridY;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.LINE_END;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gridBag.setConstraints(fieldNumOffsetLabel, gbc);
+		controlPanel.add(fieldNumOffsetLabel);
+
+		// Panel: field number offset
+		JPanel fieldNumOffsetPanel = new JPanel(gridBag);
+
+		gbc.gridx = 1;
+		gbc.gridy = gridY++;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.LINE_START;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gridBag.setConstraints(fieldNumOffsetPanel, gbc);
+		controlPanel.add(fieldNumOffsetPanel);
+
+		// Spinner: field number offset, top
+		htmlFieldNumOffsetTopSpinner = new FIntegerSpinner(config.getHtmlFieldNumOffsetTop(),
+														   Grid.MIN_HTML_FIELD_NUM_OFFSET,
+														   Grid.MAX_HTML_FIELD_NUM_OFFSET,
+														   HTML_FIELD_NUM_OFFSET_FIELD_LENGTH, true);
+
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.LINE_START;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = new Insets(0, 0, 0, 0);
+		gridBag.setConstraints(htmlFieldNumOffsetTopSpinner, gbc);
+		fieldNumOffsetPanel.add(htmlFieldNumOffsetTopSpinner);
+
+		// Label: "left"
+		JLabel fieldNumOffsetLeftLabel = new FLabel(LEFT_STR);
+
+		gbc.gridx = 1;
+		gbc.gridy = 0;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.LINE_START;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = new Insets(0, 10, 0, 0);
+		gridBag.setConstraints(fieldNumOffsetLeftLabel, gbc);
+		fieldNumOffsetPanel.add(fieldNumOffsetLeftLabel);
+
+		// Spinner: field number offset, left
+		htmlFieldNumOffsetLeftSpinner = new FIntegerSpinner(config.getHtmlFieldNumOffsetLeft(),
+															Grid.MIN_HTML_FIELD_NUM_OFFSET,
+															Grid.MAX_HTML_FIELD_NUM_OFFSET,
+															HTML_FIELD_NUM_OFFSET_FIELD_LENGTH, true);
+
+		gbc.gridx = 2;
+		gbc.gridy = 0;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.LINE_START;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = new Insets(0, 6, 0, 0);
+		gridBag.setConstraints(htmlFieldNumOffsetLeftSpinner, gbc);
+		fieldNumOffsetPanel.add(htmlFieldNumOffsetLeftSpinner);
 
 		// Label: cell offset
 		JLabel cellOffsetLabel = new FLabel(CELL_OFFSET_STR);
@@ -2947,9 +3043,8 @@ class PreferencesDialog
 		gridBag.setConstraints(cellOffsetLabel, gbc);
 		controlPanel.add(cellOffsetLabel);
 
-		// Spinner: cell offset
-		htmlCellOffsetSpinner = new FIntegerSpinner(config.getHtmlCellOffset(), Grid.MIN_HTML_CELL_OFFSET,
-													Grid.MAX_HTML_CELL_OFFSET, HTML_CELL_OFFSET_FIELD_LENGTH, true);
+		// Panel: cell offset
+		JPanel cellOffsetPanel = new JPanel(gridBag);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -2960,8 +3055,55 @@ class PreferencesDialog
 		gbc.anchor = GridBagConstraints.LINE_START;
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.insets = AppConstants.COMPONENT_INSETS;
-		gridBag.setConstraints(htmlCellOffsetSpinner, gbc);
-		controlPanel.add(htmlCellOffsetSpinner);
+		gridBag.setConstraints(cellOffsetPanel, gbc);
+		controlPanel.add(cellOffsetPanel);
+
+		// Spinner: cell offset, top
+		htmlCellOffsetTopSpinner = new FIntegerSpinner(config.getHtmlCellOffsetTop(), Grid.MIN_HTML_CELL_OFFSET,
+													   Grid.MAX_HTML_CELL_OFFSET, HTML_CELL_OFFSET_FIELD_LENGTH, true);
+
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.LINE_START;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = new Insets(0, 0, 0, 0);
+		gridBag.setConstraints(htmlCellOffsetTopSpinner, gbc);
+		cellOffsetPanel.add(htmlCellOffsetTopSpinner);
+
+		// Label: "left"
+		JLabel cellOffsetLeftLabel = new FLabel(LEFT_STR);
+
+		gbc.gridx = 1;
+		gbc.gridy = 0;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.LINE_START;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = new Insets(0, 10, 0, 0);
+		gridBag.setConstraints(cellOffsetLeftLabel, gbc);
+		cellOffsetPanel.add(cellOffsetLeftLabel);
+
+		// Spinner: cell offset, left
+		htmlCellOffsetLeftSpinner = new FIntegerSpinner(config.getHtmlCellOffsetLeft(), Grid.MIN_HTML_CELL_OFFSET,
+														Grid.MAX_HTML_CELL_OFFSET, HTML_CELL_OFFSET_FIELD_LENGTH, true);
+
+		gbc.gridx = 2;
+		gbc.gridy = 0;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.LINE_START;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = new Insets(0, 6, 0, 0);
+		gridBag.setConstraints(htmlCellOffsetLeftSpinner, gbc);
+		cellOffsetPanel.add(htmlCellOffsetLeftSpinner);
 
 		// Label: grid colour
 		JLabel gridColourLabel = new HtmlPanelLabel(GRID_COLOUR_STR);
@@ -3070,8 +3212,7 @@ class PreferencesDialog
 
 		// Spinner: cell size
 		FIntegerSpinner blockCellSizeSpinner = new FIntegerSpinner(config.getHtmlCellSize(separator),
-																   CrosswordDocument.MIN_HTML_CELL_SIZE,
-																   CrosswordDocument.MAX_HTML_CELL_SIZE,
+																   Grid.MIN_HTML_CELL_SIZE, Grid.MAX_HTML_CELL_SIZE,
 																   HTML_CELL_SIZE_FIELD_LENGTH);
 		blockCellSizeSpinner.addChangeListener(this);
 		htmlCellSizeSpinners.put(separator, blockCellSizeSpinner);
@@ -3294,8 +3435,7 @@ class PreferencesDialog
 
 		// Spinner: cell size
 		FIntegerSpinner barCellSizeSpinner = new FIntegerSpinner(config.getHtmlCellSize(separator),
-																 CrosswordDocument.MIN_HTML_CELL_SIZE,
-																 CrosswordDocument.MAX_HTML_CELL_SIZE,
+																 Grid.MIN_HTML_CELL_SIZE, Grid.MAX_HTML_CELL_SIZE,
 																 HTML_CELL_SIZE_FIELD_LENGTH);
 		htmlCellSizeSpinners.put(separator, barCellSizeSpinner);
 
@@ -3770,8 +3910,7 @@ class PreferencesDialog
 		config.setShowUnixPathnames(showUnixPathnamesComboBox.getSelectedValue());
 		config.setSelectTextOnFocusGained(selectTextOnFocusGainedComboBox.getSelectedValue());
 		if (saveMainWindowLocationComboBox.getSelectedValue() != config.isMainWindowLocation())
-			config.setMainWindowLocation(saveMainWindowLocationComboBox.getSelectedValue() ? new Point()
-																						   : null);
+			config.setMainWindowLocation(saveMainWindowLocationComboBox.getSelectedValue() ? new Point() : null);
 		config.setMaxEditListLength(maxEditListLengthSpinner.getIntValue());
 		config.setClearEditListOnSave(clearEditListOnSaveComboBox.getSelectedValue());
 		config.setFilenameSuffix(filenameSuffixField.getText());
@@ -3844,8 +3983,11 @@ class PreferencesDialog
 		config.setHtmlViewerCommand(htmlViewerCommandField.isEmpty() ? null : htmlViewerCommandField.getText());
 		config.setHtmlFontNames(htmlFontNamesField.strings);
 		config.setHtmlFontSize(htmlFontSizeSpinner.getIntValue());
-		config.setHtmlFieldNumberFontSizeFactor(fieldNumberFontSizeFactorSpinner.getDoubleValue());
-		config.setHtmlCellOffset(htmlCellOffsetSpinner.getIntValue());
+		config.setHtmlFieldNumFontSizeFactor(htmlFieldNumFontSizeFactorSpinner.getDoubleValue());
+		config.setHtmlFieldNumOffsetTop(htmlFieldNumOffsetTopSpinner.getIntValue());
+		config.setHtmlFieldNumOffsetLeft(htmlFieldNumOffsetLeftSpinner.getIntValue());
+		config.setHtmlCellOffsetTop(htmlCellOffsetTopSpinner.getIntValue());
+		config.setHtmlCellOffsetLeft(htmlCellOffsetLeftSpinner.getIntValue());
 		config.setHtmlGridColour(htmlGridColourButton.getForeground());
 		config.setHtmlEntryColour(htmlEntryColourButton.getForeground());
 		for (Grid.Separator separator : htmlCellSizeSpinners.keySet())
@@ -3863,9 +4005,8 @@ class PreferencesDialog
 	private void setPreferencesFiles()
 	{
 		AppConfig config = AppConfig.INSTANCE;
-		config.setParameterSetPathname(parameterSetPathnameField.isEmpty()
-																? null
-																: parameterSetPathnameField.getText());
+		config.setParameterSetPathname(parameterSetPathnameField.isEmpty() ? null
+																		   : parameterSetPathnameField.getText());
 	}
 
 	//------------------------------------------------------------------
@@ -3882,14 +4023,14 @@ class PreferencesDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class fields
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
 	private static	Point	location;
 	private static	int		tabIndex;
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	// Main panel
@@ -3934,8 +4075,11 @@ class PreferencesDialog
 	private	FTextField								htmlViewerCommandField;
 	private	StringListField							htmlFontNamesField;
 	private	FIntegerSpinner							htmlFontSizeSpinner;
-	private	FDoubleSpinner							fieldNumberFontSizeFactorSpinner;
-	private	FIntegerSpinner							htmlCellOffsetSpinner;
+	private	FDoubleSpinner							htmlFieldNumFontSizeFactorSpinner;
+	private	FIntegerSpinner							htmlFieldNumOffsetTopSpinner;
+	private	FIntegerSpinner							htmlFieldNumOffsetLeftSpinner;
+	private	FIntegerSpinner							htmlCellOffsetTopSpinner;
+	private	FIntegerSpinner							htmlCellOffsetLeftSpinner;
 	private	ColourButton							htmlGridColourButton;
 	private	ColourButton							htmlEntryColourButton;
 	private	Map<Grid.Separator, FIntegerSpinner>	htmlCellSizeSpinners;

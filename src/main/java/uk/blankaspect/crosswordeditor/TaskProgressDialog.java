@@ -25,7 +25,7 @@ import java.io.File;
 
 import uk.blankaspect.common.exception.AppException;
 
-import uk.blankaspect.common.gui.GuiUtils;
+import uk.blankaspect.common.swing.misc.GuiUtils;
 
 //----------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ import uk.blankaspect.common.gui.GuiUtils;
 
 
 class TaskProgressDialog
-	extends uk.blankaspect.common.gui.TaskProgressDialog
+	extends uk.blankaspect.common.swing.dialog.TaskProgressDialog
 {
 
 ////////////////////////////////////////////////////////////////////////

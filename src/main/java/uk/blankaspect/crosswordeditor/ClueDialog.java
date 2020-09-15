@@ -62,13 +62,17 @@ import javax.swing.SwingUtilities;
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.UnexpectedRuntimeException;
 
-import uk.blankaspect.common.gui.FButton;
-import uk.blankaspect.common.gui.GuiUtils;
-import uk.blankaspect.common.gui.TextRendering;
+import uk.blankaspect.common.number.NumberUtils;
 
-import uk.blankaspect.common.misc.KeyAction;
-import uk.blankaspect.common.misc.NumberUtils;
-import uk.blankaspect.common.misc.StringUtils;
+import uk.blankaspect.common.string.StringUtils;
+
+import uk.blankaspect.common.swing.action.KeyAction;
+
+import uk.blankaspect.common.swing.button.FButton;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
+
+import uk.blankaspect.common.swing.text.TextRendering;
 
 //----------------------------------------------------------------------
 
@@ -167,7 +171,7 @@ class ClueDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		Grid.Field.Id	id;
@@ -253,7 +257,7 @@ class ClueDialog
 						 Map<Direction, List<Field>> availableFields,
 						 int                         maxNumDigits)
 		{
-			// Initialise instance fields
+			// Initialise instance variables
 			this.dialog = dialog;
 			this.clueFields = clueFields;
 			this.availableFields = availableFields;
@@ -621,7 +625,7 @@ class ClueDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	ClueDialog					dialog;
@@ -652,7 +656,7 @@ class ClueDialog
 		// Set icons
 		setIconImages(owner.getIconImages());
 
-		// Initialise instance fields
+		// Initialise instance variables
 		this.clueReferenceKeyword = document.getClueReferenceKeyword();
 		clueIndex = clue.getId().index;
 
@@ -942,13 +946,13 @@ class ClueDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class fields
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
 	private static	Point	location;
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	boolean		accepted;

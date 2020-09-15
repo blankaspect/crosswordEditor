@@ -53,17 +53,22 @@ import javax.swing.KeyStroke;
 
 import uk.blankaspect.common.exception.AppException;
 
-import uk.blankaspect.common.gui.FButton;
-import uk.blankaspect.common.gui.GuiUtils;
-import uk.blankaspect.common.gui.InformationField;
-import uk.blankaspect.common.gui.MenuButton;
-import uk.blankaspect.common.gui.TitledBorder;
-
-import uk.blankaspect.common.misc.KeyAction;
-import uk.blankaspect.common.misc.StringUtils;
-import uk.blankaspect.common.misc.TextUtils;
-
 import uk.blankaspect.common.regex.Substitution;
+
+import uk.blankaspect.common.string.StringUtils;
+
+import uk.blankaspect.common.swing.action.KeyAction;
+
+import uk.blankaspect.common.swing.border.TitledBorder;
+
+import uk.blankaspect.common.swing.button.FButton;
+import uk.blankaspect.common.swing.button.MenuButton;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
+
+import uk.blankaspect.common.swing.text.TextUtils;
+
+import uk.blankaspect.common.swing.textfield.InformationField;
 
 //----------------------------------------------------------------------
 
@@ -121,7 +126,7 @@ class ImportCluesDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		Map<Direction, List<Clue>>	clues;
@@ -179,7 +184,7 @@ class ImportCluesDialog
 		// Set icons
 		setIconImages(owner.getIconImages());
 
-		// Initialise instance fields
+		// Initialise instance variables
 		this.clueReferenceKeyword = clueReferenceKeyword;
 		this.answerLengthParser = answerLengthParser;
 		clueLists = new EnumMap<>(Direction.class);
@@ -488,13 +493,13 @@ class ImportCluesDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class fields
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
 	private static	Point	location;
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	boolean								accepted;

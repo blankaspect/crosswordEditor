@@ -26,7 +26,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
 
-import uk.blankaspect.common.misc.Command;
+import uk.blankaspect.common.swing.action.Command;
 
 //----------------------------------------------------------------------
 
@@ -260,7 +260,7 @@ enum AppCommand
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	Command	command;

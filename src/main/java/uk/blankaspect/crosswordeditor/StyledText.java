@@ -38,7 +38,8 @@ import javax.swing.text.StyleConstants;
 import uk.blankaspect.common.exception.AppException;
 
 import uk.blankaspect.common.misc.IStringKeyed;
-import uk.blankaspect.common.misc.StringUtils;
+
+import uk.blankaspect.common.string.StringUtils;
 
 import uk.blankaspect.common.xml.Attribute;
 import uk.blankaspect.common.xml.XhtmlUtils;
@@ -60,8 +61,8 @@ class StyledText
 	public static final		String	STYLE_PREFIX	= "{@";
 	public static final		String	STYLE_SUFFIX	= "}";
 
-	private static final	String	STYLE_REGEX		= "(\\\\\\\\|(?<!\\\\)\\" + STYLE_PREFIX +
-															"([a-z]+).|(?<!\\\\)\\" + STYLE_SUFFIX + ")";
+	private static final	String	STYLE_REGEX		= "(\\\\\\\\|(?<!\\\\)\\" + STYLE_PREFIX
+															+ "([a-z]+).|(?<!\\\\)\\" + STYLE_SUFFIX + ")";
 
 ////////////////////////////////////////////////////////////////////////
 //  Enumerated types
@@ -153,8 +154,7 @@ class StyledText
 						  String className)
 		{
 			this(key, text, attribute, elementName);
-			classAttrList = Collections.singletonList(new Attribute(HtmlConstants.AttrName.CLASS,
-																	className));
+			classAttrList = Collections.singletonList(new Attribute(HtmlConstants.AttrName.CLASS, className));
 		}
 
 		//--------------------------------------------------------------
@@ -179,6 +179,7 @@ class StyledText
 	//  Instance methods : IStringKeyed interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public String getKey()
 		{
 			return Character.toString(key);
@@ -236,7 +237,7 @@ class StyledText
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	char			key;
@@ -289,6 +290,7 @@ class StyledText
 	//  Instance methods : AppException.IId interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public String getMessage()
 		{
 			return message;
@@ -297,7 +299,7 @@ class StyledText
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	message;
@@ -345,9 +347,9 @@ class StyledText
 		private ParseException(AppException.IId id,
 							   String           text,
 							   int              index,
-							   String...        substitutionStrs)
+							   CharSequence...  replacements)
 		{
-			super(id, substitutionStrs);
+			super(id, replacements);
 			this.text = text;
 			this.index = index;
 		}
@@ -400,7 +402,7 @@ class StyledText
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	text;
@@ -508,7 +510,7 @@ class StyledText
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String				text;
@@ -539,7 +541,7 @@ class StyledText
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	int					index;
@@ -581,7 +583,7 @@ class StyledText
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	StyleAttr	attr;
@@ -618,7 +620,7 @@ class StyledText
 	@Override
 	public boolean equals(Object obj)
 	{
-		return ((obj instanceof StyledText) && spans.equals(((StyledText)obj).spans));
+		return (obj instanceof StyledText) && spans.equals(((StyledText)obj).spans);
 	}
 
 	//------------------------------------------------------------------
@@ -697,14 +699,12 @@ class StyledText
 					{
 						StyleAttr attr = StyleAttr.forKey(tag.charAt(i));
 						if (attr == null)
-							throw new ParseException(ErrorId.UNRECOGNISED_ATTRIBUTE, text,
-													 matcher.start(2) + i,
+							throw new ParseException(ErrorId.UNRECOGNISED_ATTRIBUTE, text, matcher.start(2) + i,
 													 Character.toString(tag.charAt(i)));
 						attrs.add(attr);
 						if (attrs.contains(StyleAttr.SUPERSCRIPT) &&
 							 attrs.contains(StyleAttr.SUBSCRIPT))
-							throw new ParseException(ErrorId.INCONSISTENT_ATTRIBUTES, text,
-													 matcher.start(2) + i);
+							throw new ParseException(ErrorId.INCONSISTENT_ATTRIBUTES, text, matcher.start(2) + i);
 					}
 					if (attrs.contains(StyleAttr.SUPERSCRIPT) || attrs.contains(StyleAttr.SUBSCRIPT))
 						currentAttrs.removeAll(EnumSet.of(StyleAttr.SUPERSCRIPT, StyleAttr.SUBSCRIPT));
@@ -737,8 +737,7 @@ class StyledText
 
 		// Test for an unmatched start tag
 		if (!attrsStack.isEmpty())
-			throw new ParseException(ErrorId.NO_MATCHING_CLOSING_BRACE, text,
-									 attrsStack.peekFirst().index);
+			throw new ParseException(ErrorId.NO_MATCHING_CLOSING_BRACE, text, attrsStack.peekFirst().index);
 
 		// Add a span for the remainder of the text
 		int index = text.length();
@@ -797,9 +796,9 @@ class StyledText
 			EnumSet<StyleAttr> commonAttrs = currentAttrs.clone();
 			commonAttrs.retainAll(span.attrs);
 
-			// Pop attributes off the stack until the attributes remaining on the stack are a subset of the
-			// intersection of the previous attributes and the attributes of the current span.  Write the
-			// end tag of the HTML element corresponding to each attribute that is popped from the stack.
+			// Pop attributes off the stack until the attributes remaining on the stack are a subset of the intersection
+			// of the previous attributes and the attributes of the current span.  Write the end tag of the HTML element
+			// corresponding to each attribute that is popped from the stack.
 			while (!attrStack.isEmpty() && !commonAttrs.containsAll(currentAttrs))
 			{
 				StyleAttr attr = attrStack.removeFirst();
@@ -807,9 +806,9 @@ class StyledText
 				attr.writeOff(writer);
 			}
 
-			// Iterating through the attributes in weighted order, push onto the stack each attribute of the
-			// current span that isn't already on the stack, and write the start tag of the HTML element
-			// corresponding to the attribute
+			// Iterate through the attributes in weighted order: push onto the stack each attribute of the current span
+			// that isn't already on the stack, and write the start tag of the HTML element corresponding to the
+			// attribute
 			for (AttrWeight attrWeight : orderedAttrs)
 			{
 				StyleAttr attr = attrWeight.attr;
@@ -832,8 +831,7 @@ class StyledText
 			writer.write(text);
 		}
 
-		// Pop all attributes off the stack, and write the end tag of the HTML element corresponding to each
-		// one
+		// Pop all attributes off the stack, and write the end tag of the HTML element corresponding to each one
 		while (!attrStack.isEmpty())
 			attrStack.removeFirst().writeOff(writer);
 	}
@@ -849,9 +847,8 @@ class StyledText
 			attrWeights[i] = new AttrWeight(StyleAttr.values()[i]);
 		int[] runLengths = new int[numAttrs];
 
-		// Set the weight of each attribute.  The weight is the sum of the number the spans containing the
-		// attribute and the square of each run length (ie, the number of contiguous spans containing the
-		// attribute).
+		// Set the weight of each attribute.  The weight is the sum of the number the spans containing the attribute and
+		// the square of each run length (ie, the number of contiguous spans containing the attribute).
 		for (Span span : spans)
 		{
 			for (StyleAttr attr : StyleAttr.values())
@@ -884,7 +881,7 @@ class StyledText
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	List<Span>	spans;

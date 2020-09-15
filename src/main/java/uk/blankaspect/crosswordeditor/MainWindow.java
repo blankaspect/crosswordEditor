@@ -55,13 +55,15 @@ import javax.swing.event.MenuListener;
 
 import uk.blankaspect.common.exception.AppException;
 
-import uk.blankaspect.common.gui.FCheckBoxMenuItem;
-import uk.blankaspect.common.gui.FMenu;
-import uk.blankaspect.common.gui.FMenuItem;
-import uk.blankaspect.common.gui.GuiUtils;
-import uk.blankaspect.common.gui.TabbedPanel;
+import uk.blankaspect.common.swing.menu.FCheckBoxMenuItem;
+import uk.blankaspect.common.swing.menu.FMenu;
+import uk.blankaspect.common.swing.menu.FMenuItem;
 
-import uk.blankaspect.common.misc.DataImporter;
+import uk.blankaspect.common.swing.misc.GuiUtils;
+
+import uk.blankaspect.common.swing.tabbedpane.TabbedPane;
+
+import uk.blankaspect.common.swing.transfer.DataImporter;
 
 //----------------------------------------------------------------------
 
@@ -226,7 +228,7 @@ class MainWindow
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	JMenu	menu;
@@ -276,7 +278,7 @@ class MainWindow
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	message;
@@ -343,7 +345,7 @@ class MainWindow
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	StatusField	solutionField;
@@ -689,7 +691,7 @@ class MainWindow
 
 		//----  Tabbed panel
 
-		tabbedPanel = new TabbedPanel();
+		tabbedPanel = new TabbedPane();
 		tabbedPanel.setIgnoreCase(true);
 		tabbedPanel.addChangeListener(this);
 		tabbedPanel.addMouseListener(this);
@@ -986,10 +988,10 @@ class MainWindow
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-	private	TabbedPanel	tabbedPanel;
+	private	TabbedPane	tabbedPanel;
 	private	StatusPanel	statusPanel;
 	private	JPopupMenu	contextMenu;
 

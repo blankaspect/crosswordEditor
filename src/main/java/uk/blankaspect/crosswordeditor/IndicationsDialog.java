@@ -50,16 +50,20 @@ import javax.swing.KeyStroke;
 
 import uk.blankaspect.common.exception.AppException;
 
-import uk.blankaspect.common.gui.FButton;
-import uk.blankaspect.common.gui.FixedWidthLabel;
-import uk.blankaspect.common.gui.FTextField;
-import uk.blankaspect.common.gui.GuiUtils;
-
-import uk.blankaspect.common.misc.KeyAction;
 import uk.blankaspect.common.misc.MaxValueMap;
 
 import uk.blankaspect.common.regex.RegexUtils;
 import uk.blankaspect.common.regex.Substitution;
+
+import uk.blankaspect.common.swing.action.KeyAction;
+
+import uk.blankaspect.common.swing.button.FButton;
+
+import uk.blankaspect.common.swing.label.FixedWidthLabel;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
+
+import uk.blankaspect.common.swing.textfield.FTextField;
 
 //----------------------------------------------------------------------
 
@@ -132,7 +136,7 @@ class IndicationsDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	message;
@@ -170,7 +174,7 @@ class IndicationsDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		String				clueReferenceKeyword;
@@ -560,13 +564,13 @@ class IndicationsDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class fields
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
 	private static	Point	location;
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	boolean				accepted;

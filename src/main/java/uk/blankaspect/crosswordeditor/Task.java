@@ -23,7 +23,7 @@ import java.io.File;
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.TaskCancelledException;
 
-import uk.blankaspect.common.windows.FileAssociations;
+import uk.blankaspect.common.platform.windows.FileAssociations;
 
 //----------------------------------------------------------------------
 
@@ -87,7 +87,7 @@ abstract class Task
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	CrosswordDocument	document;
@@ -141,7 +141,7 @@ abstract class Task
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	CrosswordDocument	document;
@@ -206,7 +206,7 @@ abstract class Task
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	CrosswordDocument					document;
@@ -263,7 +263,7 @@ abstract class Task
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	CrosswordDocument	document;
@@ -335,7 +335,7 @@ abstract class Task
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	FileAssociations					fileAssociations;
@@ -393,7 +393,7 @@ abstract class Task
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	File	file;

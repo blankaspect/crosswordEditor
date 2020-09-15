@@ -56,12 +56,15 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
-import uk.blankaspect.common.gui.CrosshairCursor;
-import uk.blankaspect.common.gui.FButton;
-import uk.blankaspect.common.gui.GuiUtils;
+import uk.blankaspect.common.swing.action.KeyAction;
 
-import uk.blankaspect.common.misc.ImageUtils;
-import uk.blankaspect.common.misc.KeyAction;
+import uk.blankaspect.common.swing.button.FButton;
+
+import uk.blankaspect.common.swing.cursor.CrosshairCursor;
+
+import uk.blankaspect.common.swing.image.ImageUtils;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
 
 //----------------------------------------------------------------------
 
@@ -179,7 +182,7 @@ class ImageRegionSelectionDialog
 
 		private SelectionPanel(Rectangle selection)
 		{
-			// Initialise instance fields
+			// Initialise instance variables
 			if (selection != null)
 				this.selection = new Rectangle(selection);
 			rubberBandBoxTimer = new Timer(RUBBER_BAND_BOX_INTERVAL, this);
@@ -374,7 +377,7 @@ class ImageRegionSelectionDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	Point		anchor;
@@ -420,7 +423,7 @@ class ImageRegionSelectionDialog
 		// Set icons
 		setIconImages(owner.getIconImages());
 
-		// Initialise instance fields
+		// Initialise instance variables
 		this.image = image;
 
 
@@ -640,7 +643,7 @@ class ImageRegionSelectionDialog
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	boolean			accepted;

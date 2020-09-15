@@ -39,16 +39,23 @@ import javax.swing.UIManager;
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.FileException;
 
-import uk.blankaspect.common.gui.FontEx;
-import uk.blankaspect.common.gui.IProgressView;
-import uk.blankaspect.common.gui.TextRendering;
+import uk.blankaspect.common.filesystem.PathnameUtils;
 
-import uk.blankaspect.common.misc.ColourUtils;
 import uk.blankaspect.common.misc.FilenameSuffixFilter;
-import uk.blankaspect.common.misc.IntegerRange;
-import uk.blankaspect.common.misc.Property;
-import uk.blankaspect.common.misc.PropertySet;
-import uk.blankaspect.common.misc.PropertyString;
+
+import uk.blankaspect.common.property.Property;
+import uk.blankaspect.common.property.PropertySet;
+
+import uk.blankaspect.common.range.IntegerRange;
+
+import uk.blankaspect.common.swing.colour.ColourProperty;
+import uk.blankaspect.common.swing.colour.ColourUtils;
+
+import uk.blankaspect.common.swing.font.FontEx;
+
+import uk.blankaspect.common.swing.text.TextRendering;
+
+import uk.blankaspect.common.ui.progress.IProgressView;
 
 //----------------------------------------------------------------------
 
@@ -73,9 +80,9 @@ class AppConfig
 	private static final	String	CONFIG_DIR_KEY		= Property.APP_PREFIX + "configDir";
 	private static final	String	PROPERTIES_FILENAME	= App.NAME_KEY + "-properties" +
 																			AppConstants.XML_FILE_SUFFIX;
-	private static final	String	FILENAME_BASE		= App.NAME_KEY + "-config";
-	private static final	String	CONFIG_FILENAME		= FILENAME_BASE + AppConstants.XML_FILE_SUFFIX;
-	private static final	String	CONFIG_OLD_FILENAME	= FILENAME_BASE + "-old" +
+	private static final	String	FILENAME_STEM		= App.NAME_KEY + "-config";
+	private static final	String	CONFIG_FILENAME		= FILENAME_STEM + AppConstants.XML_FILE_SUFFIX;
+	private static final	String	CONFIG_OLD_FILENAME	= FILENAME_STEM + "-old" +
 																			AppConstants.XML_FILE_SUFFIX;
 
 	private static final	String	SAVE_CONFIGURATION_FILE_STR	= "Save configuration file";
@@ -89,7 +96,8 @@ class AppConfig
 		String	BAR_GRID						= "barGrid";
 		String	BAR_WIDTH						= "barWidth";
 		String	BLOCK_IMAGE						= "blockImage";
-		String	CELL_OFFSET						= "cellOffset";
+		String	CELL_OFFSET_LEFT				= "cellOffsetLeft";
+		String	CELL_OFFSET_TOP					= "cellOffsetTop";
 		String	CELL_SIZE						= "cellSize";
 		String	CLEAR_EDIT_LIST_ON_SAVE			= "clearEditListOnSave";
 		String	CLUE							= "clue";
@@ -100,6 +108,8 @@ class AppConfig
 		String	ENTRY_COLOUR					= "entryColour";
 		String	EXPORT_HTML_DIRECTORY			= "exportHtmlDirectory";
 		String	FIELD_NUMBER_FONT_SIZE_FACTOR	= "fieldNumberFontSizeFactor";
+		String	FIELD_NUMBER_OFFSET_LEFT		= "fieldNumberOffsetLeft";
+		String	FIELD_NUMBER_OFFSET_TOP			= "fieldNumberOffsetTop";
 		String	FILE							= "file";
 		String	FILENAME_SUFFIX					= "filenameSuffix";
 		String	FONT							= "font";
@@ -198,7 +208,7 @@ class AppConfig
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	message;
@@ -357,7 +367,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPShowUnixPathnames	cpShowUnixPathnames	= new CPShowUnixPathnames();
@@ -407,7 +417,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPSelectTextOnFocusGained	cpSelectTextOnFocusGained	= new CPSelectTextOnFocusGained();
@@ -457,7 +467,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPShowFullPathnames	cpShowFullPathnames	= new CPShowFullPathnames();
@@ -541,7 +551,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPMainWindowLocation	cpMainWindowLocation	= new CPMainWindowLocation();
@@ -616,7 +626,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPMainWindowSize	cpMainWindowSize	= new CPMainWindowSize();
@@ -667,7 +677,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPMaxEditListLength	cpMaxEditListLength	= new CPMaxEditListLength();
@@ -717,7 +727,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPClearEditListOnSave	cpClearEditListOnSave	= new CPClearEditListOnSave();
@@ -767,7 +777,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPFilenameSuffix	cpFilenameSuffix	= new CPFilenameSuffix();
@@ -826,7 +836,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPLookAndFeel	cpLookAndFeel	= new CPLookAndFeel();
@@ -877,7 +887,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPTextAntialiasing	cpTextAntialiasing	= new CPTextAntialiasing();
@@ -889,7 +899,7 @@ class AppConfig
 
 
 	private class CPStatusTextColour
-		extends Property.ColourProperty
+		extends ColourProperty
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -927,7 +937,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPStatusTextColour	cpStatusTextColour	= new CPStatusTextColour();
@@ -949,7 +959,7 @@ class AppConfig
 		private CPOpenCrosswordPathname()
 		{
 			super(concatenateKeys(Key.PATH, Key.OPEN_CROSSWORD_DIRECTORY));
-			value = PropertyString.USER_HOME_PREFIX;
+			value = PathnameUtils.USER_HOME_PREFIX;
 		}
 
 		//--------------------------------------------------------------
@@ -971,7 +981,7 @@ class AppConfig
 
 	public File getOpenCrosswordDirectory()
 	{
-		return new File(PropertyString.parsePathname(getOpenCrosswordPathname()));
+		return new File(PathnameUtils.parsePathname(getOpenCrosswordPathname()));
 	}
 
 	//------------------------------------------------------------------
@@ -984,7 +994,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPOpenCrosswordPathname	cpOpenCrosswordPathname	= new CPOpenCrosswordPathname();
@@ -1006,7 +1016,7 @@ class AppConfig
 		private CPSaveCrosswordPathname()
 		{
 			super(concatenateKeys(Key.PATH, Key.SAVE_CROSSWORD_DIRECTORY));
-			value = PropertyString.USER_HOME_PREFIX;
+			value = PathnameUtils.USER_HOME_PREFIX;
 		}
 
 		//--------------------------------------------------------------
@@ -1028,7 +1038,7 @@ class AppConfig
 
 	public File getSaveCrosswordDirectory()
 	{
-		return new File(PropertyString.parsePathname(getSaveCrosswordPathname()));
+		return new File(PathnameUtils.parsePathname(getSaveCrosswordPathname()));
 	}
 
 	//------------------------------------------------------------------
@@ -1041,7 +1051,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPSaveCrosswordPathname	cpSaveCrosswordPathname	= new CPSaveCrosswordPathname();
@@ -1063,7 +1073,7 @@ class AppConfig
 		private CPExportHtmlPathname()
 		{
 			super(concatenateKeys(Key.PATH, Key.EXPORT_HTML_DIRECTORY));
-			value = PropertyString.USER_HOME_PREFIX;
+			value = PathnameUtils.USER_HOME_PREFIX;
 		}
 
 		//--------------------------------------------------------------
@@ -1085,7 +1095,7 @@ class AppConfig
 
 	public File getExportHtmlDirectory()
 	{
-		return new File(PropertyString.parsePathname(getExportHtmlPathname()));
+		return new File(PathnameUtils.parsePathname(getExportHtmlPathname()));
 	}
 
 	//------------------------------------------------------------------
@@ -1098,7 +1108,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPExportHtmlPathname	cpExportHtmlPathname	= new CPExportHtmlPathname();
@@ -1142,7 +1152,7 @@ class AppConfig
 	public File getParameterSetFile()
 	{
 		String pathname = getParameterSetPathname();
-		return ((pathname == null) ? null : new File(PropertyString.parsePathname(pathname)));
+		return ((pathname == null) ? null : new File(PathnameUtils.parsePathname(pathname)));
 	}
 
 	//------------------------------------------------------------------
@@ -1155,7 +1165,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPParameterSetPathname	cpParameterSetPathname	= new CPParameterSetPathname();
@@ -1211,7 +1221,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPGridEntryCharacters	cpGridEntryCharacters	= new CPGridEntryCharacters();
@@ -1261,7 +1271,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPNavigateOverGridSeparators	cpNavigateOverGridSeparators	=
@@ -1285,7 +1295,7 @@ class AppConfig
 		{
 			super(concatenateKeys(Key.GRID, Key.CELL_SIZE), Grid.Separator.class);
 			for (Grid.Separator key : Grid.Separator.values())
-				values.put(key, CrosswordDocument.DEFAULT_CELL_SIZE);
+				values.put(key, Grid.DEFAULT_CELL_SIZE);
 		}
 
 		//--------------------------------------------------------------
@@ -1299,8 +1309,7 @@ class AppConfig
 						  Grid.Separator key)
 			throws AppException
 		{
-			IntegerRange range = new IntegerRange(CrosswordDocument.MIN_CELL_SIZE,
-												  CrosswordDocument.MAX_CELL_SIZE);
+			IntegerRange range = new IntegerRange(Grid.MIN_CELL_SIZE, Grid.MAX_CELL_SIZE);
 			values.put(key, input.parseInteger(range));
 		}
 
@@ -1338,7 +1347,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPGridCellSize	cpGridCellSize	= new CPGridCellSize();
@@ -1389,7 +1398,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPBarGridBarWidth	cpBarGridBarWidth	= new CPBarGridBarWidth();
@@ -1465,7 +1474,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPGridImageViewportSize	cpGridImageViewportSize	= new CPGridImageViewportSize();
@@ -1547,7 +1556,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPClueDirectionKeywords	cpClueDirectionKeywords	= new CPClueDirectionKeywords();
@@ -1597,7 +1606,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPClueReferenceKeyword	cpClueReferenceKeyword	= new CPClueReferenceKeyword();
@@ -1647,7 +1656,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPImplicitFieldDirection	cpImplicitFieldDirection	= new CPImplicitFieldDirection();
@@ -1697,7 +1706,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPAllowMultipleFieldUse	cpAllowMultipleFieldUse	= new CPAllowMultipleFieldUse();
@@ -1747,7 +1756,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPTextSectionLineBreak	cpTextSectionLineBreak	= new CPTextSectionLineBreak();
@@ -1799,7 +1808,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPSelectedClueNumColumns	cpSelectedClueNumColumns	= new CPSelectedClueNumColumns();
@@ -1837,7 +1846,7 @@ class AppConfig
 		{
 			try
 			{
-				values.put(key, input.parseColour());
+				values.put(key, ColourProperty.parseColour(input));
 			}
 			catch (AppException e)
 			{
@@ -1879,7 +1888,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPViewColour	cpViewColour	= new CPViewColour();
@@ -1929,7 +1938,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPHtmlStylesheetKind	cpHtmlStylesheetKind	= new CPHtmlStylesheetKind();
@@ -1978,7 +1987,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPHtmlViewerCommand	cpHtmlViewerCommand	= new CPHtmlViewerCommand();
@@ -2049,7 +2058,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPHtmlFontNames	cpHtmlFontNames	= new CPHtmlFontNames();
@@ -2070,9 +2079,8 @@ class AppConfig
 
 		private CPHtmlFontSize()
 		{
-			super(concatenateKeys(Key.HTML, Key.FONT_SIZE),
-				  CrosswordDocument.MIN_HTML_FONT_SIZE, CrosswordDocument.MAX_HTML_FONT_SIZE);
-			value = CrosswordDocument.DEFAULT_HTML_FONT_SIZE;
+			super(concatenateKeys(Key.HTML, Key.FONT_SIZE), Grid.MIN_HTML_FONT_SIZE, Grid.MAX_HTML_FONT_SIZE);
+			value = Grid.DEFAULT_HTML_FONT_SIZE;
 		}
 
 		//--------------------------------------------------------------
@@ -2100,7 +2108,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPHtmlFontSize	cpHtmlFontSize	= new CPHtmlFontSize();
@@ -2111,7 +2119,7 @@ class AppConfig
 	// PROPERTY CLASS: HTML FIELD-NUMBER FONT-SIZE FACTOR
 
 
-	private class CPHtmlFieldNumberFontSizeFactor
+	private class CPHtmlFieldNumFontSizeFactor
 		extends Property.DoubleProperty
 	{
 
@@ -2119,12 +2127,11 @@ class AppConfig
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private CPHtmlFieldNumberFontSizeFactor()
+		private CPHtmlFieldNumFontSizeFactor()
 		{
 			super(concatenateKeys(Key.HTML, Key.FIELD_NUMBER_FONT_SIZE_FACTOR),
-				  CrosswordDocument.MIN_HTML_FIELD_NUMBER_FONT_SIZE_FACTOR,
-				  CrosswordDocument.MAX_HTML_FIELD_NUMBER_FONT_SIZE_FACTOR);
-			value = CrosswordDocument.DEFAULT_HTML_FIELD_NUMBER_FONT_SIZE_FACTOR;
+				  Grid.MIN_HTML_FIELD_NUM_FONT_SIZE_FACTOR, Grid.MAX_HTML_FIELD_NUM_FONT_SIZE_FACTOR);
+			value = Grid.DEFAULT_HTML_FIELD_NUM_FONT_SIZE_FACTOR;
 		}
 
 		//--------------------------------------------------------------
@@ -2137,33 +2144,33 @@ class AppConfig
 //--//  Instance methods : associated methods in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
-	public double getHtmlFieldNumberFontSizeFactor()
+	public double getHtmlFieldNumFontSizeFactor()
 	{
-		return cpHtmlFieldNumberFontSizeFactor.getValue();
+		return cpHtmlFieldNumFontSizeFactor.getValue();
 	}
 
 	//------------------------------------------------------------------
 
-	public void setHtmlFieldNumberFontSizeFactor(double value)
+	public void setHtmlFieldNumFontSizeFactor(double value)
 	{
-		cpHtmlFieldNumberFontSizeFactor.setValue(value);
+		cpHtmlFieldNumFontSizeFactor.setValue(value);
 	}
 
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
-	private	CPHtmlFieldNumberFontSizeFactor	cpHtmlFieldNumberFontSizeFactor	= new CPHtmlFieldNumberFontSizeFactor();
+	private	CPHtmlFieldNumFontSizeFactor	cpHtmlFieldNumFontSizeFactor	= new CPHtmlFieldNumFontSizeFactor();
 
 	//==================================================================
 
 
-	// PROPERTY CLASS: HTML CELL OFFSET
+	// PROPERTY CLASS: HTML FIELD-NUMBER OFFSET, TOP
 
 
-	private class CPHtmlCellOffset
+	private class CPHtmlFieldNumOffsetTop
 		extends Property.IntegerProperty
 	{
 
@@ -2171,9 +2178,112 @@ class AppConfig
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private CPHtmlCellOffset()
+		private CPHtmlFieldNumOffsetTop()
 		{
-			super(concatenateKeys(Key.HTML, Key.CELL_OFFSET), Grid.MIN_HTML_CELL_OFFSET, Grid.MAX_HTML_CELL_OFFSET);
+			super(concatenateKeys(Key.HTML, Key.FIELD_NUMBER_OFFSET_TOP),
+				  Grid.MIN_HTML_FIELD_NUM_OFFSET, Grid.MAX_HTML_FIELD_NUM_OFFSET);
+			value = Grid.DEFAULT_HTML_FIELD_NUM_OFFSET;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//------------------------------------------------------------------
+
+//--////////////////////////////////////////////////////////////////////
+//--//  Instance methods : associated methods in enclosing class
+//--////////////////////////////////////////////////////////////////////
+
+	public int getHtmlFieldNumOffsetTop()
+	{
+		return cpHtmlFieldNumOffsetTop.getValue();
+	}
+
+	//------------------------------------------------------------------
+
+	public void setHtmlFieldNumOffsetTop(int value)
+	{
+		cpHtmlFieldNumOffsetTop.setValue(value);
+	}
+
+	//------------------------------------------------------------------
+
+//--////////////////////////////////////////////////////////////////////
+//--//  Instance variables : associated variables in enclosing class
+//--////////////////////////////////////////////////////////////////////
+
+	private	CPHtmlFieldNumOffsetTop	cpHtmlFieldNumOffsetTop	= new CPHtmlFieldNumOffsetTop();
+
+	//==================================================================
+
+
+	// PROPERTY CLASS: HTML FIELD-NUMBER OFFSET, TOP
+
+
+	private class CPHtmlFieldNumOffsetLeft
+		extends Property.IntegerProperty
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private CPHtmlFieldNumOffsetLeft()
+		{
+			super(concatenateKeys(Key.HTML, Key.FIELD_NUMBER_OFFSET_LEFT),
+				  Grid.MIN_HTML_FIELD_NUM_OFFSET, Grid.MAX_HTML_FIELD_NUM_OFFSET);
+			value = Grid.DEFAULT_HTML_FIELD_NUM_OFFSET;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//------------------------------------------------------------------
+
+//--////////////////////////////////////////////////////////////////////
+//--//  Instance methods : associated methods in enclosing class
+//--////////////////////////////////////////////////////////////////////
+
+	public int getHtmlFieldNumOffsetLeft()
+	{
+		return cpHtmlFieldNumOffsetLeft.getValue();
+	}
+
+	//------------------------------------------------------------------
+
+	public void setHtmlFieldNumOffsetLeft(int value)
+	{
+		cpHtmlFieldNumOffsetLeft.setValue(value);
+	}
+
+	//------------------------------------------------------------------
+
+//--////////////////////////////////////////////////////////////////////
+//--//  Instance variables : associated variables in enclosing class
+//--////////////////////////////////////////////////////////////////////
+
+	private	CPHtmlFieldNumOffsetLeft	cpHtmlFieldNumOffsetLeft	= new CPHtmlFieldNumOffsetLeft();
+
+	//==================================================================
+
+
+	// PROPERTY CLASS: HTML CELL OFFSET, TOP
+
+
+	private class CPHtmlCellOffsetTop
+		extends Property.IntegerProperty
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private CPHtmlCellOffsetTop()
+		{
+			super(concatenateKeys(Key.HTML, Key.CELL_OFFSET_TOP),
+				  Grid.MIN_HTML_CELL_OFFSET, Grid.MAX_HTML_CELL_OFFSET);
 			value = Grid.DEFAULT_HTML_CELL_OFFSET;
 		}
 
@@ -2187,25 +2297,76 @@ class AppConfig
 //--//  Instance methods : associated methods in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
-	public int getHtmlCellOffset()
+	public int getHtmlCellOffsetTop()
 	{
-		return cpHtmlCellOffset.getValue();
+		return cpHtmlCellOffsetTop.getValue();
 	}
 
 	//------------------------------------------------------------------
 
-	public void setHtmlCellOffset(int value)
+	public void setHtmlCellOffsetTop(int value)
 	{
-		cpHtmlCellOffset.setValue(value);
+		cpHtmlCellOffsetTop.setValue(value);
 	}
 
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
-	private	CPHtmlCellOffset	cpHtmlCellOffset	= new CPHtmlCellOffset();
+	private	CPHtmlCellOffsetTop	cpHtmlCellOffsetTop	= new CPHtmlCellOffsetTop();
+
+	//==================================================================
+
+
+	// PROPERTY CLASS: HTML CELL OFFSET, LEFT
+
+
+	private class CPHtmlCellOffsetLeft
+		extends Property.IntegerProperty
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private CPHtmlCellOffsetLeft()
+		{
+			super(concatenateKeys(Key.HTML, Key.CELL_OFFSET_LEFT),
+				  Grid.MIN_HTML_CELL_OFFSET, Grid.MAX_HTML_CELL_OFFSET);
+			value = Grid.DEFAULT_HTML_CELL_OFFSET;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//------------------------------------------------------------------
+
+//--////////////////////////////////////////////////////////////////////
+//--//  Instance methods : associated methods in enclosing class
+//--////////////////////////////////////////////////////////////////////
+
+	public int getHtmlCellOffsetLeft()
+	{
+		return cpHtmlCellOffsetLeft.getValue();
+	}
+
+	//------------------------------------------------------------------
+
+	public void setHtmlCellOffsetLeft(int value)
+	{
+		cpHtmlCellOffsetLeft.setValue(value);
+	}
+
+	//------------------------------------------------------------------
+
+//--////////////////////////////////////////////////////////////////////
+//--//  Instance variables : associated variables in enclosing class
+//--////////////////////////////////////////////////////////////////////
+
+	private	CPHtmlCellOffsetLeft	cpHtmlCellOffsetLeft	= new CPHtmlCellOffsetLeft();
 
 	//==================================================================
 
@@ -2214,7 +2375,7 @@ class AppConfig
 
 
 	private class CPHtmlGridColour
-		extends Property.ColourProperty
+		extends ColourProperty
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -2252,7 +2413,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPHtmlGridColour	cpHtmlGridColour	= new CPHtmlGridColour();
@@ -2264,7 +2425,7 @@ class AppConfig
 
 
 	private class CPHtmlEntryColour
-		extends Property.ColourProperty
+		extends ColourProperty
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -2302,7 +2463,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPHtmlEntryColour	cpHtmlEntryColour	= new CPHtmlEntryColour();
@@ -2325,7 +2486,7 @@ class AppConfig
 		{
 			super(concatenateKeys(Key.HTML, Key.CELL_SIZE), Grid.Separator.class);
 			for (Grid.Separator key : Grid.Separator.values())
-				values.put(key, CrosswordDocument.DEFAULT_HTML_CELL_SIZES.get(key));
+				values.put(key, Grid.DEFAULT_HTML_CELL_SIZES.get(key));
 		}
 
 		//--------------------------------------------------------------
@@ -2339,8 +2500,7 @@ class AppConfig
 						  Grid.Separator key)
 			throws AppException
 		{
-			IntegerRange range = new IntegerRange(CrosswordDocument.MIN_HTML_CELL_SIZE,
-												  CrosswordDocument.MAX_HTML_CELL_SIZE);
+			IntegerRange range = new IntegerRange(Grid.MIN_HTML_CELL_SIZE, Grid.MAX_HTML_CELL_SIZE);
 			values.put(key, input.parseInteger(range));
 		}
 
@@ -2378,7 +2538,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPHtmlCellSize	cpHtmlCellSize	= new CPHtmlCellSize();
@@ -2429,7 +2589,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPBlockImageNumLines	cpBlockImageNumLines	= new CPBlockImageNumLines();
@@ -2480,7 +2640,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPBlockImageLineWidth	cpBlockImageLineWidth	= new CPBlockImageLineWidth();
@@ -2492,7 +2652,7 @@ class AppConfig
 
 
 	private class CPBlockImageColour
-		extends Property.ColourProperty
+		extends ColourProperty
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -2530,7 +2690,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPBlockImageColour	cpBlockImageColour	= new CPBlockImageColour();
@@ -2580,7 +2740,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPBlockImagePrintOnly	cpBlockImagePrintOnly	= new CPBlockImagePrintOnly();
@@ -2631,7 +2791,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPHtmlBarGridBarWidth	cpHtmlBarGridBarWidth	= new CPHtmlBarGridBarWidth();
@@ -2643,7 +2803,7 @@ class AppConfig
 
 
 	private class CPHtmlBarColour
-		extends Property.ColourProperty
+		extends ColourProperty
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -2681,7 +2841,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPHtmlBarColour	cpHtmlBarColour	= new CPHtmlBarColour();
@@ -2774,7 +2934,7 @@ class AppConfig
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPFonts	cpFonts	= new CPFonts();
@@ -2879,7 +3039,7 @@ class AppConfig
 		// Set configuration file from pathname of configuration directory
 		else if (!pathname.isEmpty())
 		{
-			file = new File(PropertyString.parsePathname(pathname), CONFIG_FILENAME);
+			file = new File(PathnameUtils.parsePathname(pathname), CONFIG_FILENAME);
 			if (!file.isFile())
 				throw new FileException(ErrorId.NO_CONFIGURATION_FILE, file);
 		}
@@ -3092,7 +3252,7 @@ class AppConfig
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	File			file;

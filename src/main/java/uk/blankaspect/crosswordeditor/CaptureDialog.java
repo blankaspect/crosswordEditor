@@ -61,6 +61,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -68,33 +69,49 @@ import javax.swing.event.DocumentListener;
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.FileException;
 
-import uk.blankaspect.common.gui.DimensionsSpinnerPanel;
-import uk.blankaspect.common.gui.FButton;
-import uk.blankaspect.common.gui.FCheckBox;
-import uk.blankaspect.common.gui.FComboBox;
-import uk.blankaspect.common.gui.FIntegerSpinner;
-import uk.blankaspect.common.gui.FixedWidthLabel;
-import uk.blankaspect.common.gui.FLabel;
-import uk.blankaspect.common.gui.FTabbedPane;
-import uk.blankaspect.common.gui.FTextField;
-import uk.blankaspect.common.gui.GuiUtils;
-import uk.blankaspect.common.gui.MenuButton;
-import uk.blankaspect.common.gui.ParameterSetDialog;
-import uk.blankaspect.common.gui.PathnamePanel;
-import uk.blankaspect.common.gui.PropertyKeys;
-import uk.blankaspect.common.gui.TitledBorder;
+import uk.blankaspect.common.filesystem.PathnameUtils;
 
 import uk.blankaspect.common.indexedsub.IndexedSub;
 
-import uk.blankaspect.common.misc.ClipboardImage;
 import uk.blankaspect.common.misc.FilenameSuffixFilter;
 import uk.blankaspect.common.misc.MaxValueMap;
-import uk.blankaspect.common.misc.PropertyString;
-import uk.blankaspect.common.misc.StringUtils;
 
 import uk.blankaspect.common.regex.RegexUtils;
 
-import uk.blankaspect.common.textfield.IntegerField;
+import uk.blankaspect.common.string.StringUtils;
+
+import uk.blankaspect.common.swing.action.KeyAction;
+
+import uk.blankaspect.common.swing.border.TitledBorder;
+
+import uk.blankaspect.common.swing.button.FButton;
+import uk.blankaspect.common.swing.button.MenuButton;
+
+import uk.blankaspect.common.swing.checkbox.FCheckBox;
+
+import uk.blankaspect.common.swing.combobox.FComboBox;
+
+import uk.blankaspect.common.swing.container.DimensionsSpinnerPanel;
+import uk.blankaspect.common.swing.container.PathnamePanel;
+
+import uk.blankaspect.common.swing.dialog.ParameterSetDialog;
+
+import uk.blankaspect.common.swing.font.FontUtils;
+
+import uk.blankaspect.common.swing.image.ClipboardImage;
+
+import uk.blankaspect.common.swing.label.FixedWidthLabel;
+import uk.blankaspect.common.swing.label.FLabel;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.common.swing.misc.PropertyKeys;
+
+import uk.blankaspect.common.swing.spinner.FIntegerSpinner;
+
+import uk.blankaspect.common.swing.tabbedpane.FTabbedPane;
+
+import uk.blankaspect.common.swing.textfield.FTextField;
+import uk.blankaspect.common.swing.textfield.IntegerField;
 
 //----------------------------------------------------------------------
 
@@ -330,7 +347,7 @@ class CaptureDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	text;
@@ -383,7 +400,7 @@ class CaptureDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	message;
@@ -542,7 +559,7 @@ class CaptureDialog
 		@Override
 		protected int getColumnWidth()
 		{
-			return (GuiUtils.getCharWidth('0', getFontMetrics(getFont())) + 1);
+			return (FontUtils.getCharWidth('0', getFontMetrics(getFont())) + 1);
 		}
 
 		//--------------------------------------------------------------
@@ -611,7 +628,7 @@ class CaptureDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	StatusField					gridField;
@@ -694,7 +711,7 @@ class CaptureDialog
 		// Set icons
 		setIconImages(AppIcon.getAppIconImages());
 
-		// Initialise instance fields
+		// Initialise instance variables
 		this.documentIndex = documentIndex;
 		clueLists = new EnumMap<>(Direction.class);
 
@@ -857,6 +874,10 @@ class CaptureDialog
 
 		// Set parameters
 		setParams(params);
+
+		// Add command to action map
+		KeyAction.create(mainPanel, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+						 KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK), Command.ACCEPT, this);
 
 
 		//----  Window
@@ -1031,7 +1052,7 @@ class CaptureDialog
 	{
 		return (documentDirectoryField.isEmpty()
 						? null
-						: new File(PropertyString.parsePathname(getText(documentDirectoryField))));
+						: new File(PathnameUtils.parsePathname(getText(documentDirectoryField))));
 	}
 
 	//------------------------------------------------------------------
@@ -1040,7 +1061,7 @@ class CaptureDialog
 	{
 		return (htmlDirectoryField.isEmpty()
 						? null
-						: new File(PropertyString.parsePathname(getText(htmlDirectoryField))));
+						: new File(PathnameUtils.parsePathname(getText(htmlDirectoryField))));
 	}
 
 	//------------------------------------------------------------------
@@ -1446,7 +1467,7 @@ class CaptureDialog
 		gridSizePanel = new DimensionsSpinnerPanel(Grid.DEFAULT_NUM_COLUMNS, Grid.DEFAULT_NUM_ROWS,
 												   Grid.MIN_NUM_COLUMNS, Grid.MAX_NUM_COLUMNS,
 												   GRID_SIZE_FIELD_LENGTH,
-												   new String[]{ COLUMNS_STR, ROWS_STR }, true);
+												   new String[] { COLUMNS_STR, ROWS_STR }, true);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -2511,7 +2532,7 @@ class CaptureDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class fields
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
 	private static	CaptureParams	params		= new CaptureParams();
@@ -2519,7 +2540,7 @@ class CaptureDialog
 	private static	int				tabIndex	= Tab.TEXT.ordinal();
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	boolean						accepted;

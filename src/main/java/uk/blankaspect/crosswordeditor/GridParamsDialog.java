@@ -44,13 +44,17 @@ import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import uk.blankaspect.common.gui.DimensionsSpinnerPanel;
-import uk.blankaspect.common.gui.FButton;
-import uk.blankaspect.common.gui.FComboBox;
-import uk.blankaspect.common.gui.FLabel;
-import uk.blankaspect.common.gui.GuiUtils;
+import uk.blankaspect.common.swing.action.KeyAction;
 
-import uk.blankaspect.common.misc.KeyAction;
+import uk.blankaspect.common.swing.button.FButton;
+
+import uk.blankaspect.common.swing.combobox.FComboBox;
+
+import uk.blankaspect.common.swing.container.DimensionsSpinnerPanel;
+
+import uk.blankaspect.common.swing.label.FLabel;
+
+import uk.blankaspect.common.swing.misc.GuiUtils;
 
 //----------------------------------------------------------------------
 
@@ -162,7 +166,7 @@ class GridParamsDialog
 		// Panel: size
 		sizePanel = new DimensionsSpinnerPanel(Grid.DEFAULT_NUM_COLUMNS, Grid.DEFAULT_NUM_ROWS,
 											   Grid.MIN_NUM_COLUMNS, Grid.MAX_NUM_COLUMNS,
-											   SIZE_FIELD_LENGTH, new String[]{ COLUMNS_STR, ROWS_STR },
+											   SIZE_FIELD_LENGTH, new String[] { COLUMNS_STR, ROWS_STR },
 											   true);
 
 		gbc.gridx = 1;
@@ -386,13 +390,13 @@ class GridParamsDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class fields
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
 	private static	Point	location;
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	boolean						accepted;

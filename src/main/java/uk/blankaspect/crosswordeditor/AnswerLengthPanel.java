@@ -34,11 +34,13 @@ import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import uk.blankaspect.common.gui.FButton;
-import uk.blankaspect.common.gui.FTextField;
-import uk.blankaspect.common.gui.TitledBorder;
-
 import uk.blankaspect.common.regex.Substitution;
+
+import uk.blankaspect.common.swing.border.TitledBorder;
+
+import uk.blankaspect.common.swing.button.FButton;
+
+import uk.blankaspect.common.swing.textfield.FTextField;
 
 //----------------------------------------------------------------------
 
@@ -326,7 +328,7 @@ class AnswerLengthPanel
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	FTextField					patternField;

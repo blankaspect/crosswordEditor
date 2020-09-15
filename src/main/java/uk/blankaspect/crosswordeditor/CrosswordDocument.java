@@ -28,10 +28,11 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 import java.net.URL;
 import java.net.URLConnection;
+
+import java.nio.charset.StandardCharsets;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,6 +55,8 @@ import javax.swing.KeyStroke;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import uk.blankaspect.common.collection.ArraySet;
+
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.FileException;
 import uk.blankaspect.common.exception.TaskCancelledException;
@@ -67,17 +70,18 @@ import uk.blankaspect.common.html.CssUtils;
 
 import uk.blankaspect.common.indexedsub.IndexedSub;
 
-import uk.blankaspect.common.misc.ArraySet;
 import uk.blankaspect.common.misc.EditList;
 import uk.blankaspect.common.misc.FileWritingMode;
-import uk.blankaspect.common.misc.PngOutputFile;
-import uk.blankaspect.common.misc.StringUtils;
 import uk.blankaspect.common.misc.TextFile;
 
 import uk.blankaspect.common.regex.RegexUtils;
 import uk.blankaspect.common.regex.Substitution;
 
-import uk.blankaspect.common.xml.Attribute;
+import uk.blankaspect.common.string.StringUtils;
+
+import uk.blankaspect.common.swing.image.PngOutputFile;
+
+import uk.blankaspect.common.xml.AttributeList;
 import uk.blankaspect.common.xml.XmlConstants;
 import uk.blankaspect.common.xml.XmlFile;
 import uk.blankaspect.common.xml.XmlParseException;
@@ -100,22 +104,6 @@ class CrosswordDocument
 	public static final		int	MIN_MAX_EDIT_LIST_LENGTH		= 1;
 	public static final		int	MAX_MAX_EDIT_LIST_LENGTH		= 9999;
 	public static final		int	DEFAULT_MAX_EDIT_LIST_LENGTH	= 200;
-
-	public static final		int	MIN_CELL_SIZE		= 8;
-	public static final		int	MAX_CELL_SIZE		= 80;
-	public static final		int	DEFAULT_CELL_SIZE	= 24;
-
-	public static final		int								MIN_HTML_CELL_SIZE		= 8;
-	public static final		int								MAX_HTML_CELL_SIZE		= 80;
-	public static final		Map<Grid.Separator, Integer>	DEFAULT_HTML_CELL_SIZES;
-
-	public static final		int	MIN_HTML_FONT_SIZE		= 6;
-	public static final		int	MAX_HTML_FONT_SIZE		= 128;
-	public static final		int	DEFAULT_HTML_FONT_SIZE	= 8;
-
-	public static final		double	MIN_HTML_FIELD_NUMBER_FONT_SIZE_FACTOR		= 0.05;
-	public static final		double	MAX_HTML_FIELD_NUMBER_FONT_SIZE_FACTOR		= 1.0;
-	public static final		double	DEFAULT_HTML_FIELD_NUMBER_FONT_SIZE_FACTOR	= 0.667;
 
 	public static final		String	LINE_BREAK_REGEX	= "(?<%1%2)\\n";
 
@@ -549,7 +537,7 @@ class CrosswordDocument
 
 		private Command(String key)
 		{
-			command = new uk.blankaspect.common.misc.Command(this);
+			command = new uk.blankaspect.common.swing.action.Command(this);
 			putValue(Action.ACTION_COMMAND_KEY, key);
 		}
 
@@ -665,10 +653,10 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
-		private	uk.blankaspect.common.misc.Command	command;
+		private	uk.blankaspect.common.swing.action.Command	command;
 
 	}
 
@@ -791,7 +779,7 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	message;
@@ -886,7 +874,7 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	URL					location;
@@ -927,7 +915,7 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		StringList	fontNames;
@@ -978,7 +966,7 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		File	file;
@@ -1075,7 +1063,7 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	Grid.Separator	separator;
@@ -1154,7 +1142,7 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	int			row;
@@ -1225,7 +1213,7 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	Grid.Entries	oldEntries;
@@ -1293,7 +1281,7 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	Grid.Entries	oldSolution;
@@ -1359,7 +1347,7 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	SolutionProperties	oldProperties;
@@ -1425,7 +1413,7 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	List<Clue>	oldClues;
@@ -1454,7 +1442,7 @@ class CrosswordDocument
 	////////////////////////////////////////////////////////////////////
 
 		private ClueListsEdit(Map<Direction, List<Clue>> oldClueLists,
-							   Map<Direction, List<Clue>> newClueLists)
+							  Map<Direction, List<Clue>> newClueLists)
 		{
 			this.oldClueLists = oldClueLists;
 			this.newClueLists = newClueLists;
@@ -1499,7 +1487,7 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	Map<Direction, List<Clue>>	oldClueLists;
@@ -1591,7 +1579,7 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	EnumSet<TextSection>	sections;
@@ -1698,7 +1686,7 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String				oldClueReferenceKeyword;
@@ -1776,7 +1764,7 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String										text;
@@ -1838,9 +1826,9 @@ class CrosswordDocument
 		for (CssMediaRule.MediaType mediaType : mediaTypes)
 			mediaTypeStrs.add(mediaType.getKey());
 
-		List<Attribute> attributes = new ArrayList<>();
-		attributes.add(new Attribute(HtmlConstants.AttrName.TYPE, TEXT_CSS_STR));
-		attributes.add(new Attribute(HtmlConstants.AttrName.MEDIA, StringUtils.join(',', mediaTypeStrs)));
+		AttributeList attributes = new AttributeList();
+		attributes.add(HtmlConstants.AttrName.TYPE, TEXT_CSS_STR);
+		attributes.add(HtmlConstants.AttrName.MEDIA, StringUtils.join(',', mediaTypeStrs));
 		writer.writeElementStart(HtmlConstants.ElementName.STYLE, attributes, indent, true, false);
 
 		indent += INDENT_INCREMENT;
@@ -2059,7 +2047,7 @@ class CrosswordDocument
 						 List<Clue> clues)
 	{
 		// Sort the clues
-		Collections.sort(clues, Clue.IdComparator.INSTANCE);
+		clues.sort(Clue.ID_COMPARATOR);
 
 		// Set indices of clues with the same field ID
 		int prevFieldNumber = 0;
@@ -2570,15 +2558,15 @@ class CrosswordDocument
 		}
 
 		// Sort the lists of erroneous clue IDs and reference IDs
-		Collections.sort(noClueIds);
-		Collections.sort(multipleCluesIds);
-		Collections.sort(noFieldIds);
-		Collections.sort(noReferenceIds);
-		Collections.sort(multipleReferencesIds);
-		Collections.sort(refNoFieldIds);
-		Collections.sort(refNoClueIds);
-		Collections.sort(refMultipleCluesIds);
-		Collections.sort(refNotIdOfRefTargetIds);
+		noClueIds.sort(null);
+		multipleCluesIds.sort(null);
+		noFieldIds.sort(null);
+		noReferenceIds.sort(null);
+		multipleReferencesIds.sort(null);
+		refNoFieldIds.sort(null);
+		refNoClueIds.sort(null);
+		refMultipleCluesIds.sort(null);
+		refNotIdOfRefTargetIds.sort(null);
 
 		// Create a list of lists of erroneous clue IDs and reference IDs
 		List<ErrorListDialog.IdList> idLists = new ArrayList<>();
@@ -2673,7 +2661,7 @@ class CrosswordDocument
 		progressView.setInfo(READING_STR, file);
 		progressView.setProgress(0, 0.0);
 
-		// Initialise instance fields
+		// Initialise instance variables
 		AppConfig config = AppConfig.INSTANCE;
 		this.file = file;
 		timestamp = file.lastModified();
@@ -2720,7 +2708,7 @@ class CrosswordDocument
 		progressView.setInfo(WRITING_STR, file);
 		progressView.setProgress(0, -1.0);
 
-		// Update instance fields
+		// Update instance variables
 		this.file = file;
 
 		// Write file
@@ -2745,7 +2733,7 @@ class CrosswordDocument
 			// Open XML writer on temporary file
 			try
 			{
-				writer = new XmlWriter(tempFile, XmlConstants.ENCODING_NAME_UTF8);
+				writer = new XmlWriter(tempFile, StandardCharsets.UTF_8);
 			}
 			catch (FileNotFoundException e)
 			{
@@ -2754,10 +2742,6 @@ class CrosswordDocument
 			catch (SecurityException e)
 			{
 				throw new FileException(ErrorId.FILE_ACCESS_NOT_PERMITTED, tempFile, e);
-			}
-			catch (UnsupportedEncodingException e)
-			{
-				throw new UnexpectedRuntimeException(e);
 			}
 
 			// Write file
@@ -2769,12 +2753,12 @@ class CrosswordDocument
 				// Write document element, start tag
 				int indent = 0;
 
-				List<Attribute> attributes = new ArrayList<>();
-				attributes.add(new Attribute(AttrName.XMLNS, NAMESPACE_NAME));
-				attributes.add(new Attribute(AttrName.XMLNS + ":" + AppConstants.NS_PREFIX_BASE, NAMESPACE_NAME));
-				attributes.add(new Attribute(AttrName.VERSION, VERSION));
+				AttributeList attributes = new AttributeList();
+				attributes.add(AttrName.XMLNS, NAMESPACE_NAME);
+				attributes.add(AttrName.XMLNS + ":" + AppConstants.NS_PREFIX_BASE, NAMESPACE_NAME);
+				attributes.add(AttrName.VERSION, VERSION);
 				if (title != null)
-					attributes.add(new Attribute(AttrName.TITLE, title, true));
+					attributes.add(AttrName.TITLE, title, true);
 				writer.writeElementStart(ElementName.CROSSWORD, attributes, indent, true, true);
 				indent += INDENT_INCREMENT;
 
@@ -2815,7 +2799,7 @@ class CrosswordDocument
 					if (answerLengthPattern != null)
 					{
 						attributes.clear();
-						attributes.add(new Attribute(AttrName.PATTERN, answerLengthPattern, true));
+						attributes.add(AttrName.PATTERN, answerLengthPattern, true);
 						if (answerLengthSubstitutions.isEmpty())
 							writer.writeEmptyElement(ElementName.ANSWER_LENGTH, attributes, indent, false);
 						else
@@ -2842,7 +2826,7 @@ class CrosswordDocument
 				for (Direction direction : clueLists.keySet())
 				{
 					attributes.clear();
-					attributes.add(new Attribute(AttrName.DIRECTION, direction.getKey()));
+					attributes.add(AttrName.DIRECTION, direction.getKey());
 					writer.writeElementStart(ElementName.CLUES, attributes, indent, true, false);
 
 					indent += INDENT_INCREMENT;
@@ -2852,7 +2836,7 @@ class CrosswordDocument
 														 : clue.getText().toString();
 						String idStr = StringUtils.join(',', getClueIdStrings(direction, clue, false));
 						attributes.clear();
-						attributes.add(new Attribute(AttrName.IDS, idStr));
+						attributes.add(AttrName.IDS, idStr);
 						writer.writeEscapedTextElement(ElementName.CLUE, attributes, indent, false, text);
 					}
 					indent -= INDENT_INCREMENT;
@@ -2867,7 +2851,7 @@ class CrosswordDocument
 					{
 						String paragraph = prologueParagraphs.get(i);
 						attributes.clear();
-						attributes.add(new Attribute(AttrName.INDEX, i));
+						attributes.add(AttrName.INDEX, i);
 						writer.writeElementStart(ElementName.PROLOGUE, attributes, indent, true, false);
 						indent += INDENT_INCREMENT;
 						for (String line : splitText(paragraph, MAX_TEXT_LINE_LENGTH, true))
@@ -2884,7 +2868,7 @@ class CrosswordDocument
 					{
 						String paragraph = epilogueParagraphs.get(i);
 						attributes.clear();
-						attributes.add(new Attribute(AttrName.INDEX, i));
+						attributes.add(AttrName.INDEX, i);
 						writer.writeElementStart(ElementName.EPILOGUE, attributes, indent, true, false);
 						indent += INDENT_INCREMENT;
 						for (String line : splitText(paragraph, MAX_TEXT_LINE_LENGTH, true))
@@ -2993,7 +2977,7 @@ class CrosswordDocument
 		TaskProgressDialog progressView = (TaskProgressDialog)Task.getProgressView();
 		progressView.setProgress(0, -1.0);
 
-		// Update instance fields
+		// Update instance variables
 		exportHtmlFile = file;
 
 		// Write stylesheet file
@@ -3008,8 +2992,8 @@ class CrosswordDocument
 				throw new FileException(ErrorId.FAILED_TO_CREATE_DIRECTORY, stylesheetDirectory);
 
 			// Write CSS file
-			TextFile.write(stylesheetFile, TextFile.ENCODING_NAME_UTF8,
-						   createStylesheet(styleProperties), FileWritingMode.USE_TEMP_FILE);
+			TextFile.write(stylesheetFile, StandardCharsets.UTF_8, createStylesheet(styleProperties),
+						   FileWritingMode.USE_TEMP_FILE);
 		}
 
 		// Write block image file
@@ -3053,7 +3037,7 @@ class CrosswordDocument
 			// Open XML writer on temporary file
 			try
 			{
-				writer = new XmlWriter(tempFile, XmlConstants.ENCODING_NAME_UTF8);
+				writer = new XmlWriter(tempFile, StandardCharsets.UTF_8);
 			}
 			catch (FileNotFoundException e)
 			{
@@ -3062,10 +3046,6 @@ class CrosswordDocument
 			catch (SecurityException e)
 			{
 				throw new FileException(ErrorId.FILE_ACCESS_NOT_PERMITTED, tempFile, e);
-			}
-			catch (UnsupportedEncodingException e)
-			{
-				throw new UnexpectedRuntimeException(e);
 			}
 
 			// Lock file
@@ -3323,7 +3303,7 @@ class CrosswordDocument
 		{
 			if (clues != null)
 			{
-				int index = Collections.binarySearch(clues, clue, Clue.IdComparator.INSTANCE);
+				int index = Collections.binarySearch(clues, clue, Clue.ID_COMPARATOR);
 				if (index >= 0)
 				{
 					clues.remove(index);
@@ -3341,7 +3321,7 @@ class CrosswordDocument
 				clues = new ArrayList<>();
 				clueLists.put(direction, clues);
 			}
-			int index = Collections.binarySearch(clues, clue, Clue.IdComparator.INSTANCE);
+			int index = Collections.binarySearch(clues, clue, Clue.ID_COMPARATOR);
 			if (index < 0)
 				clues.add(-index - 1, clue);
 			else
@@ -3353,9 +3333,6 @@ class CrosswordDocument
 
 	private void setClues(List<Clue> clues)
 	{
-		// Clear lists of clues
-		clueLists.clear();
-
 		// Set clues
 		for (Clue clue : clues)
 			setClue(clue);
@@ -3632,7 +3609,7 @@ class CrosswordDocument
 
 		// Test for existing list of clues for the direction
 		if (clueLists.containsKey(direction))
-			throw new XmlParseException(ErrorId.MULTIPLE_CLUES_ELEMENTS, attrKey, new String[]{ direction.getKey() });
+			throw new XmlParseException(ErrorId.MULTIPLE_CLUES_ELEMENTS, attrKey, new String[] { direction.getKey() });
 
 		// Parse clue elements
 		List<Clue> clues = new ArrayList<>();
@@ -3740,9 +3717,9 @@ class CrosswordDocument
 		// Write HTML start tag
 		int indent = 0;
 
-		List<Attribute> attributes = new ArrayList<>();
-		attributes.add(new Attribute(HtmlConstants.AttrName.XMLNS, HTML_NAMESPACE_NAME));
-		attributes.add(new Attribute(HtmlConstants.AttrName.XML_LANG, LANG_STR));
+		AttributeList attributes = new AttributeList();
+		attributes.add(HtmlConstants.AttrName.XMLNS, HTML_NAMESPACE_NAME);
+		attributes.add(HtmlConstants.AttrName.XML_LANG, LANG_STR);
 		writer.writeElementStart(HtmlConstants.ElementName.HTML, attributes, indent, true, false);
 
 		// Write head start tag
@@ -3752,8 +3729,8 @@ class CrosswordDocument
 		// Write meta tag
 		indent += INDENT_INCREMENT;
 		attributes.clear();
-		attributes.add(new Attribute(HtmlConstants.AttrName.HTTP_EQUIV, CONTENT_TYPE_STR));
-		attributes.add(new Attribute(HtmlConstants.AttrName.CONTENT, MIME_TYPE_STR));
+		attributes.add(HtmlConstants.AttrName.HTTP_EQUIV, CONTENT_TYPE_STR);
+		attributes.add(HtmlConstants.AttrName.CONTENT, MIME_TYPE_STR);
 		writer.writeEmptyElement(HtmlConstants.ElementName.META, attributes, indent, true);
 
 		// Write title
@@ -3769,9 +3746,9 @@ class CrosswordDocument
 		// Write link element
 		else
 		{
-			attributes.add(new Attribute(HtmlConstants.AttrName.HREF, getStylesheetPathname(styleProperties.cellSize)));
-			attributes.add(new Attribute(HtmlConstants.AttrName.REL, STYLESHEET_STR));
-			attributes.add(new Attribute(HtmlConstants.AttrName.TYPE, TEXT_CSS_STR));
+			attributes.add(HtmlConstants.AttrName.HREF, getStylesheetPathname(styleProperties.cellSize));
+			attributes.add(HtmlConstants.AttrName.REL, STYLESHEET_STR);
+			attributes.add(HtmlConstants.AttrName.TYPE, TEXT_CSS_STR);
 			writer.writeEmptyElement(HtmlConstants.ElementName.LINK, attributes, indent, true, false);
 		}
 
@@ -3792,7 +3769,7 @@ class CrosswordDocument
 		if (title != null)
 		{
 			attributes.clear();
-			attributes.add(new Attribute(HtmlConstants.AttrName.ID, HtmlConstants.Id.TITLE));
+			attributes.add(HtmlConstants.AttrName.ID, HtmlConstants.Id.TITLE);
 			writer.writeEscapedTextElement(HtmlConstants.ElementName.H4, attributes, indent, false, title);
 		}
 
@@ -3802,7 +3779,7 @@ class CrosswordDocument
 		{
 			// Write start tag, prologue division
 			attributes.clear();
-			attributes.add(new Attribute(HtmlConstants.AttrName.ID, HtmlConstants.Id.PROLOGUE));
+			attributes.add(HtmlConstants.AttrName.ID, HtmlConstants.Id.PROLOGUE);
 			writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, indent, true, false);
 
 			// Write prologue paragraphs
@@ -3835,7 +3812,7 @@ class CrosswordDocument
 		{
 			// Write start tag, table division
 			attributes.clear();
-			attributes.add(new Attribute(HtmlConstants.AttrName.ID, HtmlConstants.Id.CLUES));
+			attributes.add(HtmlConstants.AttrName.ID, HtmlConstants.Id.CLUES);
 			writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, indent, true, false);
 
 			// Write lists of clues
@@ -3872,11 +3849,10 @@ class CrosswordDocument
 					else
 					{
 						attributes.clear();
-						attributes.add(new Attribute(HtmlConstants.AttrName.CLASS,
-													 HtmlConstants.Class.MULTI_FIELD_CLUE));
+						attributes.add(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.MULTI_FIELD_CLUE);
 						writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, indent, false, false);
 						attributes.clear();
-						attributes.add(new Attribute(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.SECONDARY_IDS));
+						attributes.add(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.SECONDARY_IDS);
 						writer.writeElementStart(HtmlConstants.ElementName.SPAN, attributes, 0, false, false);
 						idStrs.set(0, "");
 						writer.write(StringUtils.join(FIELD_ID_SEPARATOR, idStrs));
@@ -3916,7 +3892,7 @@ class CrosswordDocument
 		{
 			// Write start tag, epilogue division
 			attributes.clear();
-			attributes.add(new Attribute(HtmlConstants.AttrName.ID, HtmlConstants.Id.EPILOGUE));
+			attributes.add(HtmlConstants.AttrName.ID, HtmlConstants.Id.EPILOGUE);
 			writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, indent, true, false);
 
 			// Write epilogue paragraphs
@@ -4275,6 +4251,9 @@ class CrosswordDocument
 					newClues.add(new Clue(Collections.singletonList(field.getId()), new StyledText(), 0));
 			}
 
+			// Clear lists of clues
+			clueLists.clear();
+
 			// Set new clues
 			setClues(newClues);
 
@@ -4564,18 +4543,7 @@ class CrosswordDocument
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Static initialiser
-////////////////////////////////////////////////////////////////////////
-
-	static
-	{
-		DEFAULT_HTML_CELL_SIZES = new EnumMap<>(Grid.Separator.class);
-		DEFAULT_HTML_CELL_SIZES.put(Grid.Separator.BLOCK, 20);
-		DEFAULT_HTML_CELL_SIZES.put(Grid.Separator.BAR,   20);
-	}
-
-////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	File						file;

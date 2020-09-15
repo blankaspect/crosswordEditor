@@ -30,8 +30,8 @@ import org.w3c.dom.Element;
 
 import uk.blankaspect.common.exception.AppException;
 
-import uk.blankaspect.common.misc.ParameterSet;
-import uk.blankaspect.common.misc.Property;
+import uk.blankaspect.common.property.ParameterSet;
+import uk.blankaspect.common.property.Property;
 
 import uk.blankaspect.common.regex.RegexUtils;
 import uk.blankaspect.common.regex.Substitution;
@@ -159,7 +159,7 @@ class CaptureParams
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	message;
@@ -215,7 +215,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPGridSeparator	cpGridSeparator	= new CPGridSeparator();
@@ -265,7 +265,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPNumColumns	cpNumColumns	= new CPNumColumns();
@@ -315,7 +315,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPNumRows	cpNumRows	= new CPNumRows();
@@ -365,7 +365,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPAutomaticGridDetection	cpAutomaticGridDetection	= new CPAutomaticGridDetection();
@@ -415,7 +415,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPXOffset	cpXOffset	= new CPXOffset();
@@ -465,7 +465,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPYOffset	cpYOffset	= new CPYOffset();
@@ -515,7 +515,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPSampleSize	cpSampleSize	= new CPSampleSize();
@@ -565,7 +565,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPBlockBrightnessThreshold	cpBlockBrightnessThreshold	= new CPBlockBrightnessThreshold();
@@ -615,7 +615,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPBarWidthThreshold	cpBarWidthThreshold	= new CPBarWidthThreshold();
@@ -665,7 +665,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPBarBrightnessThreshold	cpBarBrightnessThreshold	= new CPBarBrightnessThreshold();
@@ -716,7 +716,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPGridLineBrightnessThreshold	cpGridLineBrightnessThreshold	=
@@ -768,7 +768,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPGridLineMinLength	cpGridLineMinLength	=   new CPGridLineMinLength();
@@ -819,7 +819,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPGridLineMinSeparation	cpGridLineMinSeparation	=   new CPGridLineMinSeparation();
@@ -870,7 +870,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPGridLineEndpointTolerance	cpGridLineEndpointTolerance	=   new CPGridLineEndpointTolerance();
@@ -920,7 +920,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPClueReferenceKeyword	cpClueReferenceKeyword	= new CPClueReferenceKeyword();
@@ -964,7 +964,7 @@ class CaptureParams
 			{
 				InputException exception = new InputException(CaptureParams.ErrorId.MALFORMED_PATTERN,
 															  input);
-				exception.setSubstitutionStrings(RegexUtils.getExceptionMessage(e));
+				exception.setReplacements(RegexUtils.getExceptionMessage(e));
 				throw exception;
 			}
 		}
@@ -1002,7 +1002,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPAnswerLengthPattern	cpAnswerLengthPattern	= new CPAnswerLengthPattern();
@@ -1046,7 +1046,7 @@ class CaptureParams
 			{
 				InputException exception = new InputException(CaptureParams.ErrorId.MALFORMED_PATTERN,
 															  input);
-				exception.setSubstitutionStrings(RegexUtils.getExceptionMessage(e));
+				exception.setReplacements(RegexUtils.getExceptionMessage(e));
 				throw exception;
 			}
 			catch (IllegalArgumentException e)
@@ -1089,7 +1089,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPAnswerLengthSubstitution	cpAnswerLengthSubstitution	= new CPAnswerLengthSubstitution();
@@ -1133,7 +1133,7 @@ class CaptureParams
 			{
 				InputException exception = new InputException(CaptureParams.ErrorId.MALFORMED_PATTERN,
 															  input);
-				exception.setSubstitutionStrings(RegexUtils.getExceptionMessage(e));
+				exception.setReplacements(RegexUtils.getExceptionMessage(e));
 				throw exception;
 			}
 			catch (IllegalArgumentException e)
@@ -1176,7 +1176,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPClueSubstitution	cpClueSubstitution	= new CPClueSubstitution();
@@ -1225,7 +1225,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPTitle	cpTitle	= new CPTitle();
@@ -1274,7 +1274,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPFilename	cpFilename	= new CPFilename();
@@ -1323,7 +1323,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPDocumentDirectory	cpDocumentDirectory	= new CPDocumentDirectory();
@@ -1372,7 +1372,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 //--////////////////////////////////////////////////////////////////////
-//--//  Instance fields : associated variables in enclosing class
+//--//  Instance variables : associated variables in enclosing class
 //--////////////////////////////////////////////////////////////////////
 
 	private	CPHtmlDirectory	cpHtmlDirectory	= new CPHtmlDirectory();
@@ -1525,7 +1525,7 @@ class CaptureParams
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance fields
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
 	private	List<Property>	properties;

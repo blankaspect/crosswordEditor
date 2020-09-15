@@ -33,15 +33,12 @@ import java.awt.image.PixelGrabber;
 import java.io.File;
 import java.io.IOException;
 
-import java.util.ArrayList;
-import java.util.List;
+import uk.blankaspect.common.config.PropertiesPathname;
 
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.UnexpectedRuntimeException;
 
-import uk.blankaspect.common.misc.PropertiesPathname;
-import uk.blankaspect.common.misc.PropertyString;
-import uk.blankaspect.common.misc.SystemUtils;
+import uk.blankaspect.common.filesystem.PathnameUtils;
 
 //----------------------------------------------------------------------
 
@@ -56,9 +53,7 @@ class Utils
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	private static final	String	USER_HOME_PREFIX			= "~";
-	private static final	String	FAILED_TO_GET_PATHNAME_STR	= "Failed to get the canonical pathname " +
-																	"for the file or directory.";
+	private static final	String	FAILED_TO_GET_PATHNAME_STR	= "Failed to get the canonical pathname for ";
 
 ////////////////////////////////////////////////////////////////////////
 //  Enumerated types
@@ -89,13 +84,7 @@ class Utils
 		("There is no image on the clipboard."),
 
 		FAILED_TO_GET_IMAGE_FROM_CLIPBOARD
-		("Failed to get the image from the clipboard."),
-
-		MALFORMED_VIEWER_COMMAND
-		("The HTML viewer command is malformed."),
-
-		FAILED_TO_EXECUTE_VIEWER_COMMAND
-		("Failed to execute the HTML viewer command.");
+		("Failed to get the image from the clipboard.");
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
@@ -120,7 +109,7 @@ class Utils
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance fields
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
 		private	String	message;
@@ -178,38 +167,17 @@ class Utils
 		{
 			try
 			{
-				try
-				{
-					pathname = file.getCanonicalPath();
-				}
-				catch (Exception e)
-				{
-					System.err.println(file.getPath());
-					System.err.println(FAILED_TO_GET_PATHNAME_STR);
-					System.err.println("(" + e + ")");
-					pathname = file.getAbsolutePath();
-				}
+				pathname = file.getCanonicalPath();
 			}
-			catch (SecurityException e)
+			catch (Exception e)
 			{
-				System.err.println(e);
-				pathname = file.getPath();
+				System.err.println(FAILED_TO_GET_PATHNAME_STR + file.getPath());
+				System.err.println("(" + e + ")");
+				pathname = file.getAbsolutePath();
 			}
 
 			if (unixStyle)
-			{
-				try
-				{
-					String userHome = SystemUtils.getUserHomePathname();
-					if ((userHome != null) && pathname.startsWith(userHome))
-						pathname = USER_HOME_PREFIX + pathname.substring(userHome.length());
-				}
-				catch (SecurityException e)
-				{
-					// ignore
-				}
-				pathname = pathname.replace(File.separatorChar, '/');
-			}
+				pathname = PathnameUtils.toUnixStyle(pathname, true);
 		}
 		return pathname;
 	}
@@ -370,86 +338,6 @@ class Utils
 		catch (IllegalStateException e)
 		{
 			throw new AppException(ErrorId.CLIPBOARD_IS_UNAVAILABLE, e);
-		}
-	}
-
-	//------------------------------------------------------------------
-
-	public static List<String> parseCommand(String str,
-											String pathname)
-	{
-		final	char	ESCAPE_CHAR					= '%';
-		final	char	PATHNAME_PLACEHOLDER_CHAR	= 'f';
-
-		List<String> arguments = new ArrayList<>();
-		StringBuilder buffer = new StringBuilder();
-		int index = 0;
-		while (index < str.length())
-		{
-			char ch = str.charAt(index++);
-			switch (ch)
-			{
-				case ESCAPE_CHAR:
-					if (index < str.length())
-					{
-						ch = str.charAt(index++);
-						if (ch == PATHNAME_PLACEHOLDER_CHAR)
-							buffer.append(pathname);
-						else
-							buffer.append(ch);
-					}
-					break;
-
-				case ' ':
-					if (buffer.length() > 0)
-					{
-						arguments.add(PropertyString.parsePathname(buffer.toString()));
-						buffer.setLength(0);
-					}
-					break;
-
-				default:
-					buffer.append(ch);
-					break;
-			}
-		}
-		if (buffer.length() > 0)
-			arguments.add(PropertyString.parsePathname(buffer.toString()));
-
-		return arguments;
-	}
-
-	//------------------------------------------------------------------
-
-	public static void viewHtmlFile(File file)
-		throws AppException
-	{
-		// Get command for invoking HTML viewer
-		String command = AppConfig.INSTANCE.getHtmlViewerCommand();
-
-		// Execute command
-		if (command != null)
-		{
-			// Parse command to create list of arguments
-			List<String> arguments = null;
-			try
-			{
-				arguments = parseCommand(command, file.getPath());
-			}
-			catch (IllegalArgumentException e)
-			{
-				throw new AppException(ErrorId.MALFORMED_VIEWER_COMMAND);
-			}
-
-			// Invoke viewer
-			try
-			{
-				new ProcessBuilder(arguments).start();
-			}
-			catch (IOException e)
-			{
-				throw new AppException(ErrorId.FAILED_TO_EXECUTE_VIEWER_COMMAND, e);
-			}
 		}
 	}
 
