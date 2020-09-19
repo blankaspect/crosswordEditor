@@ -709,7 +709,7 @@ class CaptureDialog
 		super(owner, CAPTURE_STR, Dialog.ModalityType.APPLICATION_MODAL);
 
 		// Set icons
-		setIconImages(AppIcon.getAppIconImages());
+		setIconImages(owner.getIconImages());
 
 		// Initialise instance variables
 		this.documentIndex = documentIndex;
