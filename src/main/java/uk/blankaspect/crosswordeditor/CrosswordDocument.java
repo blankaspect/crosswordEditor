@@ -1874,7 +1874,7 @@ class CrosswordDocument
 		if (outFile == null)
 		{
 			if ((htmlDirectory != null) && (filenameStem != null))
-				outFile = new File(htmlDirectory, filenameStem + AppConstants.HTML_FILE_SUFFIX);
+				outFile = new File(htmlDirectory, filenameStem + AppConstants.HTML_FILENAME_EXTENSION);
 		}
 		return outFile;
 	}

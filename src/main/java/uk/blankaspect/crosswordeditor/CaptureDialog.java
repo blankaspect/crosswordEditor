@@ -733,7 +733,7 @@ class CaptureDialog
 		parameterSetFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
 		parameterSetFileChooser.setApproveButtonToolTipText(SELECT_FILE_STR);
 		parameterSetFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.XML_FILES_STR,
-																	   AppConstants.XML_FILE_SUFFIX));
+																	   AppConstants.XML_FILENAME_EXTENSION));
 
 
 		//----  Tabbed panel
@@ -2399,7 +2399,7 @@ class CaptureDialog
 			parameterSetFileChooser.rescanCurrentDirectory();
 			if (parameterSetFileChooser.showDialog(this, SELECT_STR) == JFileChooser.APPROVE_OPTION)
 			{
-				file = Utils.appendSuffix(parameterSetFileChooser.getSelectedFile(), AppConstants.XML_FILE_SUFFIX);
+				file = Utils.appendSuffix(parameterSetFileChooser.getSelectedFile(), AppConstants.XML_FILENAME_EXTENSION);
 				if (file.exists() && !file.isFile())
 					throw new FileException(ErrorId.NOT_A_FILE, file);
 				config.setParameterSetPathname(Utils.getPathname(file));

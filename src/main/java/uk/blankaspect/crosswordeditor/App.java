@@ -58,6 +58,7 @@ import uk.blankaspect.common.misc.FilenameSuffixFilter;
 import uk.blankaspect.common.platform.windows.FileAssociations;
 
 import uk.blankaspect.common.resource.ResourceProperties;
+import uk.blankaspect.common.resource.ResourceUtils;
 
 import uk.blankaspect.common.string.StringUtils;
 
@@ -694,7 +695,7 @@ public class App
 		// Read build properties
 		try
 		{
-			buildProperties = new ResourceProperties(BUILD_PROPERTIES_FILENAME);
+			buildProperties = new ResourceProperties(ResourceUtils.absoluteName(getClass(), BUILD_PROPERTIES_FILENAME));
 		}
 		catch (LocationException e)
 		{
@@ -828,7 +829,7 @@ public class App
 		exportHtmlFileChooser.setDialogTitle(EXPORT_AS_HTML_STR);
 		exportHtmlFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		exportHtmlFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.HTML_FILES_STR,
-																	 AppConstants.HTML_FILE_SUFFIX));
+																	 AppConstants.HTML_FILENAME_EXTENSION));
 	}
 
 	//------------------------------------------------------------------
@@ -865,7 +866,7 @@ public class App
 															 : file.getAbsoluteFile());
 		exportHtmlFileChooser.rescanCurrentDirectory();
 		return ((exportHtmlFileChooser.showSaveDialog(mainWindow) == JFileChooser.APPROVE_OPTION)
-							? Utils.appendSuffix(exportHtmlFileChooser.getSelectedFile(), AppConstants.HTML_FILE_SUFFIX)
+							? Utils.appendSuffix(exportHtmlFileChooser.getSelectedFile(), AppConstants.HTML_FILENAME_EXTENSION)
 							: null);
 	}
 
@@ -1120,7 +1121,7 @@ public class App
 					filename = filename.endsWith(config.getFilenameSuffix())
 														? StringUtils.removeSuffix(filename, config.getFilenameSuffix())
 														: StringUtils.getPrefixLast(filename, '.');
-					file = new File(file.getParentFile(), filename + AppConstants.HTML_FILE_SUFFIX);
+					file = new File(file.getParentFile(), filename + AppConstants.HTML_FILENAME_EXTENSION);
 				}
 			}
 

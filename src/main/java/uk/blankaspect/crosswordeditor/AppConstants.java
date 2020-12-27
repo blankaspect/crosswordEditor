@@ -61,12 +61,12 @@ interface AppConstants
 	String	NS_PREFIX_BASE	= "xw";
 	String	NS_PREFIX		= NS_PREFIX_BASE + ":";
 
-	// Filename suffixes
-	String	EXE_FILE_SUFFIX		= ".exe";
-	String	ICON_FILE_SUFFIX	= ".ico";
-	String	HTML_FILE_SUFFIX	= ".html";
-	String	JAR_FILE_SUFFIX		= ".jar";
-	String	XML_FILE_SUFFIX		= ".xml";
+	// Filename extensions
+	String	EXE_FILENAME_EXTENSION	= ".exe";
+	String	ICON_FILENAME_EXTENSION	= ".ico";
+	String	HTML_FILENAME_EXTENSION	= ".html";
+	String	JAR_FILENAME_EXTENSION	= ".jar";
+	String	XML_FILENAME_EXTENSION	= ".xml";
 
 	// File-filter descriptions
 	String	CROSSWORD_FILES_STR	= "Crossword files";

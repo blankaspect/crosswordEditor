@@ -78,12 +78,10 @@ class AppConfig
 
 	private static final	String	CONFIG_ERROR_STR	= "Configuration error";
 	private static final	String	CONFIG_DIR_KEY		= Property.APP_PREFIX + "configDir";
-	private static final	String	PROPERTIES_FILENAME	= App.NAME_KEY + "-properties" +
-																			AppConstants.XML_FILE_SUFFIX;
+	private static final	String	PROPERTIES_FILENAME	= App.NAME_KEY + "-properties" + AppConstants.XML_FILENAME_EXTENSION;
 	private static final	String	FILENAME_STEM		= App.NAME_KEY + "-config";
-	private static final	String	CONFIG_FILENAME		= FILENAME_STEM + AppConstants.XML_FILE_SUFFIX;
-	private static final	String	CONFIG_OLD_FILENAME	= FILENAME_STEM + "-old" +
-																			AppConstants.XML_FILE_SUFFIX;
+	private static final	String	CONFIG_FILENAME		= FILENAME_STEM + AppConstants.XML_FILENAME_EXTENSION;
+	private static final	String	CONFIG_OLD_FILENAME	= FILENAME_STEM + "-old" + AppConstants.XML_FILENAME_EXTENSION;
 
 	private static final	String	SAVE_CONFIGURATION_FILE_STR	= "Save configuration file";
 	private static final	String	WRITING_STR					= "Writing";
@@ -3061,7 +3059,7 @@ class AppConfig
 			fileChooser.setDialogTitle(SAVE_CONFIGURATION_FILE_STR);
 			fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			fileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.XML_FILES_STR,
-															   AppConstants.XML_FILE_SUFFIX));
+															   AppConstants.XML_FILENAME_EXTENSION));
 			selectedFile = file;
 		}
 
@@ -3071,7 +3069,7 @@ class AppConfig
 		if (fileChooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION)
 		{
 			selectedFile = Utils.appendSuffix(fileChooser.getSelectedFile(),
-											  AppConstants.XML_FILE_SUFFIX);
+											  AppConstants.XML_FILENAME_EXTENSION);
 			return selectedFile;
 		}
 		return null;

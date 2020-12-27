@@ -57,6 +57,8 @@ import javax.swing.KeyStroke;
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.FileException;
 
+import uk.blankaspect.common.filesystem.PathnameUtils;
+
 import uk.blankaspect.common.misc.FilenameSuffixFilter;
 
 import uk.blankaspect.common.platform.windows.FileAssociations;
@@ -346,7 +348,7 @@ class FileAssociationDialog
 		javaLauncherFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
 		javaLauncherFileChooser.setApproveButtonToolTipText(SELECT_FILE_STR);
 		javaLauncherFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.EXE_FILES_STR,
-																	   AppConstants.EXE_FILE_SUFFIX));
+																	   AppConstants.EXE_FILENAME_EXTENSION));
 
 		jarFileChooser = new JFileChooser(System.getProperty(USER_DIR_KEY));
 		jarFileChooser.setDialogTitle(JAR_FILE_STR);
@@ -354,7 +356,7 @@ class FileAssociationDialog
 		jarFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
 		jarFileChooser.setApproveButtonToolTipText(SELECT_FILE_STR);
 		jarFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.JAR_FILES_STR,
-															  AppConstants.JAR_FILE_SUFFIX));
+															  AppConstants.JAR_FILENAME_EXTENSION));
 
 		iconFileChooser = new JFileChooser(System.getProperty(USER_DIR_KEY));
 		iconFileChooser.setDialogTitle(ICON_FILE_STR);
@@ -362,7 +364,7 @@ class FileAssociationDialog
 		iconFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
 		iconFileChooser.setApproveButtonToolTipText(SELECT_FILE_STR);
 		iconFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.ICON_FILES_STR,
-															   AppConstants.ICON_FILE_SUFFIX));
+															   AppConstants.ICON_FILENAME_EXTENSION));
 
 		actionComponents = new ArrayList<>();
 
@@ -1011,7 +1013,8 @@ class FileAssociationDialog
 		try
 		{
 			Path path = Paths.get(FileAssociationDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-			if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) && path.toString().endsWith(AppConstants.JAR_FILE_SUFFIX))
+			if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)
+					&& PathnameUtils.suffixMatches(path, AppConstants.JAR_FILENAME_EXTENSION))
 				defaultJarPath = path.toAbsolutePath();
 		}
 		catch (Exception e)

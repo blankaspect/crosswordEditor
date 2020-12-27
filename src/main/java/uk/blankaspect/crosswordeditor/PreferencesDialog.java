@@ -1580,9 +1580,8 @@ class PreferencesDialog
 			parameterSetFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			parameterSetFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
 			parameterSetFileChooser.setApproveButtonToolTipText(SELECT_FILE_STR);
-			parameterSetFileChooser.
-								setFileFilter(new FilenameSuffixFilter(AppConstants.XML_FILES_STR,
-																	   AppConstants.XML_FILE_SUFFIX));
+			parameterSetFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.XML_FILES_STR,
+																		   AppConstants.XML_FILENAME_EXTENSION));
 		}
 		parameterSetFileChooser.setSelectedFile(parameterSetPathnameField.getCanonicalFile());
 		parameterSetFileChooser.rescanCurrentDirectory();
