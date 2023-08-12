@@ -1,0 +1,27 @@
+/**********************************************************************\
+
+Styles for CrosswordEditor project page
+
+\**********************************************************************/
+
+@import url("blankaspect-project.css");
+
+div.hr
+{
+  border-bottom: 1px solid #B4B8C8;
+  margin: 0.5em 1.0em;
+  padding-top: 0.2em;
+}
+
+h4
+{
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid #B4B8C8;
+}
+
+ul.list li
+{
+  margin-left: -0.5em;
+}
+
+/*--------------------------------------------------------------------*/
