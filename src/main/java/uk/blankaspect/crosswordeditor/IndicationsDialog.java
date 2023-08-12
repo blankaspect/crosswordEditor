@@ -2,7 +2,7 @@
 
 IndicationsDialog.java
 
-Indications dialog box class.
+Indications dialog class.
 
 \*====================================================================*/
 
@@ -55,20 +55,20 @@ import uk.blankaspect.common.misc.MaxValueMap;
 import uk.blankaspect.common.regex.RegexUtils;
 import uk.blankaspect.common.regex.Substitution;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.button.FButton;
+import uk.blankaspect.ui.swing.button.FButton;
 
-import uk.blankaspect.common.swing.label.FixedWidthLabel;
+import uk.blankaspect.ui.swing.label.FixedWidthLabel;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
-import uk.blankaspect.common.swing.textfield.FTextField;
+import uk.blankaspect.ui.swing.textfield.FTextField;
 
 //----------------------------------------------------------------------
 
 
-// INDICATIONS DIALOG BOX CLASS
+// INDICATIONS DIALOG CLASS
 
 
 class IndicationsDialog

@@ -2,7 +2,7 @@
 
 CrosswordView.java
 
-Crossword view class.
+Class: crossword view.
 
 \*====================================================================*/
 
@@ -45,6 +45,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
+import java.util.stream.Stream;
+
 import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -73,20 +75,20 @@ import uk.blankaspect.common.misc.IStringKeyed;
 
 import uk.blankaspect.common.string.StringUtils;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.colour.Colours;
+import uk.blankaspect.ui.swing.colour.Colours;
 
-import uk.blankaspect.common.swing.font.FontUtils;
+import uk.blankaspect.ui.swing.font.FontUtils;
 
-import uk.blankaspect.common.swing.menu.FMenuItem;
+import uk.blankaspect.ui.swing.menu.FMenuItem;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
 //----------------------------------------------------------------------
 
 
-// CROSSWORD VIEW CLASS
+// CLASS: CROSSWORD VIEW
 
 
 class CrosswordView
@@ -108,11 +110,189 @@ class CrosswordView
 	private static final	int	SCROLL_BLOCK_INCREMENT_FACTOR	= 10;
 
 ////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	CrosswordPanel	crosswordPanel;
+
+////////////////////////////////////////////////////////////////////////
+//  Constructors
+////////////////////////////////////////////////////////////////////////
+
+	public CrosswordView(CrosswordDocument document)
+	{
+		// Call superclass constructor
+		super(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+
+		// Set view and size of viewport
+		crosswordPanel = new CrosswordPanel(document);
+		setViewportView(crosswordPanel);
+		viewport.setFocusable(true);
+
+		// Get font metrics
+		FontMetrics fontMetrics = getFontMetrics(AppFont.CLUE.getFont());
+
+		// Set vertical scrolling increments
+		JScrollBar vScrollBar = getVerticalScrollBar();
+		vScrollBar.setFocusable(false);
+		int scrollUnit = fontMetrics.getHeight();
+		vScrollBar.setUnitIncrement(SCROLL_UNIT_INCREMENT_FACTOR * scrollUnit);
+		vScrollBar.setBlockIncrement(SCROLL_BLOCK_INCREMENT_FACTOR * scrollUnit);
+
+		// Set horizontal scrolling increments
+		JScrollBar hScrollBar = getHorizontalScrollBar();
+		hScrollBar.setFocusable(false);
+		scrollUnit = fontMetrics.charWidth('n');
+		hScrollBar.setUnitIncrement(SCROLL_UNIT_INCREMENT_FACTOR * scrollUnit);
+		hScrollBar.setBlockIncrement(SCROLL_BLOCK_INCREMENT_FACTOR * scrollUnit);
+
+		// Set component attributes
+		setBorder(null);
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods : overriding methods
+////////////////////////////////////////////////////////////////////////
+
+	@Override
+	public boolean requestFocusInWindow()
+	{
+		return crosswordPanel.gridPanel.requestFocusInWindow();
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods
+////////////////////////////////////////////////////////////////////////
+
+	public Clue.Id getSelectedClueId()
+	{
+		return crosswordPanel.selectedClueId;
+	}
+
+	//------------------------------------------------------------------
+
+	public void redraw()
+	{
+		crosswordPanel.repaint();
+	}
+
+	//------------------------------------------------------------------
+
+	public void redrawGrid()
+	{
+		crosswordPanel.gridPanel.repaint();
+	}
+
+	//------------------------------------------------------------------
+
+	public void setPreferredViewportSize(Dimension preferredSize)
+	{
+		if (preferredSize == null)
+			preferredSize = crosswordPanel.getPreferredSize();
+		preferredSize = new Dimension(Math.max(MIN_WIDTH, preferredSize.width),
+									  Math.max(MIN_HEIGHT, preferredSize.height));
+		if (!preferredSize.equals(viewport.getExtentSize()))
+		{
+			App app = App.INSTANCE;
+			for (int i = 0; i < app.getNumDocuments(); i++)
+				app.getView(i).setViewportSize(preferredSize);
+			app.getMainWindow().resize();
+		}
+	}
+
+	//------------------------------------------------------------------
+
+	public Point getViewportLocation()
+	{
+		Point location = viewport.getLocation();
+		SwingUtilities.convertPointToScreen(location, this);
+		return location;
+	}
+
+	//------------------------------------------------------------------
+
+	public void drawCaret(boolean draw)
+	{
+		crosswordPanel.gridPanel.drawCaret(draw);
+	}
+
+	//------------------------------------------------------------------
+
+	public void updateGrid()
+	{
+		crosswordPanel.setSelection(null);
+		crosswordPanel.updateGrid();
+		for (Direction direction : Direction.DEFINED_DIRECTIONS)
+			crosswordPanel.updateCluePanel(direction);
+		revalidate();
+		crosswordPanel.repaint();
+	}
+
+	//------------------------------------------------------------------
+
+	public void updateClues(Direction direction)
+	{
+		crosswordPanel.updateDirectionLabel(direction);
+		crosswordPanel.updateCluePanel(direction);
+		crosswordPanel.updateSelection();
+		revalidate();
+		crosswordPanel.repaint();
+	}
+
+	//------------------------------------------------------------------
+
+	public void updateTextSections(EnumSet<CrosswordDocument.TextSection> textSections)
+	{
+		for (CrosswordDocument.TextSection textSection : textSections)
+		{
+			switch (textSection)
+			{
+				case TITLE:
+					crosswordPanel.updateTitle();
+					break;
+
+				case PROLOGUE:
+					crosswordPanel.updatePrologue();
+					break;
+
+				case EPILOGUE:
+					crosswordPanel.updateEpilogue();
+					break;
+			}
+		}
+		revalidate();
+		crosswordPanel.repaint();
+	}
+
+	//------------------------------------------------------------------
+
+	public void setGridCaretPosition(int       row,
+									 int       column,
+									 Direction direction)
+	{
+		crosswordPanel.gridPanel.setCaretPosition(row, column, direction);
+	}
+
+	//------------------------------------------------------------------
+
+	private void setViewportSize(Dimension size)
+	{
+		viewport.setPreferredSize(size);
+		viewport.setExtentSize(size);
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
 //  Enumerated types
 ////////////////////////////////////////////////////////////////////////
 
 
-	// COLOURS
+	// ENUMERATION: COLOURS
 
 
 	enum Colour
@@ -243,6 +423,14 @@ class CrosswordView
 		);
 
 	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	key;
+		private	String	text;
+		private	Color	defaultColour;
+
+	////////////////////////////////////////////////////////////////////
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
@@ -263,12 +451,10 @@ class CrosswordView
 
 		public static Colour forKey(String key)
 		{
-			for (Colour value : values())
-			{
-				if (value.key.equals(key))
-					return value;
-			}
-			return null;
+			return Stream.of(values())
+							.filter(value -> value.key.equals(key))
+							.findFirst()
+							.orElse(null);
 		}
 
 		//--------------------------------------------------------------
@@ -277,6 +463,7 @@ class CrosswordView
 	//  Instance methods : IStringKeyed interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public String getKey()
 		{
 			return key;
@@ -300,20 +487,19 @@ class CrosswordView
 	//  Instance methods
 	////////////////////////////////////////////////////////////////////
 
+		public Color get()
+		{
+			return AppConfig.INSTANCE.getViewColour(this);
+		}
+
+		//--------------------------------------------------------------
+
 		public Color getDefaultColour()
 		{
 			return defaultColour;
 		}
 
 		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	key;
-		private	String	text;
-		private	Color	defaultColour;
 
 	}
 
@@ -324,63 +510,17 @@ class CrosswordView
 ////////////////////////////////////////////////////////////////////////
 
 
-	// CLUE ELEMENT MAP CLASS
+	// CLASS: CLUE ELEMENT MAP
 
 
 	private static class ClueElementMap
 	{
 
 	////////////////////////////////////////////////////////////////////
-	//  Member classes : non-inner classes
+	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
-
-		// CLUE ELEMENT MAP ENTRY CLASS
-
-
-		private static class Entry
-		{
-
-		////////////////////////////////////////////////////////////////
-		//  Constructors
-		////////////////////////////////////////////////////////////////
-
-			private Entry(Clue.Id clueId,
-						  Element element,
-						  boolean reference,
-						  boolean hasText)
-			{
-				this.clueId = clueId;
-				this.element = element;
-				this.reference = reference;
-				this.hasText = hasText;
-			}
-
-			//----------------------------------------------------------
-
-		////////////////////////////////////////////////////////////////
-		//  Instance methods
-		////////////////////////////////////////////////////////////////
-
-			private boolean isEmpty()
-			{
-				return (!(reference || hasText));
-			}
-
-			//----------------------------------------------------------
-
-		////////////////////////////////////////////////////////////////
-		//  Instance variables
-		////////////////////////////////////////////////////////////////
-
-			private	Clue.Id	clueId;
-			private	Element	element;
-			private	boolean	reference;
-			private	boolean	hasText;
-
-		}
-
-		//==============================================================
+		private	List<Entry>	entries;
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
@@ -407,10 +547,6 @@ class CrosswordView
 
 		//--------------------------------------------------------------
 
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
 		private Entry getEntry(Clue.Id clueId)
 		{
 			for (Entry entry : entries)
@@ -436,17 +572,63 @@ class CrosswordView
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance variables
+	//  Member classes : non-inner classes
 	////////////////////////////////////////////////////////////////////
 
-		private	List<Entry>	entries;
+
+		// CLASS: CLUE ELEMENT MAP ENTRY
+
+
+		private static class Entry
+		{
+
+		////////////////////////////////////////////////////////////////
+		//  Instance variables
+		////////////////////////////////////////////////////////////////
+
+			private	Clue.Id	clueId;
+			private	Element	element;
+			private	boolean	reference;
+			private	boolean	hasText;
+
+		////////////////////////////////////////////////////////////////
+		//  Constructors
+		////////////////////////////////////////////////////////////////
+
+			private Entry(Clue.Id clueId,
+						  Element element,
+						  boolean reference,
+						  boolean hasText)
+			{
+				this.clueId = clueId;
+				this.element = element;
+				this.reference = reference;
+				this.hasText = hasText;
+			}
+
+			//----------------------------------------------------------
+
+		////////////////////////////////////////////////////////////////
+		//  Instance methods
+		////////////////////////////////////////////////////////////////
+
+			private boolean isEmpty()
+			{
+				return !(reference || hasText);
+			}
+
+			//----------------------------------------------------------
+
+		}
+
+		//==============================================================
 
 	}
 
 	//==================================================================
 
 
-	// HORIZONTAL LINE CLASS
+	// CLASS: HORIZONTAL LINE
 
 
 	private static class HorizontalLine
@@ -475,7 +657,7 @@ class CrosswordView
 		protected void paintComponent(Graphics gr)
 		{
 			// Draw line
-			gr.setColor(getColour(Colour.TITLE_SEPARATOR));
+			gr.setColor(Colour.TITLE_SEPARATOR.get());
 			gr.drawLine(0, 0, getWidth() - 1, 0);
 		}
 
@@ -486,7 +668,7 @@ class CrosswordView
 	//==================================================================
 
 
-	// CLUE PANEL CLASS
+	// CLASS: CLUE PANEL
 
 
 	private static class CluePanel
@@ -497,20 +679,25 @@ class CrosswordView
 	//  Constants
 	////////////////////////////////////////////////////////////////////
 
-		private static final	int	MAX_HEIGHT	= 1 << 16;  // 65536
+		private static final	int		MAX_HEIGHT	= 1 << 16;  // 65536
 
 		private static final	String	SEPARATOR			= "  ";
 		private static final	String	SPAN_PREFIX			= "span.";
 		private static final	String	PARAGRAPH_PREFIX	= "paragraph.";
 
-		private static final	String	BOLD_KEY					= SPAN_PREFIX +
-																		StyledText.StyleAttr.BOLD.getKey();
+		private static final	String	BOLD_KEY					= SPAN_PREFIX + StyledText.StyleAttr.BOLD.getKey();
 		private static final	String	COLOURS_KEY					= "colours";
 		private static final	String	EMPTY_COLOURS_KEY			= "emptyColours";
 		private static final	String	SELECTED_COLOURS_KEY		= "selectedColours";
 		private static final	String	SELECTED_EMPTY_COLOURS_KEY	= "selectedEmptyColours";
 
 		private static final	String	NO_CLUE_STR	= "(no clue)";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	ClueElementMap	clueElementMap;
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
@@ -537,12 +724,13 @@ class CrosswordView
 			AppFont.CLUE.apply(this);
 
 			// Set component attributes
-			setBackground(Colours.BACKGROUND);
-			setForeground(Colours.FOREGROUND);
+			setBackground(null);
+			setForeground(Colour.CLUE_TEXT.get());
 			setBorder(null);
 			setEditable(false);
 			setFocusable(false);
-			((DefaultCaret)getCaret()).setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+			if (getCaret() instanceof DefaultCaret caret)
+				caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
 			if (width > 0)
 				setSize(new Dimension(width, MAX_HEIGHT));
 			setTransferHandler(null);
@@ -567,8 +755,7 @@ class CrosswordView
 			int indent1 = 0;
 			for (int i = 0; i < clues.size(); i++)
 			{
-				widths[i] = fontMetrics.stringWidth(Integer.toString(clues.get(i).
-																				getFieldId().number));
+				widths[i] = fontMetrics.stringWidth(Integer.toString(clues.get(i).getFieldId().number));
 				if (indent1 < widths[i])
 					indent1 = widths[i];
 			}
@@ -598,20 +785,20 @@ class CrosswordView
 
 			// Add background and foreground colour styles to styled document
 			Style style = styledDoc.addStyle(COLOURS_KEY, null);
-			StyleConstants.setBackground(style, getColour(Colour.BACKGROUND));
-			StyleConstants.setForeground(style, getColour(Colour.CLUE_TEXT));
+			StyleConstants.setBackground(style, Colour.BACKGROUND.get());
+			StyleConstants.setForeground(style, Colour.CLUE_TEXT.get());
 
 			style = styledDoc.addStyle(EMPTY_COLOURS_KEY, null);
-			StyleConstants.setBackground(style, getColour(Colour.BACKGROUND));
-			StyleConstants.setForeground(style, getColour(Colour.EMPTY_CLUE_TEXT));
+			StyleConstants.setBackground(style, Colour.BACKGROUND.get());
+			StyleConstants.setForeground(style, Colour.EMPTY_CLUE_TEXT.get());
 
 			style = styledDoc.addStyle(SELECTED_COLOURS_KEY, null);
-			StyleConstants.setBackground(style, getColour(Colour.SELECTED_CLUE_BACKGROUND));
-			StyleConstants.setForeground(style, getColour(Colour.CLUE_TEXT));
+			StyleConstants.setBackground(style, Colour.SELECTED_CLUE_BACKGROUND.get());
+			StyleConstants.setForeground(style, Colour.CLUE_TEXT.get());
 
 			style = styledDoc.addStyle(SELECTED_EMPTY_COLOURS_KEY, null);
-			StyleConstants.setBackground(style, getColour(Colour.SELECTED_EMPTY_CLUE_BACKGROUND));
-			StyleConstants.setForeground(style, getColour(Colour.EMPTY_CLUE_TEXT));
+			StyleConstants.setBackground(style, Colour.SELECTED_EMPTY_CLUE_BACKGROUND.get());
+			StyleConstants.setForeground(style, Colour.EMPTY_CLUE_TEXT.get());
 
 			// Append text
 			for (int i = 0; i < clues.size(); i++)
@@ -702,18 +889,12 @@ class CrosswordView
 
 		//--------------------------------------------------------------
 
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	ClueElementMap	clueElementMap;
-
 	}
 
 	//==================================================================
 
 
-	// TEXT SECTION PANEL CLASS
+	// CLASS: TEXT SECTION PANEL
 
 
 	private static class TextSectionPanel
@@ -744,8 +925,8 @@ class CrosswordView
 			AppFont.MAIN.apply(this);
 
 			// Set component attributes
-			setBackground(getColour(Colour.BACKGROUND));
-			setForeground(getColour(Colour.TEXT));
+			setBackground(null);
+			setForeground(Colour.CLUE_TEXT.get());
 			setBorder(null);
 			setEditable(false);
 			setFocusable(false);
@@ -856,7 +1037,7 @@ class CrosswordView
 	//==================================================================
 
 
-	// CROSSWORD PANEL CLASS
+	// CLASS: CROSSWORD PANEL
 
 
 	private static class CrosswordPanel
@@ -970,6 +1151,24 @@ class CrosswordView
 		};
 
 	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	CrosswordDocument			document;
+		private	int							contentWidth;
+		private	int							cluePanelWidth;
+		private	Clue.Id						selectedClueId;
+		private	JLabel						titleLabel;
+		private	HorizontalLine				horizontalLine;
+		private	GridPanel					gridPanel;
+		private	CluePanel					selectedCluePanel;
+		private	Map<Direction, JLabel>		directionLabels;
+		private	Map<Direction, CluePanel>	cluePanels;
+		private	TextSectionPanel			prologuePanel;
+		private	TextSectionPanel			epiloguePanel;
+		private	JPopupMenu					contextMenu;
+
+	////////////////////////////////////////////////////////////////////
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
@@ -982,7 +1181,7 @@ class CrosswordView
 			GuiUtils.setPaddedLineBorder(this, 8);
 
 			// Set component attributes
-			setBackground(Colours.BACKGROUND);
+			setBackground(Colour.BACKGROUND.get());
 
 
 			//----  Title label
@@ -998,7 +1197,7 @@ class CrosswordView
 			GridBagConstraints gbc = new GridBagConstraints();
 
 			JPanel upperPanel = new JPanel(gridBag);
-			upperPanel.setBackground(Colours.BACKGROUND);
+			upperPanel.setBackground(null);
 
 			int gridX = 0;
 
@@ -1044,7 +1243,7 @@ class CrosswordView
 			//----  Lower panel
 
 			JPanel lowerPanel = new JPanel(gridBag);
-			lowerPanel.setBackground(Colours.BACKGROUND);
+			lowerPanel.setBackground(null);
 
 			// Add clue panels
 			int numCluePanels = Direction.DEFINED_DIRECTIONS.size();
@@ -1213,6 +1412,7 @@ class CrosswordView
 	//  Instance methods : ActionListener interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public void actionPerformed(ActionEvent event)
 		{
 			String command = event.getActionCommand();
@@ -1257,6 +1457,7 @@ class CrosswordView
 	//  Instance methods : KeyListener interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public void keyPressed(KeyEvent event)
 		{
 			switch (event.getKeyCode())
@@ -1273,6 +1474,7 @@ class CrosswordView
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void keyReleased(KeyEvent event)
 		{
 			// do nothing
@@ -1280,6 +1482,7 @@ class CrosswordView
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void keyTyped(KeyEvent event)
 		{
 			char ch = Character.toUpperCase(event.getKeyChar());
@@ -1293,6 +1496,7 @@ class CrosswordView
 	//  Instance methods : MouseListener interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public void mouseClicked(MouseEvent event)
 		{
 			if (SwingUtilities.isLeftMouseButton(event) && (event.getClickCount() > 1))
@@ -1320,6 +1524,7 @@ class CrosswordView
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void mouseEntered(MouseEvent event)
 		{
 			// do nothing
@@ -1327,6 +1532,7 @@ class CrosswordView
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void mouseExited(MouseEvent event)
 		{
 			// do nothing
@@ -1334,6 +1540,7 @@ class CrosswordView
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void mousePressed(MouseEvent event)
 		{
 			if (SwingUtilities.isLeftMouseButton(event))
@@ -1421,6 +1628,7 @@ class CrosswordView
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void mouseReleased(MouseEvent event)
 		{
 			showContextMenu(event);
@@ -1497,11 +1705,11 @@ class CrosswordView
 			{
 				Grid.Field.Id fieldId = field.getId();
 				Clue clue = new Clue(fieldId);
-				if (clues.stream().noneMatch(clue0 -> Clue.FieldIdComparator.INSTANCE.compare(clue, clue0) == 0))
+				if (clues.stream().noneMatch(clue0 -> Clue.COMPARATOR.compare(clue, clue0) == 0))
 					undefinedClues.add(clue);
 			}
 			clues.addAll(undefinedClues);
-			clues.sort(Clue.ID_COMPARATOR);
+			clues.sort(Clue.COMPARATOR);
 
 			// Create panel
 			CluePanel panel = new CluePanel(document, clues, cluePanelWidth);
@@ -1522,7 +1730,7 @@ class CrosswordView
 			JLabel label = new JLabel(title);
 			Font font = AppFont.MAIN.getFont();
 			label.setFont(font.deriveFont(Font.BOLD, FONT_FACTOR * font.getSize2D()));
-			label.setForeground(getColour(Colour.TEXT));
+			label.setForeground(Colour.TEXT.get());
 			label.setVisible(isTitle);
 			if (isTitle)
 				label.addMouseListener(this);
@@ -1888,216 +2096,9 @@ class CrosswordView
 
 		//--------------------------------------------------------------
 
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	CrosswordDocument			document;
-		private	int							contentWidth;
-		private	int							cluePanelWidth;
-		private	Clue.Id						selectedClueId;
-		private	JLabel						titleLabel;
-		private	HorizontalLine				horizontalLine;
-		private	GridPanel					gridPanel;
-		private	CluePanel					selectedCluePanel;
-		private	Map<Direction, JLabel>		directionLabels;
-		private	Map<Direction, CluePanel>	cluePanels;
-		private	TextSectionPanel			prologuePanel;
-		private	TextSectionPanel			epiloguePanel;
-		private	JPopupMenu					contextMenu;
-
 	}
 
 	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
-//  Constructors
-////////////////////////////////////////////////////////////////////////
-
-	public CrosswordView(CrosswordDocument document)
-	{
-		// Call superclass constructor
-		super(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-
-		// Set view and size of viewport
-		crosswordPanel = new CrosswordPanel(document);
-		setViewportView(crosswordPanel);
-		viewport.setFocusable(true);
-
-		// Get font metrics
-		FontMetrics fontMetrics = getFontMetrics(AppFont.CLUE.getFont());
-
-		// Set vertical scrolling increments
-		JScrollBar vScrollBar = getVerticalScrollBar();
-		vScrollBar.setFocusable(false);
-		int scrollUnit = fontMetrics.getHeight();
-		vScrollBar.setUnitIncrement(SCROLL_UNIT_INCREMENT_FACTOR * scrollUnit);
-		vScrollBar.setBlockIncrement(SCROLL_BLOCK_INCREMENT_FACTOR * scrollUnit);
-
-		// Set horizontal scrolling increments
-		JScrollBar hScrollBar = getHorizontalScrollBar();
-		hScrollBar.setFocusable(false);
-		scrollUnit = fontMetrics.charWidth('n');
-		hScrollBar.setUnitIncrement(SCROLL_UNIT_INCREMENT_FACTOR * scrollUnit);
-		hScrollBar.setBlockIncrement(SCROLL_BLOCK_INCREMENT_FACTOR * scrollUnit);
-
-		// Set component attributes
-		setBorder(null);
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Class methods
-////////////////////////////////////////////////////////////////////////
-
-	public static Color getColour(Colour key)
-	{
-		return AppConfig.INSTANCE.getViewColour(key);
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods : overriding methods
-////////////////////////////////////////////////////////////////////////
-
-	@Override
-	public boolean requestFocusInWindow()
-	{
-		return crosswordPanel.gridPanel.requestFocusInWindow();
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods
-////////////////////////////////////////////////////////////////////////
-
-	public Clue.Id getSelectedClueId()
-	{
-		return crosswordPanel.selectedClueId;
-	}
-
-	//------------------------------------------------------------------
-
-	public void redraw()
-	{
-		crosswordPanel.repaint();
-	}
-
-	//------------------------------------------------------------------
-
-	public void redrawGrid()
-	{
-		crosswordPanel.gridPanel.repaint();
-	}
-
-	//------------------------------------------------------------------
-
-	public void setPreferredViewportSize(Dimension preferredSize)
-	{
-		if (preferredSize == null)
-			preferredSize = crosswordPanel.getPreferredSize();
-		preferredSize = new Dimension(Math.max(MIN_WIDTH, preferredSize.width),
-									  Math.max(MIN_HEIGHT, preferredSize.height));
-		if (!preferredSize.equals(viewport.getExtentSize()))
-		{
-			App app = App.INSTANCE;
-			for (int i = 0; i < app.getNumDocuments(); i++)
-				app.getView(i).setViewportSize(preferredSize);
-			app.getMainWindow().resize();
-		}
-	}
-
-	//------------------------------------------------------------------
-
-	public Point getViewportLocation()
-	{
-		Point location = viewport.getLocation();
-		SwingUtilities.convertPointToScreen(location, this);
-		return location;
-	}
-
-	//------------------------------------------------------------------
-
-	public void drawCaret(boolean draw)
-	{
-		crosswordPanel.gridPanel.drawCaret(draw);
-	}
-
-	//------------------------------------------------------------------
-
-	public void updateGrid()
-	{
-		crosswordPanel.setSelection(null);
-		crosswordPanel.updateGrid();
-		for (Direction direction : Direction.DEFINED_DIRECTIONS)
-			crosswordPanel.updateCluePanel(direction);
-		revalidate();
-		crosswordPanel.repaint();
-	}
-
-	//------------------------------------------------------------------
-
-	public void updateClues(Direction direction)
-	{
-		crosswordPanel.updateDirectionLabel(direction);
-		crosswordPanel.updateCluePanel(direction);
-		crosswordPanel.updateSelection();
-		revalidate();
-		crosswordPanel.repaint();
-	}
-
-	//------------------------------------------------------------------
-
-	public void updateTextSections(EnumSet<CrosswordDocument.TextSection> textSections)
-	{
-		for (CrosswordDocument.TextSection textSection : textSections)
-		{
-			switch (textSection)
-			{
-				case TITLE:
-					crosswordPanel.updateTitle();
-					break;
-
-				case PROLOGUE:
-					crosswordPanel.updatePrologue();
-					break;
-
-				case EPILOGUE:
-					crosswordPanel.updateEpilogue();
-					break;
-			}
-		}
-		revalidate();
-		crosswordPanel.repaint();
-	}
-
-	//------------------------------------------------------------------
-
-	public void setGridCaretPosition(int       row,
-									 int       column,
-									 Direction direction)
-	{
-		crosswordPanel.gridPanel.setCaretPosition(row, column, direction);
-	}
-
-	//------------------------------------------------------------------
-
-	private void setViewportSize(Dimension size)
-	{
-		viewport.setPreferredSize(size);
-		viewport.setExtentSize(size);
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	CrosswordPanel	crosswordPanel;
 
 }
 

@@ -2,7 +2,7 @@
 
 GridDialog.java
 
-Grid dialog box class.
+Grid dialog class.
 
 \*====================================================================*/
 
@@ -59,26 +59,26 @@ import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.button.FButton;
+import uk.blankaspect.ui.swing.button.FButton;
 
-import uk.blankaspect.common.swing.checkbox.FCheckBox;
+import uk.blankaspect.ui.swing.checkbox.FCheckBox;
 
-import uk.blankaspect.common.swing.combobox.FComboBox;
+import uk.blankaspect.ui.swing.combobox.FComboBox;
 
-import uk.blankaspect.common.swing.label.FLabel;
+import uk.blankaspect.ui.swing.label.FLabel;
 
-import uk.blankaspect.common.swing.menu.FMenuItem;
+import uk.blankaspect.ui.swing.menu.FMenuItem;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
-import uk.blankaspect.common.swing.text.TextRendering;
+import uk.blankaspect.ui.swing.text.TextRendering;
 
 //----------------------------------------------------------------------
 
 
-// GRID DIALOG BOX CLASS
+// GRID DIALOG CLASS
 
 
 class GridDialog

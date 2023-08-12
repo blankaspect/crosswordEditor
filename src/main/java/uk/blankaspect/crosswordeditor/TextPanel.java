@@ -75,23 +75,22 @@ import uk.blankaspect.common.collection.CollectionUtils;
 
 import uk.blankaspect.common.exception.UnexpectedRuntimeException;
 
-import uk.blankaspect.common.indexedsub.IndexedSub;
-
 import uk.blankaspect.common.regex.RegexUtils;
 
 import uk.blankaspect.common.string.StringUtils;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.font.FontUtils;
+import uk.blankaspect.ui.swing.font.FontUtils;
 
-import uk.blankaspect.common.swing.inputmap.InputMapUtils;
+import uk.blankaspect.ui.swing.inputmap.InputMapUtils;
 
-import uk.blankaspect.common.swing.menu.FMenuItem;
+import uk.blankaspect.ui.swing.menu.FMenuItem;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiConstants;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
-import uk.blankaspect.common.swing.textarea.FTextArea;
+import uk.blankaspect.ui.swing.textarea.FTextArea;
 
 //----------------------------------------------------------------------
 
@@ -108,9 +107,9 @@ class TextPanel
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	private static final	int	NUM_COLUMNS			= 64;
-	private static final	int	VERTICAL_MARGIN		= 2;
-	private static final	int	HORIZONTAL_MARGIN	= 4;
+	private static final	int		NUM_COLUMNS			= 64;
+	private static final	int		VERTICAL_MARGIN		= 2;
+	private static final	int		HORIZONTAL_MARGIN	= 4;
 
 	private static final	String	ANCESTOR_PROPERTY_NAME	= "ancestor";
 
@@ -383,7 +382,8 @@ class TextPanel
 			private static final	Color	HIGHLIGHTED_BACKGROUND_COLOUR	= new Color(248, 240, 176);
 			private static final	Color	BORDER_COLOUR					= new Color(160, 192, 160);
 			private static final	Color	DISABLED_BORDER_COLOUR			= Color.LIGHT_GRAY;
-			private static final	Color	FOCUSED_BORDER_COLOUR			= Color.BLACK;
+			private static final	Color	FOCUSED_BORDER_COLOUR1			= Color.WHITE;
+			private static final	Color	FOCUSED_BORDER_COLOUR2			= Color.BLACK;
 
 		////////////////////////////////////////////////////////////////
 		//  Constructors
@@ -409,30 +409,35 @@ class TextPanel
 			protected void paintComponent(Graphics gr)
 			{
 				// Create copy of graphics context
-				gr = gr.create();
+				Graphics2D gr2d = GuiUtils.copyGraphicsContext(gr);
 
 				// Get dimensions
 				int width = getWidth();
 				int height = getHeight();
 
 				// Fill interior
-				gr.setColor(isEnabled() ? (isSelected() != getModel().isArmed()) ? HIGHLIGHTED_BACKGROUND_COLOUR
-																				 : BACKGROUND_COLOUR
-										: getBackground());
-				gr.fillRect(0, 0, width, height);
+				gr2d.setColor(isEnabled()
+									? (isSelected() != getModel().isArmed())
+											? HIGHLIGHTED_BACKGROUND_COLOUR
+											: BACKGROUND_COLOUR
+									: getBackground());
+				gr2d.fillRect(0, 0, width, height);
 
 				// Draw icon
 				Icon icon = isEnabled() ? getIcon() : getDisabledIcon();
 				icon.paintIcon(this, gr, HORIZONTAL_MARGIN, VERTICAL_MARGIN);
 
 				// Draw border
-				gr.setColor(isEnabled() ? BORDER_COLOUR : DISABLED_BORDER_COLOUR);
-				gr.drawRect(0, 0, width - 1, height - 1);
+				gr2d.setColor(isEnabled() ? BORDER_COLOUR : DISABLED_BORDER_COLOUR);
+				gr2d.drawRect(0, 0, width - 1, height - 1);
 				if (isFocusOwner())
 				{
-					((Graphics2D)gr).setStroke(GuiUtils.getBasicDash());
-					gr.setColor(FOCUSED_BORDER_COLOUR);
-					gr.drawRect(1, 1, width - 3, height - 3);
+					gr2d.setColor(FOCUSED_BORDER_COLOUR1);
+					gr2d.drawRect(1, 1, width - 3, height - 3);
+
+					gr2d.setStroke(GuiConstants.BASIC_DASH);
+					gr2d.setColor(FOCUSED_BORDER_COLOUR2);
+					gr2d.drawRect(1, 1, width - 3, height - 3);
 				}
 			}
 
@@ -638,9 +643,9 @@ class TextPanel
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
 		textArea.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
-									   new HashSet<KeyStroke>(FOCUS_FORWARD_KEYS));
+									   new HashSet<>(FOCUS_FORWARD_KEYS));
 		textArea.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
-									   new HashSet<KeyStroke>(FOCUS_BACKWARD_KEYS));
+									   new HashSet<>(FOCUS_BACKWARD_KEYS));
 		if (noLfs)
 		{
 			inputMapKey = InputMapUtils.removeFromInputMap(textArea, JComponent.WHEN_FOCUSED, ENTER_KEY);
@@ -890,7 +895,7 @@ class TextPanel
 		Matcher matcher = PARAGRAPH_SEPARATOR_PATTERN.matcher(text);
 		List<String> paragraphs = new ArrayList<>();
 		int index = 0;
-		String lineBreakRegex = IndexedSub.sub(CrosswordDocument.LINE_BREAK_REGEX, "!", RegexUtils.escape(lineBreak));
+		String lineBreakRegex = String.format(CrosswordDocument.LINE_BREAK_REGEX, "!", RegexUtils.escape(lineBreak));
 		while (matcher.find())
 		{
 			String paragraph = text.substring(index, matcher.start()).replaceAll(lineBreakRegex, " ");

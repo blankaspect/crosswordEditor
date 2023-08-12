@@ -2,7 +2,7 @@
 
 ImportCluesDialog.java
 
-Import clues dialog box class.
+Import clues dialog class.
 
 \*====================================================================*/
 
@@ -57,23 +57,23 @@ import uk.blankaspect.common.regex.Substitution;
 
 import uk.blankaspect.common.string.StringUtils;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.border.TitledBorder;
+import uk.blankaspect.ui.swing.border.TitledBorder;
 
-import uk.blankaspect.common.swing.button.FButton;
-import uk.blankaspect.common.swing.button.MenuButton;
+import uk.blankaspect.ui.swing.button.FButton;
+import uk.blankaspect.ui.swing.button.MenuButton;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
-import uk.blankaspect.common.swing.text.TextUtils;
+import uk.blankaspect.ui.swing.text.TextUtils;
 
-import uk.blankaspect.common.swing.textfield.InformationField;
+import uk.blankaspect.ui.swing.textfield.InformationField;
 
 //----------------------------------------------------------------------
 
 
-// IMPORT CLUES DIALOG BOX CLASS
+// IMPORT CLUES DIALOG CLASS
 
 
 class ImportCluesDialog

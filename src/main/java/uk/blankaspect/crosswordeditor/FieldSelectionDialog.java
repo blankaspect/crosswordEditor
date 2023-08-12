@@ -2,7 +2,7 @@
 
 FieldSelectionDialog.java
 
-Field selection dialog box class.
+Field selection dialog class.
 
 \*====================================================================*/
 
@@ -51,20 +51,19 @@ import javax.swing.SwingUtilities;
 
 import uk.blankaspect.common.number.NumberUtils;
 
-import uk.blankaspect.common.string.StringUtils;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.colour.Colours;
 
-import uk.blankaspect.common.swing.colour.Colours;
+import uk.blankaspect.ui.swing.misc.GuiConstants;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
-
-import uk.blankaspect.common.swing.text.TextRendering;
+import uk.blankaspect.ui.swing.text.TextRendering;
 
 //----------------------------------------------------------------------
 
 
-// FIELD SELECTION DIALOG BOX CLASS
+// FIELD SELECTION DIALOG CLASS
 
 
 class FieldSelectionDialog
@@ -81,7 +80,8 @@ class FieldSelectionDialog
 	private static final	Color	BACKGROUND_COLOUR			= new Color(248, 240, 216);
 	private static final	Color	SELECTION_BACKGROUND_COLOUR	= Colours.FOCUSED_SELECTION_BACKGROUND;
 	private static final	Color	BORDER_COLOUR				= new Color(192, 184, 160);
-	private static final	Color	FOCUSED_BORDER_COLOUR		= Color.BLACK;
+	private static final	Color	FOCUSED_BORDER_COLOUR1		= Color.WHITE;
+	private static final	Color	FOCUSED_BORDER_COLOUR2		= Color.BLACK;
 
 	private static final	ImageIcon	CROSS_ICON	= new ImageIcon(ImageData.CROSS);
 
@@ -256,7 +256,7 @@ class FieldSelectionDialog
 						maxNumDigits = numDigits;
 				}
 			}
-			textWidth += fontMetrics.stringWidth(StringUtils.createCharString('0', maxNumDigits));
+			textWidth += fontMetrics.stringWidth("0".repeat(maxNumDigits));
 			textWidth += fontMetrics.stringWidth(ClueDialog.Field.DEFINED_PREFIX);
 			columnWidth = 2 * HORIZONTAL_MARGIN + textWidth;
 			columnWidth = GRID_LINE_WIDTH + Math.max(CROSS_ICON.getIconWidth(), columnWidth);
@@ -425,16 +425,16 @@ class FieldSelectionDialog
 		protected void paintComponent(Graphics gr)
 		{
 			// Create copy of graphics context
-			gr = gr.create();
+			Graphics2D gr2d = GuiUtils.copyGraphicsContext(gr);
 
 			// Get dimensions
 			int width = getWidth();
 			int height = getHeight();
 
 			// Fill background
-			Rectangle rect = gr.getClipBounds();
-			gr.setColor(BACKGROUND_COLOUR);
-			gr.fillRect(rect.x, rect.y, rect.width, rect.height);
+			Rectangle rect = gr2d.getClipBounds();
+			gr2d.setColor(BACKGROUND_COLOUR);
+			gr2d.fillRect(rect.x, rect.y, rect.width, rect.height);
 
 			// Fill background of selected cell
 			int noneWidth = numColumnsNone * columnWidth;
@@ -443,31 +443,31 @@ class FieldSelectionDialog
 			{
 				int row = getRow(selectedId);
 				int column = getColumn(selectedId);
-				gr.setColor(SELECTION_BACKGROUND_COLOUR);
+				gr2d.setColor(SELECTION_BACKGROUND_COLOUR);
 				cellRect = new Rectangle(column * columnWidth + GRID_LINE_WIDTH,
 										 row * rowHeight + GRID_LINE_WIDTH,
 										 ((row == 0) ? noneWidth : columnWidth) - GRID_LINE_WIDTH,
 										 rowHeight - GRID_LINE_WIDTH);
-				gr.fillRect(cellRect.x, cellRect.y, cellRect.width, cellRect.height);
+				gr2d.fillRect(cellRect.x, cellRect.y, cellRect.width, cellRect.height);
 			}
 
 			// Set rendering hints for text antialiasing and fractional metrics
-			TextRendering.setHints((Graphics2D)gr);
+			TextRendering.setHints(gr2d);
 
 			// Draw strings and boxes
-			FontMetrics fontMetrics = gr.getFontMetrics();
+			FontMetrics fontMetrics = gr2d.getFontMetrics();
 			int ascent = fontMetrics.getAscent();
 			int y = 0;
-			gr.setColor(TEXT_COLOUR1);
-			gr.drawString(NONE_STR, (noneWidth - fontMetrics.stringWidth(NONE_STR)) / 2,
-						  y + GRID_LINE_WIDTH + VERTICAL_MARGIN + ascent);
+			gr2d.setColor(TEXT_COLOUR1);
+			gr2d.drawString(NONE_STR, (noneWidth - fontMetrics.stringWidth(NONE_STR)) / 2,
+							y + GRID_LINE_WIDTH + VERTICAL_MARGIN + ascent);
 
-			gr.setColor(BORDER_COLOUR);
+			gr2d.setColor(BORDER_COLOUR);
 			int x = noneWidth;
-			gr.drawLine(x, y + 1, x, y + rowHeight - 1);
+			gr2d.drawLine(x, y + 1, x, y + rowHeight - 1);
 
-			gr.drawImage(CROSS_ICON.getImage(), x + (width - noneWidth - CROSS_ICON.getIconWidth()) / 2,
-						 y + GRID_LINE_WIDTH + (rowHeight - CROSS_ICON.getIconHeight()) / 2, null);
+			gr2d.drawImage(CROSS_ICON.getImage(), x + (width - noneWidth - CROSS_ICON.getIconWidth()) / 2,
+						   y + GRID_LINE_WIDTH + (rowHeight - CROSS_ICON.getIconHeight()) / 2, null);
 
 			y += rowHeight;
 
@@ -476,8 +476,8 @@ class FieldSelectionDialog
 				List<ClueDialog.Field> fields = fieldMap.get(direction);
 				for (int row = 0; row < numRows.get(direction); row++)
 				{
-					gr.setColor(BORDER_COLOUR);
-					gr.drawLine(0, y, width - 1, y);
+					gr2d.setColor(BORDER_COLOUR);
+					gr2d.drawLine(0, y, width - 1, y);
 
 					x = 0;
 					for (int column = 0; column < numColumns; column++)
@@ -495,18 +495,18 @@ class FieldSelectionDialog
 							int textX = x + columnWidth - HORIZONTAL_MARGIN - strWidth1 - strWidth2;
 							int textY = y + GRID_LINE_WIDTH + VERTICAL_MARGIN + ascent;
 
-							gr.setColor(TEXT_COLOUR1);
-							gr.drawString(str1, textX, textY);
+							gr2d.setColor(TEXT_COLOUR1);
+							gr2d.drawString(str1, textX, textY);
 							textX += strWidth1;
 
-							gr.setColor(TEXT_COLOUR2);
-							gr.drawString(str2, textX, textY);
+							gr2d.setColor(TEXT_COLOUR2);
+							gr2d.drawString(str2, textX, textY);
 
-							gr.setColor(BORDER_COLOUR);
+							gr2d.setColor(BORDER_COLOUR);
 							int x2 = x + columnWidth + GRID_LINE_WIDTH - 1;
 							int y2 = y + rowHeight + GRID_LINE_WIDTH - 1;
-							gr.drawLine(x, y2, x2, y2);
-							gr.drawLine(x2, y, x2, y2);
+							gr2d.drawLine(x, y2, x2, y2);
+							gr2d.drawLine(x2, y, x2, y2);
 						}
 						x += columnWidth;
 					}
@@ -517,17 +517,19 @@ class FieldSelectionDialog
 			// Draw selection border
 			if (isFocusOwner() && (cellRect != null))
 			{
-				Graphics2D gr2d = (Graphics2D)gr;
+				gr2d.setColor(FOCUSED_BORDER_COLOUR1);
+				gr2d.drawRect(cellRect.x, cellRect.y, cellRect.width - 1, cellRect.height - 1);
+
 				Stroke oldStroke = gr2d.getStroke();
-				gr2d.setStroke(GuiUtils.getBasicDash());
-				gr2d.setColor(FOCUSED_BORDER_COLOUR);
+				gr2d.setStroke(GuiConstants.BASIC_DASH);
+				gr2d.setColor(FOCUSED_BORDER_COLOUR2);
 				gr2d.drawRect(cellRect.x, cellRect.y, cellRect.width - 1, cellRect.height - 1);
 				gr2d.setStroke(oldStroke);
 			}
 
 			// Draw border
-			gr.setColor(BORDER_COLOUR);
-			gr.drawRect(0, 0, width - 1, height - 1);
+			gr2d.setColor(BORDER_COLOUR);
+			gr2d.drawRect(0, 0, width - 1, height - 1);
 		}
 
 		//--------------------------------------------------------------

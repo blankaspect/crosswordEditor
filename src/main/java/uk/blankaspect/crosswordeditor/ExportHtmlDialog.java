@@ -2,7 +2,7 @@
 
 ExportHtmlDialog.java
 
-Export HTML dialog box class.
+Export HTML dialog class.
 
 \*====================================================================*/
 
@@ -42,24 +42,24 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.button.FButton;
+import uk.blankaspect.ui.swing.button.FButton;
 
-import uk.blankaspect.common.swing.checkbox.FCheckBox;
+import uk.blankaspect.ui.swing.checkbox.FCheckBox;
 
-import uk.blankaspect.common.swing.combobox.FComboBox;
+import uk.blankaspect.ui.swing.combobox.FComboBox;
 
-import uk.blankaspect.common.swing.label.FLabel;
+import uk.blankaspect.ui.swing.label.FLabel;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
-import uk.blankaspect.common.swing.spinner.FIntegerSpinner;
+import uk.blankaspect.ui.swing.spinner.FIntegerSpinner;
 
 //----------------------------------------------------------------------
 
 
-// EXPORT HTML DIALOG BOX CLASS
+// EXPORT HTML DIALOG CLASS
 
 
 class ExportHtmlDialog

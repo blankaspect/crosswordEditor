@@ -2,7 +2,7 @@
 
 ImageRegionSelectionDialog.java
 
-Image region selection dialog class.
+Class: image-region selection dialog.
 
 \*====================================================================*/
 
@@ -56,20 +56,20 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.button.FButton;
+import uk.blankaspect.ui.swing.button.FButton;
 
-import uk.blankaspect.common.swing.cursor.CrosshairCursor;
+import uk.blankaspect.ui.swing.cursor.CrosshairCursor;
 
-import uk.blankaspect.common.swing.image.ImageUtils;
+import uk.blankaspect.ui.swing.image.ImageUtils;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
 //----------------------------------------------------------------------
 
 
-// IMAGE REGION SELECTION DIALOG CLASS
+// CLASS: IMAGE-REGION SELECTION DIALOG
 
 
 class ImageRegionSelectionDialog
@@ -81,13 +81,14 @@ class ImageRegionSelectionDialog
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	private static final	int	MAX_VIEWPORT_WIDTH	= 2048;
-	private static final	int	MAX_VIEWPORT_HEIGHT	= 1536;
+	private static final	int		MAX_VIEWPORT_WIDTH	= 2048;
+	private static final	int		MAX_VIEWPORT_HEIGHT	= 1536;
 
-	private static final	int	IMAGE_LAYER		= 0;
-	private static final	int	SELECTION_LAYER	= IMAGE_LAYER + 1;
+	private static final	int		IMAGE_LAYER		= 0;
+	private static final	int		SELECTION_LAYER	= IMAGE_LAYER + 1;
 
-	private static final	int	SELECTION_DASH_LENGTH	= 8;
+	private static final	int		SELECTION_DASH_LENGTH		= 8;
+	private static final	int		SELECTION_HALF_DASH_LENGTH	= SELECTION_DASH_LENGTH / 2;
 
 	private static final	Color	SELECTION_BOX_COLOUR		= Color.BLACK;
 	private static final	Color	SELECTION_BOX_XOR_COLOUR	= Color.WHITE;
@@ -108,7 +109,7 @@ class ImageRegionSelectionDialog
 ////////////////////////////////////////////////////////////////////////
 
 
-	// IMAGE PANEL CLASS
+	// CLASS: IMAGE PANEL
 
 
 	private class ImagePanel
@@ -160,7 +161,7 @@ class ImageRegionSelectionDialog
 	//==================================================================
 
 
-	// SELECTION PANEL CLASS
+	// CLASS: SELECTION PANEL
 
 
 	private class SelectionPanel
@@ -175,6 +176,16 @@ class ImageRegionSelectionDialog
 		private static final	int	CURSOR_SIZE	= 17;
 
 		private static final	int	RUBBER_BAND_BOX_INTERVAL	= 200;
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	Point		anchor;
+		private	Point		position;
+		private	Rectangle	selection;
+		private	int			dashIndex;
+		private	Timer		rubberBandBoxTimer;
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
@@ -203,6 +214,7 @@ class ImageRegionSelectionDialog
 	//  Instance methods : ActionListener interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public void actionPerformed(ActionEvent event)
 		{
 			if (--dashIndex < 0)
@@ -216,6 +228,7 @@ class ImageRegionSelectionDialog
 	//  Instance methods : MouseListener interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public void mouseClicked(MouseEvent event)
 		{
 			// do nothing
@@ -223,6 +236,7 @@ class ImageRegionSelectionDialog
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void mouseEntered(MouseEvent event)
 		{
 			// do nothing
@@ -230,6 +244,7 @@ class ImageRegionSelectionDialog
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void mouseExited(MouseEvent event)
 		{
 			// do nothing
@@ -237,6 +252,7 @@ class ImageRegionSelectionDialog
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void mousePressed(MouseEvent event)
 		{
 			if (SwingUtilities.isLeftMouseButton(event) && (anchor == null))
@@ -251,6 +267,7 @@ class ImageRegionSelectionDialog
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void mouseReleased(MouseEvent event)
 		{
 			if (SwingUtilities.isLeftMouseButton(event) && (anchor != null))
@@ -271,6 +288,7 @@ class ImageRegionSelectionDialog
 	//  Instance methods : MouseMotionListener interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public void mouseDragged(MouseEvent event)
 		{
 			if (SwingUtilities.isLeftMouseButton(event) && (anchor != null))
@@ -282,6 +300,7 @@ class ImageRegionSelectionDialog
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void mouseMoved(MouseEvent event)
 		{
 			// do nothing
@@ -305,7 +324,7 @@ class ImageRegionSelectionDialog
 		protected void paintComponent(Graphics gr)
 		{
 			// Create copy of graphics context
-			gr = gr.create();
+			Graphics2D gr2d = GuiUtils.copyGraphicsContext(gr);
 
 			// Draw selection
 			if (anchor != null)
@@ -314,20 +333,20 @@ class ImageRegionSelectionDialog
 				Rectangle rect = getActiveSelection();
 
 				// Draw rubber-band box
-				((Graphics2D)gr).setStroke(SELECTION_DASHES[dashIndex]);
-				gr.setColor(SELECTION_BOX_COLOUR);
-				gr.setXORMode(SELECTION_BOX_XOR_COLOUR);
-				gr.drawRect(rect.x, rect.y, rect.width - 1, rect.height - 1);
+				gr2d.setStroke(SELECTION_DASHES[dashIndex]);
+				gr2d.setColor(SELECTION_BOX_COLOUR);
+				gr2d.setXORMode(SELECTION_BOX_XOR_COLOUR);
+				gr2d.drawRect(rect.x, rect.y, rect.width - 1, rect.height - 1);
 			}
 			else if (selection != null)
 			{
 				// Fill selected region
-				gr.setColor(SELECTION_COLOUR);
-				gr.fillRect(selection.x, selection.y, selection.width, selection.height);
+				gr2d.setColor(SELECTION_COLOUR);
+				gr2d.fillRect(selection.x, selection.y, selection.width, selection.height);
 
 				// Draw border of selected region
-				gr.setColor(SELECTION_BORDER_COLOUR);
-				gr.drawRect(selection.x, selection.y, selection.width - 1, selection.height - 1);
+				gr2d.setColor(SELECTION_BORDER_COLOUR);
+				gr2d.drawRect(selection.x, selection.y, selection.width - 1, selection.height - 1);
 			}
 		}
 
@@ -376,19 +395,30 @@ class ImageRegionSelectionDialog
 
 		//--------------------------------------------------------------
 
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	Point		anchor;
-		private	Point		position;
-		private	Rectangle	selection;
-		private	int			dashIndex;
-		private	Timer		rubberBandBoxTimer;
-
 	}
 
 	//==================================================================
+
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	boolean			accepted;
+	private	BufferedImage	image;
+	private	SelectionPanel	selectionPanel;
+	private	JButton			okButton;
+
+////////////////////////////////////////////////////////////////////////
+//  Static initialiser
+////////////////////////////////////////////////////////////////////////
+
+	static
+	{
+		SELECTION_DASHES = new Stroke[SELECTION_DASH_LENGTH];
+		float[] dash = { (float)SELECTION_HALF_DASH_LENGTH, (float)SELECTION_HALF_DASH_LENGTH };
+		for (int i = 0; i < SELECTION_DASHES.length; i++)
+			SELECTION_DASHES[i] = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, dash, (float)i);
+	}
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -410,14 +440,12 @@ class ImageRegionSelectionDialog
 		super(owner, titleStr, Dialog.ModalityType.APPLICATION_MODAL);
 
 		// Validate arguments
-		if ((viewportWidth < ImagePanel.MIN_WIDTH) || (viewportWidth > MAX_VIEWPORT_WIDTH) ||
-			 (viewportHeight < ImagePanel.MIN_HEIGHT) || (viewportHeight > MAX_VIEWPORT_HEIGHT))
+		if ((viewportWidth < ImagePanel.MIN_WIDTH) || (viewportWidth > MAX_VIEWPORT_WIDTH)
+			|| (viewportHeight < ImagePanel.MIN_HEIGHT) || (viewportHeight > MAX_VIEWPORT_HEIGHT))
 			throw new IllegalArgumentException();
-		if ((selection != null) &&
-			 ((selection.x < 0) || (selection.width < 0) ||
-													(selection.x + selection.width > image.getWidth()) ||
-			  (selection.y < 0) || (selection.height < 0) ||
-													(selection.y + selection.height > image.getHeight())))
+		if ((selection != null)
+			&& ((selection.x < 0) || (selection.width < 0) || (selection.x + selection.width > image.getWidth())
+				|| (selection.y < 0) || (selection.height < 0) || (selection.y + selection.height > image.getHeight())))
 			throw new IllegalArgumentException();
 
 		// Set icons
@@ -578,6 +606,7 @@ class ImageRegionSelectionDialog
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void actionPerformed(ActionEvent event)
 	{
 		String command = event.getActionCommand();
@@ -627,29 +656,6 @@ class ImageRegionSelectionDialog
 	}
 
 	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Static initialiser
-////////////////////////////////////////////////////////////////////////
-
-	static
-	{
-		SELECTION_DASHES = new Stroke[SELECTION_DASH_LENGTH];
-		float halfDashLength = (float)(SELECTION_DASH_LENGTH / 2);
-		float[] dash = { halfDashLength, halfDashLength };
-		for (int i = 0; i < SELECTION_DASHES.length; i++)
-			SELECTION_DASHES[i] = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
-												  10.0f, dash, (float)i);
-	}
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	boolean			accepted;
-	private	BufferedImage	image;
-	private	SelectionPanel	selectionPanel;
-	private	JButton			okButton;
 
 }
 

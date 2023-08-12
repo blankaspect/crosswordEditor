@@ -2,7 +2,7 @@
 
 BlockGrid.java
 
-Block grid class.
+Class: block grid.
 
 \*====================================================================*/
 
@@ -30,27 +30,28 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+
+import uk.blankaspect.common.css.CssMediaRule;
+import uk.blankaspect.common.css.CssProperty;
+import uk.blankaspect.common.css.CssRuleSet;
+import uk.blankaspect.common.css.CssSelector;
 
 import uk.blankaspect.common.exception.AppException;
 
-import uk.blankaspect.common.html.CssMediaRule;
-import uk.blankaspect.common.html.CssRuleSet;
-
-import uk.blankaspect.common.indexedsub.IndexedSub;
-
 import uk.blankaspect.common.misc.EditList;
 
-import uk.blankaspect.common.swing.colour.ColourUtils;
+import uk.blankaspect.common.tuple.StrKVPair;
 
 import uk.blankaspect.common.xml.AttributeList;
 import uk.blankaspect.common.xml.XmlWriter;
 
+import uk.blankaspect.ui.swing.colour.ColourUtils;
+
 //----------------------------------------------------------------------
 
 
-// BLOCK GRID CLASS
+// CLASS: BLOCK GRID
 
 
 class BlockGrid
@@ -61,9 +62,9 @@ class BlockGrid
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	public static final		int	MIN_BLOCK_IMAGE_NUM_LINES		= 0;
-	public static final		int	MAX_BLOCK_IMAGE_NUM_LINES		= 64;
-	public static final		int	DEFAULT_BLOCK_IMAGE_NUM_LINES	= 4;
+	public static final		int		MIN_BLOCK_IMAGE_NUM_LINES		= 0;
+	public static final		int		MAX_BLOCK_IMAGE_NUM_LINES		= 64;
+	public static final		int		DEFAULT_BLOCK_IMAGE_NUM_LINES	= 4;
 
 	public static final		double	MIN_BLOCK_IMAGE_LINE_WIDTH		= 0.01;
 	public static final		double	MAX_BLOCK_IMAGE_LINE_WIDTH		= 16.0;
@@ -75,251 +76,47 @@ class BlockGrid
 
 	private static final	String	GRID_DEF_CHARS	= "01";
 
-	private static final	String	BLOCK_IMAGE_PATHNAME	= "images/block-%1.png";
+	private static final	String	BLOCK_IMAGE_PATHNAME	= "images/block-%d.png";
 
-	private static final	String	IMAGE_SELECTOR	= HtmlConstants.ElementName.DIV + CssConstants.Selector.CLASS
-														+ HtmlConstants.Class.BLOCK + CssConstants.Selector.CHILD
+	private static final	String	IMAGE_SELECTOR	= HtmlConstants.ElementName.DIV + CssSelector.CLASS
+														+ HtmlConstants.Class.BLOCK + CssSelector.CHILD
 														+ HtmlConstants.ElementName.IMG;
 
-	private static final	CssRuleSet	IMAGE_RULE_SET	= new CssRuleSet
+	private static final	CssRuleSet	IMAGE_RULE_SET	= CssRuleSet.of
 	(
 		IMAGE_SELECTOR,
-		new CssRuleSet.Decl(CssConstants.Property.VERTICAL_ALIGN, "top")
+		StrKVPair.of(CssProperty.VERTICAL_ALIGN, "top")
 	);
 
-	private static final	List<CssRuleSet>	BLOCK_RULE_SETS	= Arrays.asList
+	private static final	List<CssRuleSet>	BLOCK_RULE_SETS	= List.of
 	(
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.DIV + CssConstants.Selector.CLASS + HtmlConstants.Class.BLOCK,
-			new CssRuleSet.Decl(CssConstants.Property.BACKGROUND_COLOUR, "%1")
+			HtmlConstants.ElementName.DIV + CssSelector.CLASS + HtmlConstants.Class.BLOCK,
+			StrKVPair.of(CssProperty.BACKGROUND_COLOUR, "%s")
 		),
-		new CssRuleSet
+		CssRuleSet.of
 		(
 			IMAGE_SELECTOR,
-			new CssRuleSet.Decl(CssConstants.Property.VISIBILITY, "hidden")
+			StrKVPair.of(CssProperty.VISIBILITY, "hidden")
 		)
 	);
 
 ////////////////////////////////////////////////////////////////////////
-//  Enumerated types
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// ERROR IDENTIFIERS
-
-
-	private enum ErrorId
-		implements AppException.IId
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		ILLEGAL_CHARACTER_IN_GRID_DEFINITION
-		("The grid definition contains an illegal character: \"%1\"."),
-
-		MALFORMED_GRID_DEFINITION
-		("The grid definition is malformed.");
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ErrorId(String message)
-		{
-			this.message = message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : AppException.IId interface
-	////////////////////////////////////////////////////////////////////
-
-		public String getMessage()
-		{
-			return message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	message;
-
-	}
-
-	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
-////////////////////////////////////////////////////////////////////////
-
-
-	// CELL CLASS
-
-
-	public static class Cell
-		extends Grid.Cell
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Cell()
-		{
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public Cell clone()
-		{
-			return (Cell)super.clone();
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected void write(XmlWriter writer,
-							 int       indent,
-							 int       cellSize,
-							 int       fieldNumber,
-							 char      entry)
-			throws IOException
-		{
-			if (blocked)
-			{
-				AttributeList attributes = new AttributeList();
-				attributes.add(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.BLOCK);
-				writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, indent, false, false);
-
-				attributes.clear();
-				attributes.add(HtmlConstants.AttrName.ALT, "");
-				attributes.add(HtmlConstants.AttrName.SRC, getBlockImagePathname(cellSize));
-				writer.writeEmptyElement(HtmlConstants.ElementName.IMG, attributes, 0, false, false);
-
-				writer.writeElementEnd(HtmlConstants.ElementName.DIV, 0);
-			}
-			else
-			{
-				writer.writeElementStart(HtmlConstants.ElementName.DIV, indent, false);
-				writeContents(writer, fieldNumber, entry);
-				writer.writeElementEnd(HtmlConstants.ElementName.DIV, 0);
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public boolean isBlocked()
-		{
-			return blocked;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	boolean	blocked;
-
-	}
-
-	//==================================================================
-
-
-	// EDIT CLASS
-
-
-	private static class Edit
-		extends EditList.Element<BlockGrid>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Edit(Symmetry oldSymmetry,
-					 Cell[][] oldCells,
-					 Symmetry newSymmetry,
-					 Cell[][] newCells)
-		{
-			this.oldSymmetry = oldSymmetry;
-			this.oldCells = oldCells;
-			this.newSymmetry = newSymmetry;
-			this.newCells = newCells;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String getText()
-		{
-			return null;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(BlockGrid grid)
-		{
-			if (oldSymmetry != null)
-				grid.symmetry = oldSymmetry;
-			grid.cells = oldCells;
-			grid.initFields();
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(BlockGrid grid)
-		{
-			if (newSymmetry != null)
-				grid.symmetry = newSymmetry;
-			grid.cells = newCells;
-			grid.initFields();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	Symmetry	oldSymmetry;
-		private	Cell[][]	oldCells;
-		private	Symmetry	newSymmetry;
-		private	Cell[][]	newCells;
-
-	}
-
-	//==================================================================
+	private	Cell[][]			cells;
+	private	EditList<BlockGrid>	editList;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	public BlockGrid(int      numColumns,
-					 int      numRows,
-					 Symmetry symmetry)
+	public BlockGrid(
+		int			numColumns,
+		int			numRows,
+		Symmetry	symmetry)
 	{
 		// Initialise instance variables
 		this(numColumns, numRows);
@@ -331,10 +128,11 @@ class BlockGrid
 
 	//------------------------------------------------------------------
 
-	public BlockGrid(int      numColumns,
-					 int      numRows,
-					 Symmetry symmetry,
-					 String   definition)
+	public BlockGrid(
+		int			numColumns,
+		int			numRows,
+		Symmetry	symmetry,
+		String		definition)
 		throws AppException
 	{
 		// Initialise instance variables
@@ -368,13 +166,14 @@ class BlockGrid
 
 	//------------------------------------------------------------------
 
-	public BlockGrid(int           numColumns,
-					 int           numRows,
-					 BufferedImage image,
-					 int           xOffset,
-					 int           yOffset,
-					 int           sampleSize,
-					 double        brightnessThreshold)
+	public BlockGrid(
+		int				numColumns,
+		int				numRows,
+		BufferedImage	image,
+		int				xOffset,
+		int				yOffset,
+		int				sampleSize,
+		double			brightnessThreshold)
 	{
 		// Initialise instance variables
 		this(numColumns, numRows);
@@ -428,7 +227,8 @@ class BlockGrid
 
 	//------------------------------------------------------------------
 
-	private BlockGrid(BlockGrid grid)
+	private BlockGrid(
+		BlockGrid	grid)
 	{
 		// Initialise instance variables
 		this(grid.numColumns, grid.numRows);
@@ -448,8 +248,9 @@ class BlockGrid
 
 	//------------------------------------------------------------------
 
-	private BlockGrid(int numColumns,
-					  int numRows)
+	private BlockGrid(
+		int	numColumns,
+		int	numRows)
 	{
 		// Call superclass contructor
 		super(numColumns, numRows);
@@ -469,17 +270,19 @@ class BlockGrid
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static String getBlockImagePathname(int size)
+	public static String getBlockImagePathname(
+		int	size)
 	{
-		return IndexedSub.sub(BLOCK_IMAGE_PATHNAME, Integer.toString(size));
+		return String.format(BLOCK_IMAGE_PATHNAME, size);
 	}
 
 	//------------------------------------------------------------------
 
-	public static BufferedImage createBlockImage(int   size,
-												 int   numLines,
-												 float lineWidth,
-												 Color colour)
+	public static BufferedImage createBlockImage(
+		int		size,
+		int		numLines,
+		float	lineWidth,
+		Color	colour)
 	{
 		BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D gr = image.createGraphics();
@@ -511,7 +314,8 @@ class BlockGrid
 
 	//------------------------------------------------------------------
 
-	private static Cell[][] copyCells(Cell[][] cells)
+	private static Cell[][] copyCells(
+		Cell[][]	cells)
 	{
 		Cell[][] outCells = new Cell[cells.length][];
 		for (int i = 0; i < cells.length; i++)
@@ -539,8 +343,9 @@ class BlockGrid
 	//------------------------------------------------------------------
 
 	@Override
-	public Cell getCell(int row,
-						int column)
+	public Cell getCell(
+		int	row,
+		int	column)
 	{
 		return cells[row][column];
 	}
@@ -587,10 +392,11 @@ class BlockGrid
 	//------------------------------------------------------------------
 
 	@Override
-	public List<CssRuleSet> getStyleRuleSets(int    cellSize,
-											 Color  gridColour,
-											 Color  entryColour,
-											 double fieldNumberFontSizeFactor)
+	public List<CssRuleSet> getStyleRuleSets(
+		int		cellSize,
+		Color	gridColour,
+		Color	entryColour,
+		double	fieldNumberFontSizeFactor)
 	{
 		List<CssRuleSet> ruleSets = new ArrayList<>();
 		ruleSets.addAll(RULE_SETS);
@@ -615,12 +421,8 @@ class BlockGrid
 			for (CssRuleSet ruleSet : BLOCK_RULE_SETS)
 			{
 				ruleSet = ruleSet.clone();
-				if (ruleSet.hasProperty(CssConstants.Property.BACKGROUND_COLOUR))
-				{
-					String colourStr = ColourUtils.colourToHexString(config.getHtmlGridColour());
-					CssRuleSet.Decl decl = ruleSet.findDeclaration(CssConstants.Property.BACKGROUND_COLOUR);
-					decl.value = IndexedSub.sub(decl.value, colourStr);
-				}
+				ruleSet.replacePropertyValue(CssProperty.BACKGROUND_COLOUR,
+											 ColourUtils.colourToHexString(config.getHtmlGridColour()));
 				mediaRule.addRuleSet(ruleSet);
 			}
 			mediaRules.add(mediaRule);
@@ -675,7 +477,8 @@ class BlockGrid
 	//------------------------------------------------------------------
 
 	@Override
-	public void setSymmetry(Symmetry symmetry)
+	public void setSymmetry(
+		Symmetry	symmetry)
 	{
 		if (this.symmetry != symmetry)
 		{
@@ -720,7 +523,8 @@ class BlockGrid
 	//------------------------------------------------------------------
 
 	@Override
-	protected boolean isSymmetry(Symmetry symmetry)
+	protected boolean isSymmetry(
+		Symmetry	symmetry)
 	{
 		int[] dimensions = symmetry.getPrincipalDimensions(numColumns, numRows);
 		for (int r1 = 0; r1 < dimensions[1]; r1++)
@@ -776,9 +580,10 @@ class BlockGrid
 //  Instance methods
 ////////////////////////////////////////////////////////////////////////
 
-	public void setCellBlocked(int     row,
-							   int     column,
-							   boolean blocked)
+	public void setCellBlocked(
+		int		row,
+		int		column,
+		boolean	blocked)
 	{
 		// Set specified cell
 		int r1 = row;
@@ -822,8 +627,9 @@ class BlockGrid
 
 	//------------------------------------------------------------------
 
-	public void toggleBlock(int row,
-							int column)
+	public void toggleBlock(
+		int	row,
+		int	column)
 	{
 		Cell[][] oldCells = copyCells(cells);
 		setCellBlocked(row, column, !getCell(row, column).isBlocked());
@@ -894,11 +700,222 @@ class BlockGrid
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Enumerated types
 ////////////////////////////////////////////////////////////////////////
 
-	private	Cell[][]			cells;
-	private	EditList<BlockGrid>	editList;
+
+	// ENUMERATION: ERROR IDENTIFIERS
+
+
+	private enum ErrorId
+		implements AppException.IId
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		ILLEGAL_CHARACTER_IN_GRID_DEFINITION
+		("The grid definition contains an illegal character: \"%1\"."),
+
+		MALFORMED_GRID_DEFINITION
+		("The grid definition is malformed.");
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	message;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ErrorId(
+			String	message)
+		{
+			this.message = message;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : AppException.IId interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getMessage()
+		{
+			return message;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+////////////////////////////////////////////////////////////////////////
+//  Member classes : non-inner classes
+////////////////////////////////////////////////////////////////////////
+
+
+	// CLASS: CELL
+
+
+	public static class Cell
+		extends Grid.Cell
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	boolean	blocked;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Cell()
+		{
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public Cell clone()
+		{
+			return (Cell)super.clone();
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected void write(
+			XmlWriter	writer,
+			int			indent,
+			int			cellSize,
+			int			fieldNumber,
+			char		entry)
+			throws IOException
+		{
+			if (blocked)
+			{
+				AttributeList attributes = new AttributeList();
+				attributes.add(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.BLOCK);
+				writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, indent, false, false);
+
+				attributes.clear();
+				attributes.add(HtmlConstants.AttrName.ALT, "");
+				attributes.add(HtmlConstants.AttrName.SRC, getBlockImagePathname(cellSize));
+				writer.writeEmptyElement(HtmlConstants.ElementName.IMG, attributes, 0, false, false);
+
+				writer.writeElementEnd(HtmlConstants.ElementName.DIV, 0);
+			}
+			else
+			{
+				writer.writeElementStart(HtmlConstants.ElementName.DIV, indent, false);
+				writeContents(writer, fieldNumber, entry);
+				writer.writeElementEnd(HtmlConstants.ElementName.DIV, 0);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public boolean isBlocked()
+		{
+			return blocked;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: EDIT
+
+
+	private static class Edit
+		extends EditList.Element<BlockGrid>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	Symmetry	oldSymmetry;
+		private	Cell[][]	oldCells;
+		private	Symmetry	newSymmetry;
+		private	Cell[][]	newCells;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Edit(
+			Symmetry	oldSymmetry,
+			Cell[][]	oldCells,
+			Symmetry	newSymmetry,
+			Cell[][]	newCells)
+		{
+			this.oldSymmetry = oldSymmetry;
+			this.oldCells = oldCells;
+			this.newSymmetry = newSymmetry;
+			this.newCells = newCells;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getText()
+		{
+			return null;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void undo(
+			BlockGrid	grid)
+		{
+			if (oldSymmetry != null)
+				grid.symmetry = oldSymmetry;
+			grid.cells = oldCells;
+			grid.initFields();
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo(
+			BlockGrid	grid)
+		{
+			if (newSymmetry != null)
+				grid.symmetry = newSymmetry;
+			grid.cells = newCells;
+			grid.initFields();
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

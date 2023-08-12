@@ -2,7 +2,7 @@
 
 SubstitutionSelectionPanel.java
 
-Substitution selection panel class.
+Class: substitution selection panel.
 
 \*====================================================================*/
 
@@ -65,27 +65,27 @@ import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.regex.RegexUtils;
 import uk.blankaspect.common.regex.Substitution;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.button.FButton;
+import uk.blankaspect.ui.swing.button.FButton;
 
-import uk.blankaspect.common.swing.checkbox.FCheckBox;
+import uk.blankaspect.ui.swing.checkbox.FCheckBox;
 
-import uk.blankaspect.common.swing.label.FLabel;
+import uk.blankaspect.ui.swing.label.FLabel;
 
-import uk.blankaspect.common.swing.list.SingleSelectionList;
+import uk.blankaspect.ui.swing.list.SingleSelectionList;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
-import uk.blankaspect.common.swing.misc.PropertyKeys;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.PropertyKeys;
 
-import uk.blankaspect.common.swing.text.TextRendering;
+import uk.blankaspect.ui.swing.text.TextRendering;
 
-import uk.blankaspect.common.swing.textfield.FTextField;
+import uk.blankaspect.ui.swing.textfield.FTextField;
 
 //----------------------------------------------------------------------
 
 
-// SUBSTITUTION SELECTION PANEL CLASS
+// CLASS: SUBSTITUTION SELECTION PANEL
 
 
 class SubstitutionSelectionPanel
@@ -120,542 +120,14 @@ class SubstitutionSelectionPanel
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// SUBSTITUTION SELECTION LIST CLASS
-
-
-	private static class SubstitutionList
-		extends SingleSelectionList<Substitution>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	int	TARGET_FIELD_NUM_COLUMNS		= 32;
-		private static final	int	REPLACEMENT_FIELD_NUM_COLUMNS	= 24;
-
-		private static final	int	SEPARATOR_WIDTH	= 1;
-
-		private static final	String	REGEX_STR	= "RE";
-
-		private static final	Color	RE_TEXT_COLOUR		= new Color(176, 80, 0);
-		private static final	Color	SEPARATOR_COLOUR	= new Color(192, 200, 192);
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private SubstitutionList(int numRows)
-		{
-			super(TARGET_FIELD_NUM_COLUMNS + REPLACEMENT_FIELD_NUM_COLUMNS, numRows,
-				  AppFont.MAIN.getFont());
-			regexStrWidth = getFontMetrics(getFont()).stringWidth(REGEX_STR);
-			setExtraWidth(4 * getHorizontalMargin() + 2 * SEPARATOR_WIDTH + regexStrWidth);
-			setRowHeight(getRowHeight() + 1);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		protected void drawElement(Graphics gr,
-								   int      index)
-		{
-			// Create copy of graphics context
-			gr = gr.create();
-
-			// Set rendering hints for text antialiasing and fractional metrics
-			TextRendering.setHints((Graphics2D)gr);
-
-			// Get substitution
-			Substitution substitution = getElement(index);
-
-			// Draw regex indicator
-			FontMetrics fontMetrics = gr.getFontMetrics();
-			int rowHeight = getRowHeight();
-			int x = getHorizontalMargin();
-			int y = index * rowHeight;
-			int textY = y + DEFAULT_VERTICAL_MARGIN + fontMetrics.getAscent();
-			if (!substitution.isLiteral())
-			{
-				gr.setColor(RE_TEXT_COLOUR);
-				gr.drawString(REGEX_STR, x, textY);
-			}
-
-			// Draw first separator
-			x += regexStrWidth + getHorizontalMargin();
-			gr.setColor(SEPARATOR_COLOUR);
-			gr.drawLine(x, y, x, y + rowHeight - 1);
-
-			// Get target text and truncate it if it is too wide
-			int replacementFieldWidth = REPLACEMENT_FIELD_NUM_COLUMNS * getColumnWidth();
-			int targetFieldWidth = getMaxTextWidth() - replacementFieldWidth;
-			String text = truncateText(substitution.getTarget(), fontMetrics, targetFieldWidth);
-
-			// Draw target text
-			x += SEPARATOR_WIDTH + getHorizontalMargin();
-			Color textColour = getForegroundColour(index);
-			gr.setColor(textColour);
-			gr.drawString(text, x, textY);
-
-			// Draw second separator
-			x += targetFieldWidth + getHorizontalMargin();
-			gr.setColor(SEPARATOR_COLOUR);
-			gr.drawLine(x, y, x, y + rowHeight - 1);
-
-			// Get replacement text and truncate it if it is too wide
-			text = truncateText(substitution.getReplacement(), fontMetrics, replacementFieldWidth);
-
-			// Draw replacement text
-			x += SEPARATOR_WIDTH + getHorizontalMargin();
-			gr.setColor(textColour);
-			gr.drawString(text, x, textY);
-
-			// Draw bottom border
-			y += rowHeight - 1;
-			gr.setColor(SEPARATOR_COLOUR);
-			gr.drawLine(0, y, getWidth() - 1, y);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	int	regexStrWidth;
-
-	}
-
-	//==================================================================
-
-
-	// SUBSTITUTION DIALOG BOX CLASS
-
-
-	private static class SubstitutionDialog
-		extends JDialog
-		implements ActionListener, DocumentListener
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	int	TARGET_FIELD_NUM_COLUMNS		= 40;
-		private static final	int	REPLACEMENT_FIELD_NUM_COLUMNS	= 40;
-
-		private static final	String	REGEX_STR		= "Regular expression";
-		private static final	String	TARGET_STR		= "Target";
-		private static final	String	REPLACEMENT_STR	= "Replacement";
-
-		// Commands
-		private interface Command
-		{
-			String	ACCEPT	= "accept";
-			String	CLOSE	= "close";
-		}
-
-	////////////////////////////////////////////////////////////////////
-	//  Enumerated types
-	////////////////////////////////////////////////////////////////////
-
-
-		// ERROR IDENTIFIERS
-
-
-		private enum ErrorId
-			implements AppException.IId
-		{
-
-		////////////////////////////////////////////////////////////////
-		//  Constants
-		////////////////////////////////////////////////////////////////
-
-			MALFORMED_TARGET
-			("The target is not a well-formed regular expression.\n(%1)");
-
-		////////////////////////////////////////////////////////////////
-		//  Constructors
-		////////////////////////////////////////////////////////////////
-
-			private ErrorId(String message)
-			{
-				this.message = message;
-			}
-
-			//----------------------------------------------------------
-
-		////////////////////////////////////////////////////////////////
-		//  Instance methods : AppException.IId interface
-		////////////////////////////////////////////////////////////////
-
-			public String getMessage()
-			{
-				return message;
-			}
-
-			//----------------------------------------------------------
-
-		////////////////////////////////////////////////////////////////
-		//  Instance variables
-		////////////////////////////////////////////////////////////////
-
-			private	String	message;
-
-		}
-
-		//==============================================================
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private SubstitutionDialog(Window       owner,
-								   String       titleStr,
-								   Substitution substitution)
-		{
-			// Call superclass constructor
-			super(owner, titleStr, Dialog.ModalityType.APPLICATION_MODAL);
-
-			// Set icons
-			setIconImages(owner.getIconImages());
-
-
-			//----  Control panel
-
-			GridBagLayout gridBag = new GridBagLayout();
-			GridBagConstraints gbc = new GridBagConstraints();
-
-			JPanel controlPanel = new JPanel(gridBag);
-			GuiUtils.setPaddedLineBorder(controlPanel);
-
-			int gridY = 0;
-
-			// Label: target
-			JLabel targetLabel = new FLabel(TARGET_STR);
-
-			gbc.gridx = 0;
-			gbc.gridy = gridY;
-			gbc.gridwidth = 1;
-			gbc.gridheight = 1;
-			gbc.weightx = 0.0;
-			gbc.weighty = 0.0;
-			gbc.anchor = GridBagConstraints.LINE_END;
-			gbc.fill = GridBagConstraints.NONE;
-			gbc.insets = AppConstants.COMPONENT_INSETS;
-			gridBag.setConstraints(targetLabel, gbc);
-			controlPanel.add(targetLabel);
-
-			// Field: target
-			targetField = new FTextField((substitution == null) ? null : substitution.getTarget(),
-										 TARGET_FIELD_NUM_COLUMNS);
-			targetField.getDocument().addDocumentListener(this);
-
-			gbc.gridx = 1;
-			gbc.gridy = gridY++;
-			gbc.gridwidth = 1;
-			gbc.gridheight = 1;
-			gbc.weightx = 0.0;
-			gbc.weighty = 0.0;
-			gbc.anchor = GridBagConstraints.LINE_START;
-			gbc.fill = GridBagConstraints.NONE;
-			gbc.insets = AppConstants.COMPONENT_INSETS;
-			gridBag.setConstraints(targetField, gbc);
-			controlPanel.add(targetField);
-
-			// Label: replacement
-			JLabel replacementLabel = new FLabel(REPLACEMENT_STR);
-
-			gbc.gridx = 0;
-			gbc.gridy = gridY;
-			gbc.gridwidth = 1;
-			gbc.gridheight = 1;
-			gbc.weightx = 0.0;
-			gbc.weighty = 0.0;
-			gbc.anchor = GridBagConstraints.LINE_END;
-			gbc.fill = GridBagConstraints.NONE;
-			gbc.insets = AppConstants.COMPONENT_INSETS;
-			gridBag.setConstraints(replacementLabel, gbc);
-			controlPanel.add(replacementLabel);
-
-			// Field: replacement
-			replacementField = new FTextField((substitution == null) ? null
-																	 : substitution.getReplacement(),
-											  REPLACEMENT_FIELD_NUM_COLUMNS);
-
-			gbc.gridx = 1;
-			gbc.gridy = gridY++;
-			gbc.gridwidth = 1;
-			gbc.gridheight = 1;
-			gbc.weightx = 0.0;
-			gbc.weighty = 0.0;
-			gbc.anchor = GridBagConstraints.LINE_START;
-			gbc.fill = GridBagConstraints.NONE;
-			gbc.insets = AppConstants.COMPONENT_INSETS;
-			gridBag.setConstraints(replacementField, gbc);
-			controlPanel.add(replacementField);
-
-			// Check box: regular expression
-			regularExpressionCheckBox = new FCheckBox(REGEX_STR);
-			regularExpressionCheckBox.setSelected((substitution != null) && !substitution.isLiteral());
-
-			gbc.gridx = 1;
-			gbc.gridy = gridY++;
-			gbc.gridwidth = 1;
-			gbc.gridheight = 1;
-			gbc.weightx = 0.0;
-			gbc.weighty = 0.0;
-			gbc.anchor = GridBagConstraints.LINE_START;
-			gbc.fill = GridBagConstraints.NONE;
-			gbc.insets = AppConstants.COMPONENT_INSETS;
-			gridBag.setConstraints(regularExpressionCheckBox, gbc);
-			controlPanel.add(regularExpressionCheckBox);
-
-
-			//----  Button panel
-
-			JPanel buttonPanel = new JPanel(new GridLayout(1, 0, 8, 0));
-			buttonPanel.setBorder(BorderFactory.createEmptyBorder(3, 8, 3, 8));
-
-			// Button: OK
-			okButton = new FButton(AppConstants.OK_STR);
-			okButton.setActionCommand(Command.ACCEPT);
-			okButton.addActionListener(this);
-			buttonPanel.add(okButton);
-
-			// Button: cancel
-			JButton cancelButton = new FButton(AppConstants.CANCEL_STR);
-			cancelButton.setActionCommand(Command.CLOSE);
-			cancelButton.addActionListener(this);
-			buttonPanel.add(cancelButton);
-
-
-			//----  Main panel
-
-			JPanel mainPanel = new JPanel(gridBag);
-			mainPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-
-			gridY = 0;
-
-			gbc.gridx = 0;
-			gbc.gridy = gridY++;
-			gbc.gridwidth = 1;
-			gbc.gridheight = 1;
-			gbc.weightx = 0.0;
-			gbc.weighty = 0.0;
-			gbc.anchor = GridBagConstraints.NORTH;
-			gbc.fill = GridBagConstraints.NONE;
-			gbc.insets = new Insets(0, 0, 0, 0);
-			gridBag.setConstraints(controlPanel, gbc);
-			mainPanel.add(controlPanel);
-
-			gbc.gridx = 0;
-			gbc.gridy = gridY++;
-			gbc.gridwidth = 1;
-			gbc.gridheight = 1;
-			gbc.weightx = 0.0;
-			gbc.weighty = 0.0;
-			gbc.anchor = GridBagConstraints.NORTH;
-			gbc.fill = GridBagConstraints.NONE;
-			gbc.insets = new Insets(3, 0, 0, 0);
-			gridBag.setConstraints(buttonPanel, gbc);
-			mainPanel.add(buttonPanel);
-
-			// Add commands to action map
-			KeyAction.create(mainPanel, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
-							 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), Command.CLOSE, this);
-
-			// Update components
-			updateAcceptButton();
-
-
-			//----  Window
-
-			// Set content pane
-			setContentPane(mainPanel);
-
-			// Dispose of window explicitly
-			setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-
-			// Handle window closing
-			addWindowListener(new WindowAdapter()
-			{
-				@Override
-				public void windowClosing(WindowEvent event)
-				{
-					onClose();
-				}
-			});
-
-			// Prevent dialog from being resized
-			setResizable(false);
-
-			// Resize dialog to its preferred size
-			pack();
-
-			// Set location of dialog box
-			if (location == null)
-				location = GuiUtils.getComponentLocation(this, owner);
-			setLocation(location);
-
-			// Set default button
-			getRootPane().setDefaultButton(okButton);
-
-			// Show dialog
-			setVisible(true);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		private static Substitution showDialog(Component    parent,
-											   String       titleStr,
-											   Substitution substitution)
-		{
-			return new SubstitutionDialog(GuiUtils.getWindow(parent), titleStr, substitution).
-																						getSubstitution();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : DocumentListener interface
-	////////////////////////////////////////////////////////////////////
-
-		public void changedUpdate(DocumentEvent event)
-		{
-			// do nothing
-		}
-
-		//--------------------------------------------------------------
-
-		public void insertUpdate(DocumentEvent event)
-		{
-			updateAcceptButton();
-		}
-
-		//--------------------------------------------------------------
-
-		public void removeUpdate(DocumentEvent event)
-		{
-			updateAcceptButton();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : ActionListener interface
-	////////////////////////////////////////////////////////////////////
-
-		public void actionPerformed(ActionEvent event)
-		{
-			String command = event.getActionCommand();
-
-			if (command.equals(Command.ACCEPT))
-				onAccept();
-
-			else if (command.equals(Command.CLOSE))
-				onClose();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private Substitution getSubstitution()
-		{
-			return (accepted ? new Substitution(targetField.getText(), replacementField.getText(),
-												!regularExpressionCheckBox.isSelected())
-							 : null);
-		}
-
-		//--------------------------------------------------------------
-
-		private void updateAcceptButton()
-		{
-			okButton.setEnabled(!targetField.isEmpty());
-		}
-
-		//--------------------------------------------------------------
-
-		private void validateUserInput()
-			throws AppException
-		{
-			// Target
-			try
-			{
-				if (regularExpressionCheckBox.isSelected())
-					Pattern.compile(targetField.getText());
-			}
-			catch (PatternSyntaxException e)
-			{
-				GuiUtils.setFocus(targetField);
-				int index = e.getIndex();
-				if (index >= 0)
-					targetField.setCaretPosition(index);
-				throw new AppException(ErrorId.MALFORMED_TARGET, RegexUtils.getExceptionMessage(e));
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		private void onAccept()
-		{
-			try
-			{
-				validateUserInput();
-				accepted = true;
-				onClose();
-			}
-			catch (AppException e)
-			{
-				JOptionPane.showMessageDialog(this, e, App.SHORT_NAME, JOptionPane.ERROR_MESSAGE);
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		private void onClose()
-		{
-			location = getLocation();
-			setVisible(false);
-			dispose();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class variables
-	////////////////////////////////////////////////////////////////////
-
-		private static	Point	location;
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	boolean		accepted;
-		private	FTextField	targetField;
-		private	FTextField	replacementField;
-		private	JCheckBox	regularExpressionCheckBox;
-		private	JButton		okButton;
-
-	}
-
-	//==================================================================
+	private	SubstitutionList	substitutionList;
+	private	JScrollPane			substitutionListScrollPane;
+	private	JButton				addButton;
+	private	JButton				editButton;
+	private	JButton				deleteButton;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -921,14 +393,541 @@ class SubstitutionSelectionPanel
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	private	SubstitutionList	substitutionList;
-	private	JScrollPane			substitutionListScrollPane;
-	private	JButton				addButton;
-	private	JButton				editButton;
-	private	JButton				deleteButton;
+
+	// CLASS: SUBSTITUTION SELECTION LIST
+
+
+	private static class SubstitutionList
+		extends SingleSelectionList<Substitution>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	int	TARGET_FIELD_NUM_COLUMNS		= 32;
+		private static final	int	REPLACEMENT_FIELD_NUM_COLUMNS	= 24;
+
+		private static final	int	SEPARATOR_WIDTH	= 1;
+
+		private static final	String	REGEX_STR	= "RE";
+
+		private static final	Color	RE_TEXT_COLOUR		= new Color(176, 80, 0);
+		private static final	Color	SEPARATOR_COLOUR	= new Color(192, 200, 192);
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private SubstitutionList(int numRows)
+		{
+			super(TARGET_FIELD_NUM_COLUMNS + REPLACEMENT_FIELD_NUM_COLUMNS, numRows,
+				  AppFont.MAIN.getFont());
+			regexStrWidth = getFontMetrics(getFont()).stringWidth(REGEX_STR);
+			setExtraWidth(4 * getHorizontalMargin() + 2 * SEPARATOR_WIDTH + regexStrWidth);
+			setRowHeight(getRowHeight() + 1);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		protected void drawElement(Graphics gr,
+								   int      index)
+		{
+			// Create copy of graphics context
+			gr = gr.create();
+
+			// Set rendering hints for text antialiasing and fractional metrics
+			TextRendering.setHints((Graphics2D)gr);
+
+			// Get substitution
+			Substitution substitution = getElement(index);
+
+			// Draw regex indicator
+			FontMetrics fontMetrics = gr.getFontMetrics();
+			int rowHeight = getRowHeight();
+			int x = getHorizontalMargin();
+			int y = index * rowHeight;
+			int textY = y + DEFAULT_VERTICAL_MARGIN + fontMetrics.getAscent();
+			if (!substitution.isLiteral())
+			{
+				gr.setColor(RE_TEXT_COLOUR);
+				gr.drawString(REGEX_STR, x, textY);
+			}
+
+			// Draw first separator
+			x += regexStrWidth + getHorizontalMargin();
+			gr.setColor(SEPARATOR_COLOUR);
+			gr.drawLine(x, y, x, y + rowHeight - 1);
+
+			// Get target text and truncate it if it is too wide
+			int replacementFieldWidth = REPLACEMENT_FIELD_NUM_COLUMNS * getColumnWidth();
+			int targetFieldWidth = getMaxTextWidth() - replacementFieldWidth;
+			String text = truncateText(substitution.getTarget(), fontMetrics, targetFieldWidth);
+
+			// Draw target text
+			x += SEPARATOR_WIDTH + getHorizontalMargin();
+			Color textColour = getForegroundColour(index);
+			gr.setColor(textColour);
+			gr.drawString(text, x, textY);
+
+			// Draw second separator
+			x += targetFieldWidth + getHorizontalMargin();
+			gr.setColor(SEPARATOR_COLOUR);
+			gr.drawLine(x, y, x, y + rowHeight - 1);
+
+			// Get replacement text and truncate it if it is too wide
+			text = truncateText(substitution.getReplacement(), fontMetrics, replacementFieldWidth);
+
+			// Draw replacement text
+			x += SEPARATOR_WIDTH + getHorizontalMargin();
+			gr.setColor(textColour);
+			gr.drawString(text, x, textY);
+
+			// Draw bottom border
+			y += rowHeight - 1;
+			gr.setColor(SEPARATOR_COLOUR);
+			gr.drawLine(0, y, getWidth() - 1, y);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	int	regexStrWidth;
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: SUBSTITUTION DIALOG
+
+
+	private static class SubstitutionDialog
+		extends JDialog
+		implements ActionListener, DocumentListener
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	int	TARGET_FIELD_NUM_COLUMNS		= 40;
+		private static final	int	REPLACEMENT_FIELD_NUM_COLUMNS	= 40;
+
+		private static final	String	REGEX_STR		= "Regular expression";
+		private static final	String	TARGET_STR		= "Target";
+		private static final	String	REPLACEMENT_STR	= "Replacement";
+
+		// Commands
+		private interface Command
+		{
+			String	ACCEPT	= "accept";
+			String	CLOSE	= "close";
+		}
+
+	////////////////////////////////////////////////////////////////////
+	//  Class variables
+	////////////////////////////////////////////////////////////////////
+
+		private static	Point	location;
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	boolean		accepted;
+		private	FTextField	targetField;
+		private	FTextField	replacementField;
+		private	JCheckBox	regularExpressionCheckBox;
+		private	JButton		okButton;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private SubstitutionDialog(Window       owner,
+								   String       titleStr,
+								   Substitution substitution)
+		{
+			// Call superclass constructor
+			super(owner, titleStr, Dialog.ModalityType.APPLICATION_MODAL);
+
+			// Set icons
+			setIconImages(owner.getIconImages());
+
+
+			//----  Control panel
+
+			GridBagLayout gridBag = new GridBagLayout();
+			GridBagConstraints gbc = new GridBagConstraints();
+
+			JPanel controlPanel = new JPanel(gridBag);
+			GuiUtils.setPaddedLineBorder(controlPanel);
+
+			int gridY = 0;
+
+			// Label: target
+			JLabel targetLabel = new FLabel(TARGET_STR);
+
+			gbc.gridx = 0;
+			gbc.gridy = gridY;
+			gbc.gridwidth = 1;
+			gbc.gridheight = 1;
+			gbc.weightx = 0.0;
+			gbc.weighty = 0.0;
+			gbc.anchor = GridBagConstraints.LINE_END;
+			gbc.fill = GridBagConstraints.NONE;
+			gbc.insets = AppConstants.COMPONENT_INSETS;
+			gridBag.setConstraints(targetLabel, gbc);
+			controlPanel.add(targetLabel);
+
+			// Field: target
+			targetField = new FTextField((substitution == null) ? null : substitution.getTarget(),
+										 TARGET_FIELD_NUM_COLUMNS);
+			targetField.getDocument().addDocumentListener(this);
+
+			gbc.gridx = 1;
+			gbc.gridy = gridY++;
+			gbc.gridwidth = 1;
+			gbc.gridheight = 1;
+			gbc.weightx = 0.0;
+			gbc.weighty = 0.0;
+			gbc.anchor = GridBagConstraints.LINE_START;
+			gbc.fill = GridBagConstraints.NONE;
+			gbc.insets = AppConstants.COMPONENT_INSETS;
+			gridBag.setConstraints(targetField, gbc);
+			controlPanel.add(targetField);
+
+			// Label: replacement
+			JLabel replacementLabel = new FLabel(REPLACEMENT_STR);
+
+			gbc.gridx = 0;
+			gbc.gridy = gridY;
+			gbc.gridwidth = 1;
+			gbc.gridheight = 1;
+			gbc.weightx = 0.0;
+			gbc.weighty = 0.0;
+			gbc.anchor = GridBagConstraints.LINE_END;
+			gbc.fill = GridBagConstraints.NONE;
+			gbc.insets = AppConstants.COMPONENT_INSETS;
+			gridBag.setConstraints(replacementLabel, gbc);
+			controlPanel.add(replacementLabel);
+
+			// Field: replacement
+			replacementField = new FTextField((substitution == null) ? null : substitution.getReplacement(),
+											  REPLACEMENT_FIELD_NUM_COLUMNS);
+
+			gbc.gridx = 1;
+			gbc.gridy = gridY++;
+			gbc.gridwidth = 1;
+			gbc.gridheight = 1;
+			gbc.weightx = 0.0;
+			gbc.weighty = 0.0;
+			gbc.anchor = GridBagConstraints.LINE_START;
+			gbc.fill = GridBagConstraints.NONE;
+			gbc.insets = AppConstants.COMPONENT_INSETS;
+			gridBag.setConstraints(replacementField, gbc);
+			controlPanel.add(replacementField);
+
+			// Check box: regular expression
+			regularExpressionCheckBox = new FCheckBox(REGEX_STR);
+			regularExpressionCheckBox.setSelected((substitution != null) && !substitution.isLiteral());
+
+			gbc.gridx = 1;
+			gbc.gridy = gridY++;
+			gbc.gridwidth = 1;
+			gbc.gridheight = 1;
+			gbc.weightx = 0.0;
+			gbc.weighty = 0.0;
+			gbc.anchor = GridBagConstraints.LINE_START;
+			gbc.fill = GridBagConstraints.NONE;
+			gbc.insets = AppConstants.COMPONENT_INSETS;
+			gridBag.setConstraints(regularExpressionCheckBox, gbc);
+			controlPanel.add(regularExpressionCheckBox);
+
+
+			//----  Button panel
+
+			JPanel buttonPanel = new JPanel(new GridLayout(1, 0, 8, 0));
+			buttonPanel.setBorder(BorderFactory.createEmptyBorder(3, 8, 3, 8));
+
+			// Button: OK
+			okButton = new FButton(AppConstants.OK_STR);
+			okButton.setActionCommand(Command.ACCEPT);
+			okButton.addActionListener(this);
+			buttonPanel.add(okButton);
+
+			// Button: cancel
+			JButton cancelButton = new FButton(AppConstants.CANCEL_STR);
+			cancelButton.setActionCommand(Command.CLOSE);
+			cancelButton.addActionListener(this);
+			buttonPanel.add(cancelButton);
+
+
+			//----  Main panel
+
+			JPanel mainPanel = new JPanel(gridBag);
+			mainPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+
+			gridY = 0;
+
+			gbc.gridx = 0;
+			gbc.gridy = gridY++;
+			gbc.gridwidth = 1;
+			gbc.gridheight = 1;
+			gbc.weightx = 0.0;
+			gbc.weighty = 0.0;
+			gbc.anchor = GridBagConstraints.NORTH;
+			gbc.fill = GridBagConstraints.NONE;
+			gbc.insets = new Insets(0, 0, 0, 0);
+			gridBag.setConstraints(controlPanel, gbc);
+			mainPanel.add(controlPanel);
+
+			gbc.gridx = 0;
+			gbc.gridy = gridY++;
+			gbc.gridwidth = 1;
+			gbc.gridheight = 1;
+			gbc.weightx = 0.0;
+			gbc.weighty = 0.0;
+			gbc.anchor = GridBagConstraints.NORTH;
+			gbc.fill = GridBagConstraints.NONE;
+			gbc.insets = new Insets(3, 0, 0, 0);
+			gridBag.setConstraints(buttonPanel, gbc);
+			mainPanel.add(buttonPanel);
+
+			// Add commands to action map
+			KeyAction.create(mainPanel, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+							 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), Command.CLOSE, this);
+
+			// Update components
+			updateAcceptButton();
+
+
+			//----  Window
+
+			// Set content pane
+			setContentPane(mainPanel);
+
+			// Dispose of window explicitly
+			setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+
+			// Handle window closing
+			addWindowListener(new WindowAdapter()
+			{
+				@Override
+				public void windowClosing(WindowEvent event)
+				{
+					onClose();
+				}
+			});
+
+			// Prevent dialog from being resized
+			setResizable(false);
+
+			// Resize dialog to its preferred size
+			pack();
+
+			// Set location of dialog box
+			if (location == null)
+				location = GuiUtils.getComponentLocation(this, owner);
+			setLocation(location);
+
+			// Set default button
+			getRootPane().setDefaultButton(okButton);
+
+			// Show dialog
+			setVisible(true);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Class methods
+	////////////////////////////////////////////////////////////////////
+
+		private static Substitution showDialog(Component    parent,
+											   String       titleStr,
+											   Substitution substitution)
+		{
+			return new SubstitutionDialog(GuiUtils.getWindow(parent), titleStr, substitution).getSubstitution();
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : DocumentListener interface
+	////////////////////////////////////////////////////////////////////
+
+		public void changedUpdate(DocumentEvent event)
+		{
+			// do nothing
+		}
+
+		//--------------------------------------------------------------
+
+		public void insertUpdate(DocumentEvent event)
+		{
+			updateAcceptButton();
+		}
+
+		//--------------------------------------------------------------
+
+		public void removeUpdate(DocumentEvent event)
+		{
+			updateAcceptButton();
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : ActionListener interface
+	////////////////////////////////////////////////////////////////////
+
+		public void actionPerformed(ActionEvent event)
+		{
+			String command = event.getActionCommand();
+
+			if (command.equals(Command.ACCEPT))
+				onAccept();
+
+			else if (command.equals(Command.CLOSE))
+				onClose();
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private Substitution getSubstitution()
+		{
+			return accepted ? new Substitution(targetField.getText(), replacementField.getText(),
+											   !regularExpressionCheckBox.isSelected())
+							: null;
+		}
+
+		//--------------------------------------------------------------
+
+		private void updateAcceptButton()
+		{
+			okButton.setEnabled(!targetField.isEmpty());
+		}
+
+		//--------------------------------------------------------------
+
+		private void validateUserInput()
+			throws AppException
+		{
+			// Target
+			try
+			{
+				if (regularExpressionCheckBox.isSelected())
+					Pattern.compile(targetField.getText());
+			}
+			catch (PatternSyntaxException e)
+			{
+				GuiUtils.setFocus(targetField);
+				int index = e.getIndex();
+				if (index >= 0)
+					targetField.setCaretPosition(index);
+				throw new AppException(ErrorId.MALFORMED_TARGET, RegexUtils.getExceptionMessage(e));
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		private void onAccept()
+		{
+			try
+			{
+				validateUserInput();
+				accepted = true;
+				onClose();
+			}
+			catch (AppException e)
+			{
+				JOptionPane.showMessageDialog(this, e, App.SHORT_NAME, JOptionPane.ERROR_MESSAGE);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		private void onClose()
+		{
+			location = getLocation();
+			setVisible(false);
+			dispose();
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Enumerated types
+	////////////////////////////////////////////////////////////////////
+
+
+		// ENUMERATION: ERROR IDENTIFIERS
+
+
+		private enum ErrorId
+			implements AppException.IId
+		{
+
+		////////////////////////////////////////////////////////////////
+		//  Constants
+		////////////////////////////////////////////////////////////////
+
+			MALFORMED_TARGET
+			("The target is not a well-formed regular expression.\n(%1)");
+
+		////////////////////////////////////////////////////////////////
+		//  Instance variables
+		////////////////////////////////////////////////////////////////
+
+			private	String	message;
+
+		////////////////////////////////////////////////////////////////
+		//  Constructors
+		////////////////////////////////////////////////////////////////
+
+			private ErrorId(String message)
+			{
+				this.message = message;
+			}
+
+			//----------------------------------------------------------
+
+		////////////////////////////////////////////////////////////////
+		//  Instance methods : AppException.IId interface
+		////////////////////////////////////////////////////////////////
+
+			@Override
+			public String getMessage()
+			{
+				return message;
+			}
+
+			//----------------------------------------------------------
+
+		}
+
+		//==============================================================
+
+	}
+
+	//==================================================================
 
 }
 

@@ -41,6 +41,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import java.util.function.Predicate;
 
@@ -57,6 +58,12 @@ import org.w3c.dom.Element;
 
 import uk.blankaspect.common.collection.ArraySet;
 
+import uk.blankaspect.common.css.CssMediaRule;
+import uk.blankaspect.common.css.CssProperty;
+import uk.blankaspect.common.css.CssRuleSet;
+import uk.blankaspect.common.css.CssSelector;
+import uk.blankaspect.common.css.CssUtils;
+
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.FileException;
 import uk.blankaspect.common.exception.TaskCancelledException;
@@ -64,11 +71,7 @@ import uk.blankaspect.common.exception.TempFileException;
 import uk.blankaspect.common.exception.UnexpectedRuntimeException;
 import uk.blankaspect.common.exception.UrlException;
 
-import uk.blankaspect.common.html.CssMediaRule;
-import uk.blankaspect.common.html.CssRuleSet;
-import uk.blankaspect.common.html.CssUtils;
-
-import uk.blankaspect.common.indexedsub.IndexedSub;
+import uk.blankaspect.common.filesystem.FilenameUtils;
 
 import uk.blankaspect.common.misc.EditList;
 import uk.blankaspect.common.misc.FileWritingMode;
@@ -79,7 +82,7 @@ import uk.blankaspect.common.regex.Substitution;
 
 import uk.blankaspect.common.string.StringUtils;
 
-import uk.blankaspect.common.swing.image.PngOutputFile;
+import uk.blankaspect.common.tuple.StrKVPair;
 
 import uk.blankaspect.common.xml.AttributeList;
 import uk.blankaspect.common.xml.XmlConstants;
@@ -87,6 +90,8 @@ import uk.blankaspect.common.xml.XmlFile;
 import uk.blankaspect.common.xml.XmlParseException;
 import uk.blankaspect.common.xml.XmlUtils;
 import uk.blankaspect.common.xml.XmlWriter;
+
+import uk.blankaspect.ui.swing.image.PngOutputFile;
 
 //----------------------------------------------------------------------
 
@@ -101,11 +106,11 @@ class CrosswordDocument
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	public static final		int	MIN_MAX_EDIT_LIST_LENGTH		= 1;
-	public static final		int	MAX_MAX_EDIT_LIST_LENGTH		= 9999;
-	public static final		int	DEFAULT_MAX_EDIT_LIST_LENGTH	= 200;
+	public static final		int		MIN_MAX_EDIT_LIST_LENGTH		= 1;
+	public static final		int		MAX_MAX_EDIT_LIST_LENGTH		= 9999;
+	public static final		int		DEFAULT_MAX_EDIT_LIST_LENGTH	= 200;
 
-	public static final		String	LINE_BREAK_REGEX	= "(?<%1%2)\\n";
+	public static final		String	LINE_BREAK_REGEX	= "(?<%s%s)\\n";
 
 	public static final		String	DEFAULT_FILENAME_SUFFIX	= ".xword";
 
@@ -122,12 +127,12 @@ class CrosswordDocument
 		EPILOGUE
 	}
 
-	private static final	int	INDENT_INCREMENT		= 2;
-	private static final	int	MAX_TEXT_LINE_LENGTH	= 80;
+	private static final	int		INDENT_INCREMENT		= 2;
+	private static final	int		MAX_TEXT_LINE_LENGTH	= 80;
 
-	private static final	int	MIN_SUPPORTED_VERSION	= 0;
-	private static final	int	MAX_SUPPORTED_VERSION	= 0;
-	private static final	int	VERSION					= 0;
+	private static final	int		MIN_SUPPORTED_VERSION	= 0;
+	private static final	int		MAX_SUPPORTED_VERSION	= 0;
+	private static final	int		VERSION					= 0;
 
 	private static final	String	NAMESPACE_NAME			= "http://ns.blankaspect.uk/crossword-1";
 	private static final	String	NAMESPACE_NAME_REGEX	= "http://ns\\.[a-z.]+/crossword-1";
@@ -158,7 +163,7 @@ class CrosswordDocument
 	private static final	String	REDO_STR				= "Redo";
 	private static final	String	CLEAR_EDIT_LIST_STR		= "Do you want to clear all the undo/redo actions?";
 	private static final	String	CLEAR_CLUES_STR			= "Clear clues";
-	private static final	String	STYLESHEET_COMMENT_STR	= "Stylesheet for crossword : %1 grid, cell size = %2";
+	private static final	String	STYLESHEET_COMMENT_STR	= "Stylesheet for crossword : %s grid, cell size = %d";
 	private static final	String	IMPORT_ENTRIES_STR		= "Do you want to import the grid entries from the "
 																+ "clipboard?";
 	private static final	String	CLEAR_ENTRIES_STR		= "Do you want to clear all the grid entries?";
@@ -194,120 +199,120 @@ class CrosswordDocument
 	private static final	Pattern	WORD_PATTERN		= Pattern.compile("([^ \\t]+?)([ \\t]+|\\z)");
 	private static final	Pattern	WORD_SPACE_PATTERN	= Pattern.compile("([^ \\t]+?[ \\t]*)([ \\t]|\\z)");
 
-	private static final	CssRuleSet	DOCUMENT_RULE_SET	= new CssRuleSet
+	private static final	CssRuleSet	DOCUMENT_RULE_SET	= CssRuleSet.of
 	(
 		HtmlConstants.ElementName.BODY,
-		new CssRuleSet.Decl(CssConstants.Property.COLOUR,            "#000000"),
-		new CssRuleSet.Decl(CssConstants.Property.BACKGROUND_COLOUR, "#FFFFFF"),
-		new CssRuleSet.Decl(CssConstants.Property.MARGIN,            "1.0em 0.5em"),
-		new CssRuleSet.Decl(CssConstants.Property.FONT_SIZE,         "%1pt")
+		StrKVPair.of(CssProperty.COLOUR,            "#000000"),
+		StrKVPair.of(CssProperty.BACKGROUND_COLOUR, "#FFFFFF"),
+		StrKVPair.of(CssProperty.MARGIN,            "1.0em 0.5em"),
+		StrKVPair.of(CssProperty.FONT_SIZE,         "%dpt")
 	);
 
-	private static final	List<CssRuleSet>	HEADER_RULE_SETS	= Arrays.asList
+	private static final	List<CssRuleSet>	HEADER_RULE_SETS	= List.of
 	(
-		new CssRuleSet
+		CssRuleSet.of
 		(
 			HtmlConstants.ElementName.H4,
-			new CssRuleSet.Decl(CssConstants.Property.MARGIN,      "0.5em 0"),
-			new CssRuleSet.Decl(CssConstants.Property.FONT_WEIGHT, "bold")
+			StrKVPair.of(CssProperty.MARGIN,      "0.5em 0"),
+			StrKVPair.of(CssProperty.FONT_WEIGHT, "bold")
 		),
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.H4 + CssConstants.Selector.ID + HtmlConstants.Id.TITLE,
-			new CssRuleSet.Decl(CssConstants.Property.MARGIN_BOTTOM, "1.0em")
+			HtmlConstants.ElementName.H4 + CssSelector.ID + HtmlConstants.Id.TITLE,
+			StrKVPair.of(CssProperty.MARGIN_BOTTOM, "1.0em")
 		)
 	);
 
-	private static final	List<CssRuleSet>	TEXT_RULE_SETS	= Arrays.asList
+	private static final	List<CssRuleSet>	TEXT_RULE_SETS	= List.of
 	(
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.DIV + CssConstants.Selector.ID + HtmlConstants.Id.CLUES
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV,
-			new CssRuleSet.Decl(CssConstants.Property.DISPLAY, "table-cell"),
-			new CssRuleSet.Decl(CssConstants.Property.PADDING, "0 0.8em")
+			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV,
+			StrKVPair.of(CssProperty.DISPLAY, "table-cell"),
+			StrKVPair.of(CssProperty.PADDING, "0 0.8em")
 		),
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.DIV + CssConstants.Selector.ID + HtmlConstants.Id.CLUES
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssConstants.Selector.FIRST_CHILD,
-			new CssRuleSet.Decl(CssConstants.Property.PADDING_LEFT, "0")
+			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+												+ CssSelector.FIRST_CHILD,
+			StrKVPair.of(CssProperty.PADDING_LEFT, "0")
 		),
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.DIV + CssConstants.Selector.ID + HtmlConstants.Id.CLUES
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV,
-			new CssRuleSet.Decl(CssConstants.Property.DISPLAY, "table")
+			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV,
+			StrKVPair.of(CssProperty.DISPLAY, "table")
 		),
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.DIV + CssConstants.Selector.ID + HtmlConstants.Id.CLUES
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV,
-			new CssRuleSet.Decl(CssConstants.Property.DISPLAY, "table-row")
+			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV,
+			StrKVPair.of(CssProperty.DISPLAY, "table-row")
 		),
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.DIV + CssConstants.Selector.ID + HtmlConstants.Id.CLUES
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV,
-			new CssRuleSet.Decl(CssConstants.Property.DISPLAY,      "table-cell"),
-			new CssRuleSet.Decl(CssConstants.Property.PADDING_LEFT, "0.6em")
+			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV,
+			StrKVPair.of(CssProperty.DISPLAY,      "table-cell"),
+			StrKVPair.of(CssProperty.PADDING_LEFT, "0.6em")
 		),
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.DIV + CssConstants.Selector.ID + HtmlConstants.Id.CLUES
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssConstants.Selector.FIRST_CHILD,
-			new CssRuleSet.Decl(CssConstants.Property.TEXT_ALIGN,   "right"),
-			new CssRuleSet.Decl(CssConstants.Property.PADDING_LEFT, "0"),
-			new CssRuleSet.Decl(CssConstants.Property.FONT_WEIGHT,  "bold")
+			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+												+ CssSelector.FIRST_CHILD,
+			StrKVPair.of(CssProperty.TEXT_ALIGN,   "right"),
+			StrKVPair.of(CssProperty.PADDING_LEFT, "0"),
+			StrKVPair.of(CssProperty.FONT_WEIGHT,  "bold")
 		),
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.DIV + CssConstants.Selector.ID + HtmlConstants.Id.CLUES
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssConstants.Selector.CLASS + HtmlConstants.Class.MULTI_FIELD_CLUE,
-			new CssRuleSet.Decl(CssConstants.Property.TEXT_INDENT, "-0.6em")
+			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+												+ CssSelector.CLASS + HtmlConstants.Class.MULTI_FIELD_CLUE,
+			StrKVPair.of(CssProperty.TEXT_INDENT, "-0.6em")
 		),
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.DIV + CssConstants.Selector.ID + HtmlConstants.Id.CLUES
-												+ CssConstants.Selector.DESCENDANT + HtmlConstants.ElementName.SPAN
-												+ CssConstants.Selector.CLASS + HtmlConstants.Class.SECONDARY_IDS,
-			new CssRuleSet.Decl(CssConstants.Property.PADDING_RIGHT, "0.6em"),
-			new CssRuleSet.Decl(CssConstants.Property.FONT_WEIGHT,   "bold")
+			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
+												+ CssSelector.DESCENDANT + HtmlConstants.ElementName.SPAN
+												+ CssSelector.CLASS + HtmlConstants.Class.SECONDARY_IDS,
+			StrKVPair.of(CssProperty.PADDING_RIGHT, "0.6em"),
+			StrKVPair.of(CssProperty.FONT_WEIGHT,   "bold")
 		),
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.DIV + CssConstants.Selector.ID + HtmlConstants.Id.PROLOGUE,
-			new CssRuleSet.Decl(CssConstants.Property.MARGIN_BOTTOM, "1.2em")
+			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.PROLOGUE,
+			StrKVPair.of(CssProperty.MARGIN_BOTTOM, "1.2em")
 		),
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.DIV + CssConstants.Selector.ID + HtmlConstants.Id.EPILOGUE,
-			new CssRuleSet.Decl(CssConstants.Property.MARGIN_TOP, "1.5em")
+			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.EPILOGUE,
+			StrKVPair.of(CssProperty.MARGIN_TOP, "1.5em")
 		),
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.SPAN + CssConstants.Selector.CLASS + HtmlConstants.Class.STRIKE,
-			new CssRuleSet.Decl(CssConstants.Property.TEXT_DECORATION, "line-through")
+			HtmlConstants.ElementName.SPAN + CssSelector.CLASS + HtmlConstants.Class.STRIKE,
+			StrKVPair.of(CssProperty.TEXT_DECORATION, "line-through")
 		),
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.SPAN + CssConstants.Selector.CLASS + HtmlConstants.Class.UNDERLINE,
-			new CssRuleSet.Decl(CssConstants.Property.TEXT_DECORATION, "underline")
+			HtmlConstants.ElementName.SPAN + CssSelector.CLASS + HtmlConstants.Class.UNDERLINE,
+			StrKVPair.of(CssProperty.TEXT_DECORATION, "underline")
 		)
 	);
 
@@ -537,7 +542,7 @@ class CrosswordDocument
 
 		private Command(String key)
 		{
-			command = new uk.blankaspect.common.swing.action.Command(this);
+			command = new uk.blankaspect.ui.swing.action.Command(this);
 			putValue(Action.ACTION_COMMAND_KEY, key);
 		}
 
@@ -656,7 +661,7 @@ class CrosswordDocument
 	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
-		private	uk.blankaspect.common.swing.action.Command	command;
+		private	uk.blankaspect.ui.swing.action.Command	command;
 
 	}
 
@@ -771,6 +776,7 @@ class CrosswordDocument
 	//  Instance methods : AppException.IId interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public String getMessage()
 		{
 			return message;
@@ -1954,7 +1960,7 @@ class CrosswordDocument
 	public List<Clue> getClues(Direction direction)
 	{
 		return (clueLists.containsKey(direction) ? Collections.unmodifiableList(clueLists.get(direction))
-												 : new ArrayList<Clue>());
+												 : new ArrayList<>());
 	}
 
 	//------------------------------------------------------------------
@@ -2047,7 +2053,7 @@ class CrosswordDocument
 						 List<Clue> clues)
 	{
 		// Sort the clues
-		clues.sort(Clue.ID_COMPARATOR);
+		clues.sort(Clue.COMPARATOR);
 
 		// Set indices of clues with the same field ID
 		int prevFieldNumber = 0;
@@ -2719,11 +2725,26 @@ class CrosswordDocument
 		this.timestamp = 0;
 		try
 		{
+			// Create parent directory of output file
+			File directory = file.getAbsoluteFile().getParentFile();
+			if ((directory != null) && !directory.exists())
+			{
+				try
+				{
+					if (!directory.mkdirs())
+						throw new FileException(ErrorId.FAILED_TO_CREATE_DIRECTORY, directory);
+				}
+				catch (SecurityException e)
+				{
+					throw new FileException(ErrorId.FAILED_TO_CREATE_DIRECTORY, directory, e);
+				}
+			}
+
 			// Create temporary file
 			try
 			{
-				tempFile = File.createTempFile(AppConstants.TEMP_FILE_PREFIX, null,
-											   file.getAbsoluteFile().getParentFile());
+				tempFile = FilenameUtils.tempLocation(file);
+				tempFile.createNewFile();
 			}
 			catch (Exception e)
 			{
@@ -2980,8 +3001,22 @@ class CrosswordDocument
 		// Update instance variables
 		exportHtmlFile = file;
 
-		// Write stylesheet file
+		// Create parent directory of output file
 		File directory = file.getAbsoluteFile().getParentFile();
+		if ((directory != null) && !directory.exists())
+		{
+			try
+			{
+				if (!directory.mkdirs())
+					throw new FileException(ErrorId.FAILED_TO_CREATE_DIRECTORY, directory);
+			}
+			catch (SecurityException e)
+			{
+				throw new FileException(ErrorId.FAILED_TO_CREATE_DIRECTORY, directory, e);
+			}
+		}
+
+		// Write stylesheet file
 		if (writeStylesheet)
 		{
 			// Create directory
@@ -3026,8 +3061,8 @@ class CrosswordDocument
 			// Create temporary file
 			try
 			{
-				tempFile = File.createTempFile(AppConstants.TEMP_FILE_PREFIX, null,
-											   file.getAbsoluteFile().getParentFile());
+				tempFile = FilenameUtils.tempLocation(file);
+				tempFile.createNewFile();
 			}
 			catch (Exception e)
 			{
@@ -3054,7 +3089,7 @@ class CrosswordDocument
 				if (writer.getFileOutStream().getChannel().tryLock() == null)
 					throw new FileException(ErrorId.FAILED_TO_LOCK_FILE, tempFile);
 			}
-			catch (Exception e)
+			catch (IOException e)
 			{
 				throw new FileException(ErrorId.FAILED_TO_LOCK_FILE, tempFile, e);
 			}
@@ -3062,8 +3097,7 @@ class CrosswordDocument
 			// Write file
 			try
 			{
-				writer.writeXmlDeclaration(XML_VERSION_STR, XmlConstants.ENCODING_NAME_UTF8,
-										   XmlWriter.Standalone.NONE);
+				writer.writeXmlDeclaration(XML_VERSION_STR, XmlConstants.ENCODING_NAME_UTF8, XmlWriter.Standalone.NONE);
 				writer.writeDocumentType(HtmlConstants.ElementName.HTML, XHTML_SYSTEM_ID, XHTML_PUBLIC_ID);
 				writer.writeEol();
 				writeHtml(writer, stylesheetKind, styleProperties, writeEntries);
@@ -3198,7 +3232,7 @@ class CrosswordDocument
 
 	public String getLineBreakRegex()
 	{
-		return IndexedSub.sub(LINE_BREAK_REGEX, "=", RegexUtils.escape(lineBreak));
+		return String.format(LINE_BREAK_REGEX, "=", RegexUtils.escape(lineBreak));
 	}
 
 	//------------------------------------------------------------------
@@ -3303,7 +3337,7 @@ class CrosswordDocument
 		{
 			if (clues != null)
 			{
-				int index = Collections.binarySearch(clues, clue, Clue.ID_COMPARATOR);
+				int index = Collections.binarySearch(clues, clue, Clue.COMPARATOR);
 				if (index >= 0)
 				{
 					clues.remove(index);
@@ -3321,7 +3355,7 @@ class CrosswordDocument
 				clues = new ArrayList<>();
 				clueLists.put(direction, clues);
 			}
-			int index = Collections.binarySearch(clues, clue, Clue.ID_COMPARATOR);
+			int index = Collections.binarySearch(clues, clue, Clue.COMPARATOR);
 			if (index < 0)
 				clues.add(-index - 1, clue);
 			else
@@ -3666,12 +3700,9 @@ class CrosswordDocument
 		List<CssRuleSet> ruleSets = new ArrayList<>();
 
 		CssRuleSet ruleSet = DOCUMENT_RULE_SET.clone();
-
-		CssRuleSet.Decl decl = ruleSet.findDeclaration(CssConstants.Property.FONT_SIZE);
-		decl.value = IndexedSub.sub(decl.value, Integer.toString(styleProperties.fontSize));
-
+		ruleSet.replacePropertyValue(CssProperty.FONT_SIZE, styleProperties.fontSize);
 		if (!styleProperties.fontNames.isEmpty())
-			ruleSet.addDeclaration(CssConstants.Property.FONT_FAMILY, styleProperties.fontNames.toQuotedString());
+			ruleSet.addProperty(CssProperty.FONT_FAMILY, styleProperties.fontNames.toQuotedString());
 
 		ruleSets.add(ruleSet);
 		ruleSets.addAll(HEADER_RULE_SETS);
@@ -3686,9 +3717,9 @@ class CrosswordDocument
 	private String createStylesheet(StyleProperties styleProperties)
 	{
 		StringBuilder buffer = new StringBuilder(4096);
-		String headerComment = IndexedSub.sub(STYLESHEET_COMMENT_STR, grid.getSeparator().getKey(),
-											  Integer.toString(styleProperties.cellSize));
-		buffer.append(CssUtils.createHeaderComment(Arrays.asList("", headerComment, "")));
+		String headerComment = String.format(STYLESHEET_COMMENT_STR, grid.getSeparator().getKey(),
+											 styleProperties.cellSize);
+		buffer.append(CssUtils.createHeaderComment(72, List.of("", headerComment, "")));
 		buffer.append('\n');
 
 		for (CssRuleSet ruleSet : getStyleRuleSets(styleProperties))
@@ -3701,7 +3732,7 @@ class CrosswordDocument
 		}
 
 		buffer.append('\n');
-		buffer.append(CssUtils.createSeparator());
+		buffer.append(CssUtils.SEPARATOR);
 
 		return buffer.toString();
 	}
@@ -4095,7 +4126,7 @@ class CrosswordDocument
 		{
 			edit = new TextSectionsEdit(title, prologueParagraphs, epilogueParagraphs, result.title,
 										result.prologueParagraphs, result.epilogueParagraphs);
-			if (!StringUtils.equal(title, result.title))
+			if (!Objects.equals(title, result.title))
 			{
 				title = result.title;
 				edit.sections.add(TextSection.TITLE);
@@ -4319,7 +4350,7 @@ class CrosswordDocument
 		StringBuilder buffer = new StringBuilder(256);
 		for (Direction direction : Direction.DEFINED_DIRECTIONS)
 		{
-			if (buffer.length() > 0)
+			if (!buffer.isEmpty())
 				buffer.append('\n');
 			for (Grid.Field field : grid.getFields(direction))
 			{
@@ -4339,7 +4370,7 @@ class CrosswordDocument
 		StringBuilder buffer = new StringBuilder(256);
 		for (Direction direction : Direction.DEFINED_DIRECTIONS)
 		{
-			if (buffer.length() > 0)
+			if (!buffer.isEmpty())
 				buffer.append('\n');
 			for (Grid.Field field : grid.getFields(direction))
 			{

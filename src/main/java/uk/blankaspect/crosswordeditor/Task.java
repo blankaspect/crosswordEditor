@@ -40,7 +40,7 @@ abstract class Task
 ////////////////////////////////////////////////////////////////////////
 
 
-	// READ DOCUMENT TASK CLASS
+	// 'READ DOCUMENT' TASK CLASS
 
 
 	public static class ReadDocument
@@ -98,7 +98,7 @@ abstract class Task
 	//==================================================================
 
 
-	// WRITE DOCUMENT TASK CLASS
+	// 'WRITE DOCUMENT' TASK CLASS
 
 
 	public static class WriteDocument
@@ -152,7 +152,7 @@ abstract class Task
 	//==================================================================
 
 
-	// EXPORT HTML TASK CLASS
+	// 'EXPORT HTML' TASK CLASS
 
 
 	public static class ExportDocumentAsHtml
@@ -222,7 +222,7 @@ abstract class Task
 	//==================================================================
 
 
-	// LOAD SOLUTION TASK CLASS
+	// 'LOAD SOLUTION' TASK CLASS
 
 
 	public static class LoadSolution
@@ -273,10 +273,10 @@ abstract class Task
 	//==================================================================
 
 
-	// SET FILE ASSOCIATIONS TASK CLASS
+	// 'SET FILE ASSOCIATION' TASK CLASS
 
 
-	public static class SetFileAssociations
+	public static class SetFileAssociation
 		extends Task
 	{
 
@@ -284,14 +284,14 @@ abstract class Task
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		public SetFileAssociations(FileAssociations                 fileAssociations,
-								   String                           javaLauncherPathname,
-								   String                           jarPathname,
-								   String                           iconPathname,
-								   String                           tempDirectoryPrefix,
-								   String                           scriptFilename,
-								   boolean                          removeEntries,
-								   FileAssociations.ScriptLifeCycle scriptLifeCycle)
+		public SetFileAssociation(FileAssociations                 fileAssociations,
+								  String                           javaLauncherPathname,
+								  String                           jarPathname,
+								  String                           iconPathname,
+								  String                           tempDirectoryPrefix,
+								  String                           scriptFilename,
+								  boolean                          removeEntries,
+								  FileAssociations.ScriptLifeCycle scriptLifeCycle)
 		{
 			this.fileAssociations = fileAssociations;
 			this.javaLauncherPathname = javaLauncherPathname;
@@ -352,7 +352,7 @@ abstract class Task
 	//==================================================================
 
 
-	// WRITE CONFIGURATION TASK CLASS
+	// 'WRITE CONFIGURATION' TASK CLASS
 
 
 	public static class WriteConfig

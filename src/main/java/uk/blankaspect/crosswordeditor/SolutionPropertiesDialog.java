@@ -2,7 +2,7 @@
 
 SolutionPropertiesDialog.java
 
-Solution properties dialog box class.
+Solution properties dialog class.
 
 \*====================================================================*/
 
@@ -37,6 +37,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import javax.swing.BorderFactory;
@@ -54,25 +56,25 @@ import javax.swing.event.DocumentListener;
 
 import uk.blankaspect.common.exception.AppException;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.button.FButton;
+import uk.blankaspect.ui.swing.button.FButton;
 
-import uk.blankaspect.common.swing.checkbox.FCheckBox;
+import uk.blankaspect.ui.swing.checkbox.FCheckBox;
 
-import uk.blankaspect.common.swing.container.PassphrasePanel;
+import uk.blankaspect.ui.swing.container.PassphrasePanel;
 
-import uk.blankaspect.common.swing.label.FLabel;
+import uk.blankaspect.ui.swing.label.FLabel;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
-import uk.blankaspect.common.swing.textfield.FTextField;
-import uk.blankaspect.common.swing.textfield.PasswordField;
+import uk.blankaspect.ui.swing.textfield.FTextField;
+import uk.blankaspect.ui.swing.textfield.PasswordField;
 
 //----------------------------------------------------------------------
 
 
-// SOLUTION PROPERTIES DIALOG BOX CLASS
+// SOLUTION PROPERTIES DIALOG CLASS
 
 
 class SolutionPropertiesDialog
@@ -483,7 +485,7 @@ class SolutionPropertiesDialog
 			{
 				result = new CrosswordDocument.SolutionProperties(getUrl(), passphrasePanel.getPassphrase(), hashValue);
 			}
-			catch (MalformedURLException e)
+			catch (URISyntaxException | MalformedURLException e)
 			{
 				// not expected
 			}
@@ -494,9 +496,9 @@ class SolutionPropertiesDialog
 	//------------------------------------------------------------------
 
 	private URL getUrl()
-		throws MalformedURLException
+		throws URISyntaxException, MalformedURLException
 	{
-		return ((locationField.isEnabled() && !locationField.isEmpty()) ? new URL(locationField.getText()) : null);
+		return (locationField.isEnabled() && !locationField.isEmpty()) ? new URI(locationField.getText()).toURL() : null;
 	}
 
 	//------------------------------------------------------------------
@@ -544,7 +546,7 @@ class SolutionPropertiesDialog
 		{
 			getUrl();
 		}
-		catch (MalformedURLException e)
+		catch (URISyntaxException | MalformedURLException e)
 		{
 			GuiUtils.setFocus(locationField);
 			throw new AppException(ErrorId.MALFORMED_URL);

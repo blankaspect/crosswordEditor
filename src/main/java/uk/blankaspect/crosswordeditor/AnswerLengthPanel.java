@@ -36,11 +36,11 @@ import javax.swing.event.DocumentListener;
 
 import uk.blankaspect.common.regex.Substitution;
 
-import uk.blankaspect.common.swing.border.TitledBorder;
+import uk.blankaspect.ui.swing.border.TitledBorder;
 
-import uk.blankaspect.common.swing.button.FButton;
+import uk.blankaspect.ui.swing.button.FButton;
 
-import uk.blankaspect.common.swing.textfield.FTextField;
+import uk.blankaspect.ui.swing.textfield.FTextField;
 
 //----------------------------------------------------------------------
 

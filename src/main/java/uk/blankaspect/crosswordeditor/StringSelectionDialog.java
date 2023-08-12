@@ -2,7 +2,7 @@
 
 StringSelectionDialog.java
 
-String selection dialog box class.
+String selection dialog class.
 
 \*====================================================================*/
 
@@ -55,24 +55,24 @@ import javax.swing.event.ListSelectionListener;
 
 import uk.blankaspect.common.string.StringUtils;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.button.FButton;
+import uk.blankaspect.ui.swing.button.FButton;
 
-import uk.blankaspect.common.swing.combobox.FComboBox;
+import uk.blankaspect.ui.swing.combobox.FComboBox;
 
-import uk.blankaspect.common.swing.label.FLabel;
+import uk.blankaspect.ui.swing.label.FLabel;
 
-import uk.blankaspect.common.swing.list.SingleSelectionList;
+import uk.blankaspect.ui.swing.list.SingleSelectionList;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
-import uk.blankaspect.common.swing.textfield.FTextField;
+import uk.blankaspect.ui.swing.textfield.FTextField;
 
 //----------------------------------------------------------------------
 
 
-// STRING SELECTION DIALOG BOX CLASS
+// STRING SELECTION DIALOG CLASS
 
 
 class StringSelectionDialog

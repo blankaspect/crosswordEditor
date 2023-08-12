@@ -21,6 +21,8 @@ package uk.blankaspect.crosswordeditor;
 import java.io.File;
 import java.io.IOException;
 
+import java.nio.file.Path;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -138,8 +140,7 @@ class HtmlViewer
 			{
 				// Create process and start it
 				ProcessBuilder processBuilder = new ProcessBuilder(arguments0);
-				processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
-				processBuilder.redirectError(ProcessBuilder.Redirect.DISCARD);
+				processBuilder.inheritIO();
 				processBuilder.start();
 			}
 			catch (IOException e)
@@ -158,6 +159,7 @@ class HtmlViewer
 	{
 		final	char	ESCAPE_CHAR					= '%';
 		final	char	PATHNAME_PLACEHOLDER_CHAR	= 'f';
+		final	char	URI_PLACEHOLDER_CHAR		= 'u';
 
 		List<String> arguments = new ArrayList<>();
 		StringBuilder buffer = new StringBuilder();
@@ -173,13 +175,15 @@ class HtmlViewer
 						ch = str.charAt(index++);
 						if (ch == PATHNAME_PLACEHOLDER_CHAR)
 							buffer.append(pathname);
+						else if (ch == URI_PLACEHOLDER_CHAR)
+							buffer.append(Path.of(pathname).toUri());
 						else
 							buffer.append(ch);
 					}
 					break;
 
 				case ' ':
-					if (buffer.length() > 0)
+					if (!buffer.isEmpty())
 					{
 						arguments.add(PathnameUtils.parsePathname(buffer.toString()));
 						buffer.setLength(0);
@@ -191,7 +195,7 @@ class HtmlViewer
 					break;
 			}
 		}
-		if (buffer.length() > 0)
+		if (!buffer.isEmpty())
 			arguments.add(PathnameUtils.parsePathname(buffer.toString()));
 
 		return arguments;

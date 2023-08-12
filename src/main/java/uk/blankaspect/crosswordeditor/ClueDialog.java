@@ -2,7 +2,7 @@
 
 ClueDialog.java
 
-Clue dialog box class.
+Clue dialog class.
 
 \*====================================================================*/
 
@@ -64,20 +64,19 @@ import uk.blankaspect.common.exception.UnexpectedRuntimeException;
 
 import uk.blankaspect.common.number.NumberUtils;
 
-import uk.blankaspect.common.string.StringUtils;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.button.FButton;
 
-import uk.blankaspect.common.swing.button.FButton;
+import uk.blankaspect.ui.swing.misc.GuiConstants;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
-
-import uk.blankaspect.common.swing.text.TextRendering;
+import uk.blankaspect.ui.swing.text.TextRendering;
 
 //----------------------------------------------------------------------
 
 
-// CLUE DIALOG BOX CLASS
+// CLUE DIALOG CLASS
 
 
 class ClueDialog
@@ -206,7 +205,8 @@ class ClueDialog
 		private static final	Color	ID_TEXT_COLOUR				= Color.BLACK;
 		private static final	Color	LENGTH_TEXT_COLOUR			= new Color(192, 64, 0);
 		private static final	Color	BORDER_COLOUR				= new Color(192, 184, 160);
-		private static final	Color	FOCUSED_BORDER_COLOUR		= Color.BLACK;
+		private static final	Color	FOCUSED_BORDER_COLOUR1		= Color.WHITE;
+		private static final	Color	FOCUSED_BORDER_COLOUR2		= Color.BLACK;
 		private static final	Color	SELECTING_BORDER_COLOUR		= new Color(64, 80, 64);
 
 		// Commands
@@ -254,8 +254,8 @@ class ClueDialog
 
 		private IdPanel(ClueDialog                  dialog,
 						List<Field>                 clueFields,
-						 Map<Direction, List<Field>> availableFields,
-						 int                         maxNumDigits)
+						Map<Direction, List<Field>> availableFields,
+						int                         maxNumDigits)
 		{
 			// Initialise instance variables
 			this.dialog = dialog;
@@ -277,7 +277,7 @@ class ClueDialog
 			}
 			if (maxNumDigits < 2)
 				maxNumDigits = 2;
-			textWidth += fontMetrics.stringWidth(StringUtils.createCharString('0', maxNumDigits));
+			textWidth += fontMetrics.stringWidth("0".repeat(maxNumDigits));
 			textWidth += fontMetrics.stringWidth(Field.DEFINED_PREFIX);
 			cellWidth = 2 * HORIZONTAL_MARGIN + textWidth + SEPARATOR_WIDTH;
 			preferredWidth = NUM_VIEWABLE_IDS * cellWidth + 1;
@@ -302,6 +302,7 @@ class ClueDialog
 	//  Instance methods : ActionListener interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public void actionPerformed(ActionEvent event)
 		{
 			String command = event.getActionCommand();
@@ -328,6 +329,7 @@ class ClueDialog
 	//  Instance methods : FocusListener interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public void focusGained(FocusEvent event)
 		{
 			repaint();
@@ -335,6 +337,7 @@ class ClueDialog
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void focusLost(FocusEvent event)
 		{
 			repaint();
@@ -346,6 +349,7 @@ class ClueDialog
 	//  Instance methods : MouseListener interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public void mouseClicked(MouseEvent event)
 		{
 			if (SwingUtilities.isLeftMouseButton(event) && (event.getClickCount() > 1))
@@ -357,6 +361,7 @@ class ClueDialog
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void mouseEntered(MouseEvent event)
 		{
 			// do nothing
@@ -364,6 +369,7 @@ class ClueDialog
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void mouseExited(MouseEvent event)
 		{
 			// do nothing
@@ -371,6 +377,7 @@ class ClueDialog
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void mousePressed(MouseEvent event)
 		{
 			requestFocusInWindow();
@@ -394,6 +401,7 @@ class ClueDialog
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void mouseReleased(MouseEvent event)
 		{
 			// do nothing
@@ -417,26 +425,26 @@ class ClueDialog
 		protected void paintComponent(Graphics gr)
 		{
 			// Create copy of graphics context
-			gr = gr.create();
+			Graphics2D gr2d = GuiUtils.copyGraphicsContext(gr);
 
 			// Get dimensions
 			int width = getWidth();
 			int height = getHeight();
 
 			// Fill background
-			Rectangle rect = gr.getClipBounds();
-			gr.setColor(getBackground());
-			gr.fillRect(rect.x, rect.y, rect.width, rect.height);
+			Rectangle rect = gr2d.getClipBounds();
+			gr2d.setColor(getBackground());
+			gr2d.fillRect(rect.x, rect.y, rect.width, rect.height);
 
 			// Fill background of cells
-			gr.setColor(selectingField ? SELECTING_BACKGROUND_COLOUR : BACKGROUND_COLOUR);
-			gr.fillRect(1, 1, clueFields.size() * cellWidth - 1, height - 2);
+			gr2d.setColor(selectingField ? SELECTING_BACKGROUND_COLOUR : BACKGROUND_COLOUR);
+			gr2d.fillRect(1, 1, clueFields.size() * cellWidth - 1, height - 2);
 
 			// Set rendering hints for text antialiasing and fractional metrics
-			TextRendering.setHints((Graphics2D)gr);
+			TextRendering.setHints(gr2d);
 
 			// Draw IDs
-			FontMetrics fontMetrics = gr.getFontMetrics();
+			FontMetrics fontMetrics = gr2d.getFontMetrics();
 			int x = 0;
 			int index = 0;
 			while (index < clueFields.size())
@@ -447,15 +455,15 @@ class ClueDialog
 				String str = field.toString();
 				int strWidth = fontMetrics.stringWidth(str);
 				int y = VERTICAL_MARGIN + fontMetrics.getAscent();
-				gr.setColor(ID_TEXT_COLOUR);
-				gr.drawString(str, x + cellWidth - HORIZONTAL_MARGIN - strWidth, y);
+				gr2d.setColor(ID_TEXT_COLOUR);
+				gr2d.drawString(str, x + cellWidth - HORIZONTAL_MARGIN - strWidth, y);
 
 				// Draw field length
 				str = Integer.toString(field.length);
 				strWidth = fontMetrics.stringWidth(str);
 				y += fontMetrics.getHeight();
-				gr.setColor(LENGTH_TEXT_COLOUR);
-				gr.drawString(str, x + cellWidth - HORIZONTAL_MARGIN - strWidth, y);
+				gr2d.setColor(LENGTH_TEXT_COLOUR);
+				gr2d.drawString(str, x + cellWidth - HORIZONTAL_MARGIN - strWidth, y);
 
 				// Increment index and x coordinate
 				++index;
@@ -464,8 +472,8 @@ class ClueDialog
 					break;
 
 				// Draw separator
-				gr.setColor(BORDER_COLOUR);
-				gr.drawLine(x, 0, x, height - 1);
+				gr2d.setColor(BORDER_COLOUR);
+				gr2d.drawLine(x, 0, x, height - 1);
 			}
 
 			// Draw selection indicator
@@ -473,22 +481,24 @@ class ClueDialog
 			int boxWidth = ((selectedIndex == clueFields.size()) ? width - x : cellWidth) - 2;
 			if (isFocusOwner())
 			{
-				Graphics2D gr2d = (Graphics2D)gr;
+				gr2d.setColor(FOCUSED_BORDER_COLOUR1);
+				gr2d.drawRect(x, 1, boxWidth, height - 3);
+
 				Stroke oldStroke = gr2d.getStroke();
-				gr2d.setStroke(GuiUtils.getBasicDash());
-				gr2d.setColor(FOCUSED_BORDER_COLOUR);
+				gr2d.setStroke(GuiConstants.BASIC_DASH);
+				gr2d.setColor(FOCUSED_BORDER_COLOUR2);
 				gr2d.drawRect(x, 1, boxWidth, height - 3);
 				gr2d.setStroke(oldStroke);
 			}
 			else if (selectingField)
 			{
-				gr.setColor(SELECTING_BORDER_COLOUR);
-				gr.drawRect(x, 1, boxWidth, height - 3);
+				gr2d.setColor(SELECTING_BORDER_COLOUR);
+				gr2d.drawRect(x, 1, boxWidth, height - 3);
 			}
 
 			// Draw border
-			gr.setColor(BORDER_COLOUR);
-			gr.drawRect(0, 0, width - 1, height - 1);
+			gr2d.setColor(BORDER_COLOUR);
+			gr2d.drawRect(0, 0, width - 1, height - 1);
 		}
 
 		//--------------------------------------------------------------
@@ -700,7 +710,7 @@ class ClueDialog
 			{
 				Grid.Field.Id fieldId = field.getId();
 				int length = field.getLength();
-				int index = Collections.binarySearch(clues, new Clue(fieldId), Clue.FieldIdComparator.INSTANCE);
+				int index = Collections.binarySearch(clues, new Clue(fieldId), Clue.COMPARATOR);
 				if (index < 0)
 					fields.add(new Field(fieldId, length, false));
 				else

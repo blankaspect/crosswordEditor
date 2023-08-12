@@ -2,7 +2,7 @@
 
 GridParamsDialog.java
 
-Grid parameters dialog box class.
+Grid parameters dialog class.
 
 \*====================================================================*/
 
@@ -44,22 +44,22 @@ import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.button.FButton;
+import uk.blankaspect.ui.swing.button.FButton;
 
-import uk.blankaspect.common.swing.combobox.FComboBox;
+import uk.blankaspect.ui.swing.combobox.FComboBox;
 
-import uk.blankaspect.common.swing.container.DimensionsSpinnerPanel;
+import uk.blankaspect.ui.swing.container.DimensionsSpinnerPanel;
 
-import uk.blankaspect.common.swing.label.FLabel;
+import uk.blankaspect.ui.swing.label.FLabel;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
 //----------------------------------------------------------------------
 
 
-// GRID PARAMETERS DIALOG BOX CLASS
+// GRID PARAMETERS DIALOG CLASS
 
 
 class GridParamsDialog

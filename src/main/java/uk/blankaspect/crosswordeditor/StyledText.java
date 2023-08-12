@@ -39,8 +39,6 @@ import uk.blankaspect.common.exception.AppException;
 
 import uk.blankaspect.common.misc.IStringKeyed;
 
-import uk.blankaspect.common.string.StringUtils;
-
 import uk.blankaspect.common.xml.Attribute;
 import uk.blankaspect.common.xml.XhtmlUtils;
 import uk.blankaspect.common.xml.XmlWriter;
@@ -388,15 +386,14 @@ class StyledText
 
 		public String getIndicatorString()
 		{
-			return ((index == 0) ? INDICATOR_STR
-								 : StringUtils.createCharString(' ', index) + INDICATOR_STR);
+			return (index == 0) ? INDICATOR_STR : " ".repeat(index) + INDICATOR_STR;
 		}
 
 		//--------------------------------------------------------------
 
 		public String getMessageString()
 		{
-			return (toString().split(SEPARATOR)[1]);
+			return toString().split(SEPARATOR)[1];
 		}
 
 		//--------------------------------------------------------------
@@ -444,7 +441,7 @@ class StyledText
 			if (obj instanceof Span)
 			{
 				Span other = (Span)obj;
-				return (text.equals(other.text) && attrs.equals(other.attrs));
+				return text.equals(other.text) && attrs.equals(other.attrs);
 			}
 			return false;
 		}

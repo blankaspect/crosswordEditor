@@ -2,7 +2,7 @@
 
 TextOutputTaskDialog.java
 
-Text-output task dialog box class.
+Text-output task dialog class.
 
 \*====================================================================*/
 
@@ -60,23 +60,23 @@ import uk.blankaspect.common.exception.AppException;
 
 import uk.blankaspect.common.misc.IProcessOutputWriter;
 
-import uk.blankaspect.common.swing.action.KeyAction;
-
-import uk.blankaspect.common.swing.button.AlternativeTextButton;
-import uk.blankaspect.common.swing.button.FButton;
-
-import uk.blankaspect.common.swing.font.FontUtils;
-
-import uk.blankaspect.common.swing.misc.GuiUtils;
-
-import uk.blankaspect.common.swing.textarea.FTextArea;
-
 import uk.blankaspect.common.ui.progress.IProgressView;
+
+import uk.blankaspect.ui.swing.action.KeyAction;
+
+import uk.blankaspect.ui.swing.button.AlternativeTextButton;
+import uk.blankaspect.ui.swing.button.FButton;
+
+import uk.blankaspect.ui.swing.font.FontUtils;
+
+import uk.blankaspect.ui.swing.misc.GuiUtils;
+
+import uk.blankaspect.ui.swing.textarea.FTextArea;
 
 //----------------------------------------------------------------------
 
 
-// TEXT-OUTPUT TASK DIALOG BOX CLASS
+// TEXT-OUTPUT TASK DIALOG CLASS
 
 
 class TextOutputTaskDialog
@@ -331,7 +331,7 @@ class TextOutputTaskDialog
 		buttonPanel.add(copyButton);
 
 		// Button: close
-		closeButton = new AlternativeTextButton<String>(CLOSE_STRS);
+		closeButton = new AlternativeTextButton<>(CLOSE_STRS);
 		closeButton.setActionCommand(Command.CLOSE);
 		closeButton.addActionListener(this);
 		buttonPanel.add(closeButton);

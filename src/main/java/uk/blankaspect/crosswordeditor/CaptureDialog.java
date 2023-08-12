@@ -2,7 +2,7 @@
 
 CaptureDialog.java
 
-Crossword capture dialog box class.
+Crossword capture dialog class.
 
 \*====================================================================*/
 
@@ -71,8 +71,6 @@ import uk.blankaspect.common.exception.FileException;
 
 import uk.blankaspect.common.filesystem.PathnameUtils;
 
-import uk.blankaspect.common.indexedsub.IndexedSub;
-
 import uk.blankaspect.common.misc.FilenameSuffixFilter;
 import uk.blankaspect.common.misc.MaxValueMap;
 
@@ -80,43 +78,43 @@ import uk.blankaspect.common.regex.RegexUtils;
 
 import uk.blankaspect.common.string.StringUtils;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.border.TitledBorder;
+import uk.blankaspect.ui.swing.border.TitledBorder;
 
-import uk.blankaspect.common.swing.button.FButton;
-import uk.blankaspect.common.swing.button.MenuButton;
+import uk.blankaspect.ui.swing.button.FButton;
+import uk.blankaspect.ui.swing.button.MenuButton;
 
-import uk.blankaspect.common.swing.checkbox.FCheckBox;
+import uk.blankaspect.ui.swing.checkbox.FCheckBox;
 
-import uk.blankaspect.common.swing.combobox.FComboBox;
+import uk.blankaspect.ui.swing.combobox.FComboBox;
 
-import uk.blankaspect.common.swing.container.DimensionsSpinnerPanel;
-import uk.blankaspect.common.swing.container.PathnamePanel;
+import uk.blankaspect.ui.swing.container.DimensionsSpinnerPanel;
+import uk.blankaspect.ui.swing.container.PathnamePanel;
 
-import uk.blankaspect.common.swing.dialog.ParameterSetDialog;
+import uk.blankaspect.ui.swing.dialog.ParameterSetDialog;
 
-import uk.blankaspect.common.swing.font.FontUtils;
+import uk.blankaspect.ui.swing.font.FontUtils;
 
-import uk.blankaspect.common.swing.image.ClipboardImage;
+import uk.blankaspect.ui.swing.image.ClipboardImage;
 
-import uk.blankaspect.common.swing.label.FixedWidthLabel;
-import uk.blankaspect.common.swing.label.FLabel;
+import uk.blankaspect.ui.swing.label.FixedWidthLabel;
+import uk.blankaspect.ui.swing.label.FLabel;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
-import uk.blankaspect.common.swing.misc.PropertyKeys;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.PropertyKeys;
 
-import uk.blankaspect.common.swing.spinner.FIntegerSpinner;
+import uk.blankaspect.ui.swing.spinner.FIntegerSpinner;
 
-import uk.blankaspect.common.swing.tabbedpane.FTabbedPane;
+import uk.blankaspect.ui.swing.tabbedpane.FTabbedPane;
 
-import uk.blankaspect.common.swing.textfield.FTextField;
-import uk.blankaspect.common.swing.textfield.IntegerField;
+import uk.blankaspect.ui.swing.textfield.FTextField;
+import uk.blankaspect.ui.swing.textfield.IntegerField;
 
 //----------------------------------------------------------------------
 
 
-// CROSSWORD CAPTURE DIALOG BOX CLASS
+// CROSSWORD CAPTURE DIALOG CLASS
 
 
 class CaptureDialog
@@ -217,7 +215,7 @@ class CaptureDialog
 	private static final	String	CONFIRM_CLEAR_STR		= "Do you want to clear the crossword " +
 																"number, prologue, epilogue,\ngrid image " +
 																"and lists of clues?";
-	private static final	String	GRID_FOUND_STR			= "A grid of %1 columns by %2 rows was found." +
+	private static final	String	GRID_FOUND_STR			= "A grid of %d columns by %d rows was found." +
 																"\nDo you want to set the grid size to " +
 																"these values?";
 	private static final	String	NO_PARAM_SET_FILE_STR	= "No parameter-set file has been specified " +
@@ -2297,8 +2295,7 @@ class CaptureDialog
 				int endpointTolerance = gridLineEndpointToleranceSpinner.getIntValue();
 				gridInfo = Grid.findGrid(image, brightnessThreshold, minLineLength, minLineSeparation,
 										 endpointTolerance);
-				String messageStr = IndexedSub.sub(GRID_FOUND_STR, Integer.toString(gridInfo.numColumns),
-												   Integer.toString(gridInfo.numRows));
+				String messageStr = String.format(GRID_FOUND_STR, gridInfo.numColumns, gridInfo.numRows);
 				int result = JOptionPane.showConfirmDialog(this, messageStr, GET_GRID_IMAGE_STR,
 														   JOptionPane.YES_NO_CANCEL_OPTION);
 				if (result == JOptionPane.YES_OPTION)

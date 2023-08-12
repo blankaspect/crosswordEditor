@@ -2,7 +2,7 @@
 
 PassphraseDialog.java
 
-Passphrase dialog box class.
+Passphrase dialog class.
 
 \*====================================================================*/
 
@@ -46,20 +46,20 @@ import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.button.FButton;
+import uk.blankaspect.ui.swing.button.FButton;
 
-import uk.blankaspect.common.swing.container.PassphrasePanel;
+import uk.blankaspect.ui.swing.container.PassphrasePanel;
 
-import uk.blankaspect.common.swing.label.FLabel;
+import uk.blankaspect.ui.swing.label.FLabel;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
 //----------------------------------------------------------------------
 
 
-// PASSPHRASE DIALOG BOX CLASS
+// PASSPHRASE DIALOG CLASS
 
 
 class PassphraseDialog

@@ -20,13 +20,14 @@ package uk.blankaspect.crosswordeditor;
 
 import java.awt.event.KeyEvent;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+
+import java.util.stream.Stream;
 
 import uk.blankaspect.common.misc.IStringKeyed;
 
@@ -76,6 +77,29 @@ enum Direction
 	private static final	Map<Direction, List<String>>	KEYWORD_LISTS;
 
 ////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	String	key;
+	private	String	suffix;
+	private	int		keyCode;
+
+////////////////////////////////////////////////////////////////////////
+//  Static initialiser
+////////////////////////////////////////////////////////////////////////
+
+	static
+	{
+		KEYWORD_COMPARATOR = Comparator.<String>comparingInt(keyword -> keyword.length())
+								.thenComparing(Comparator.naturalOrder());
+
+		Map<Direction, List<String>> lists = new EnumMap<>(Direction.class);
+		lists.put(Direction.ACROSS, List.of("Across", " Across", " across", "Ac", " ac", "A", " a"));
+		lists.put(Direction.DOWN,   List.of("Down",   " Down",   " down",   "Dn", " dn", "D", " d"));
+		KEYWORD_LISTS = Collections.unmodifiableMap(lists);
+	}
+
+////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
@@ -96,24 +120,20 @@ enum Direction
 
 	public static Direction forKey(String key)
 	{
-		for (Direction value : values())
-		{
-			if (value.key.equals(key))
-				return value;
-		}
-		return null;
+		return Stream.of(values())
+						.filter(value -> value.key.equals(key))
+						.findFirst()
+						.orElse(null);
 	}
 
 	//------------------------------------------------------------------
 
 	public static Direction forSuffix(String suffix)
 	{
-		for (Direction value : values())
-		{
-			if (value.suffix.equals(suffix))
-				return value;
-		}
-		return null;
+		return Stream.of(values())
+						.filter(value -> value.suffix.equals(suffix))
+						.findFirst()
+						.orElse(null);
 	}
 
 	//------------------------------------------------------------------
@@ -122,6 +142,7 @@ enum Direction
 //  Instance methods : IStringKeyed interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public String getKey()
 	{
 		return key;
@@ -165,34 +186,6 @@ enum Direction
 	}
 
 	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Static initialiser
-////////////////////////////////////////////////////////////////////////
-
-	static
-	{
-		KEYWORD_COMPARATOR = (keyword1, keyword2) ->
-		{
-			int result = Integer.compare(keyword2.length(), keyword1.length());
-			if (result == 0)
-				result = keyword1.compareTo(keyword2);
-			return result;
-		};
-
-		Map<Direction, List<String>> lists = new EnumMap<>(Direction.class);
-		lists.put(Direction.ACROSS, Arrays.asList("Across", " Across", " across", "Ac", " ac", "A", " a"));
-		lists.put(Direction.DOWN,   Arrays.asList("Down",   " Down",   " down",   "Dn", " dn", "D", " d"));
-		KEYWORD_LISTS = Collections.unmodifiableMap(lists);
-	}
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	String	key;
-	private	String	suffix;
-	private	int		keyCode;
 
 }
 

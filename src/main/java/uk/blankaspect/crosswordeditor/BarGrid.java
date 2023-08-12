@@ -2,7 +2,7 @@
 
 BarGrid.java
 
-Bar grid class.
+Class: bar grid.
 
 \*====================================================================*/
 
@@ -25,29 +25,30 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
+import uk.blankaspect.common.css.CssMediaRule;
+import uk.blankaspect.common.css.CssProperty;
+import uk.blankaspect.common.css.CssRuleSet;
+import uk.blankaspect.common.css.CssSelector;
+
 import uk.blankaspect.common.exception.AppException;
-
-import uk.blankaspect.common.html.CssMediaRule;
-import uk.blankaspect.common.html.CssRuleSet;
-
-import uk.blankaspect.common.indexedsub.IndexedSub;
 
 import uk.blankaspect.common.misc.EditList;
 
-import uk.blankaspect.common.swing.colour.ColourUtils;
+import uk.blankaspect.common.tuple.StrKVPair;
 
 import uk.blankaspect.common.xml.AttributeList;
 import uk.blankaspect.common.xml.XmlWriter;
 
+import uk.blankaspect.ui.swing.colour.ColourUtils;
+
 //----------------------------------------------------------------------
 
 
-// BAR GRID CLASS
+// CLASS: BAR GRID
 
 
 class BarGrid
@@ -60,12 +61,14 @@ class BarGrid
 
 	private static final	double	OFFSET_FACTOR	= 0.01;
 
-	private static final	String	BORDER_WIDTH_PROPERTY	= "border-%1-width";
+	private static final	String	BORDER_WIDTH_PROPERTY	= "border-%s-width";
 
 	private static final	String	GRID_DEF_CHARS	= "0123";
 
+	private static final	String	PIXEL_SIZE_STR	= "%dpx";
+
 	private static final	EnumSet<Edge>		SECONDARY_BARS		= EnumSet.of(Edge.BOTTOM, Edge.RIGHT);
-	private static final	List<EnumSet<Edge>>	SECONDARY_BAR_SETS	= Arrays.asList
+	private static final	List<EnumSet<Edge>>	SECONDARY_BAR_SETS	= List.of
 	(
 		EnumSet.noneOf(Edge.class),
 		EnumSet.of(Edge.BOTTOM),
@@ -82,464 +85,13 @@ class BarGrid
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Enumerated types
-////////////////////////////////////////////////////////////////////////
-
-
-	// CELL EDGE
-
-
-	enum Edge
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		TOP
-		(
-			'T',
-			"top"
-		),
-
-		RIGHT
-		(
-			'R',
-			"right"
-		),
-
-		BOTTOM
-		(
-			'B',
-			"bottom"
-		),
-
-		LEFT
-		(
-			'L',
-			"left"
-		);
-
-	////////////////////////////////////////////////////////////////////
-	//  Member classes : non-inner classes
-	////////////////////////////////////////////////////////////////////
-
-
-		// EDGE SETS CLASS
-
-
-		private static class Sets
-		{
-
-		////////////////////////////////////////////////////////////////
-		//  Constructors
-		////////////////////////////////////////////////////////////////
-
-			private Sets(Set<Edge> remove,
-						 Set<Edge> add)
-			{
-				this.remove = remove;
-				this.add = add;
-			}
-
-			//----------------------------------------------------------
-
-		////////////////////////////////////////////////////////////////
-		//  Instance variables
-		////////////////////////////////////////////////////////////////
-
-			private	Set<Edge>	remove;
-			private	Set<Edge>	add;
-
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Edge(char   key,
-					 String text)
-		{
-			this.key = key;
-			this.text = text;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		private static EnumSet<Edge> reflectVAxis(Set<Edge> edges)
-		{
-			EnumSet<Edge> outEdges = EnumSet.noneOf(Edge.class);
-			for (Edge edge : edges)
-				outEdges.add(edge.reflectVAxis());
-			return outEdges;
-		}
-
-		//--------------------------------------------------------------
-
-		private static Sets reflectVAxis(Sets edgeSets)
-		{
-			return new Sets(reflectVAxis(edgeSets.remove), reflectVAxis(edgeSets.add));
-		}
-
-		//--------------------------------------------------------------
-
-		private static EnumSet<Edge> reflectHAxis(Set<Edge> edges)
-		{
-			EnumSet<Edge> outEdges = EnumSet.noneOf(Edge.class);
-			for (Edge edge : edges)
-				outEdges.add(edge.reflectHAxis());
-			return outEdges;
-		}
-
-		//--------------------------------------------------------------
-
-		private static Sets reflectHAxis(Sets edgeSets)
-		{
-			return new Sets(reflectHAxis(edgeSets.remove), reflectHAxis(edgeSets.add));
-		}
-
-		//--------------------------------------------------------------
-
-		private static EnumSet<Edge> rotateQuarter(Set<Edge> edges,
-												   int       numQuarters)
-		{
-			EnumSet<Edge> outEdges = EnumSet.noneOf(Edge.class);
-			for (Edge edge : edges)
-				outEdges.add(edge.rotateQuarter(numQuarters));
-			return outEdges;
-		}
-
-		//--------------------------------------------------------------
-
-		private static Sets rotateQuarter(Sets edgeSets,
-										  int  numQuarters)
-		{
-			return new Sets(rotateQuarter(edgeSets.remove, numQuarters),
-							rotateQuarter(edgeSets.add, numQuarters));
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private int getMask()
-		{
-			return (1 << ordinal());
-		}
-
-		//--------------------------------------------------------------
-
-		private boolean isVertical()
-		{
-			return ((ordinal() % 2) != 0);
-		}
-
-		//--------------------------------------------------------------
-
-		private boolean isHorizontal()
-		{
-			return ((ordinal() % 2) == 0);
-		}
-
-		//--------------------------------------------------------------
-
-		private Edge reflectVAxis()
-		{
-			return (isVertical() ? values()[(ordinal() + 2) % values().length] : this);
-		}
-
-		//--------------------------------------------------------------
-
-		private Edge reflectHAxis()
-		{
-			return (isHorizontal() ? values()[(ordinal() + 2) % values().length] : this);
-		}
-
-		//--------------------------------------------------------------
-
-		private Edge rotateQuarter(int numQuarters)
-		{
-			return (values()[(ordinal() + numQuarters) % values().length]);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	char	key;
-		private	String	text;
-
-	}
-
-	//==================================================================
-
-
-	// ERROR IDENTIFIERS
-
-
-	private enum ErrorId
-		implements AppException.IId
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		MALFORMED_GRID_IMAGE
-		("The grid image is malformed."),
-
-		ILLEGAL_CHARACTER_IN_GRID_DEFINITION
-		("The grid definition contains an illegal character, \"%1\"."),
-
-		MALFORMED_GRID_DEFINITION
-		("The grid definition is malformed.");
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ErrorId(String message)
-		{
-			this.message = message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : AppException.IId interface
-	////////////////////////////////////////////////////////////////////
-
-		public String getMessage()
-		{
-			return message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	message;
-
-	}
-
-	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
-////////////////////////////////////////////////////////////////////////
-
-
-	// CELL CLASS
-
-
-	public static class Cell
-		extends Grid.Cell
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	CLASS_PREFIX	= "bar-";
-
-		private static final	String	STYLE_SELECTOR	= HtmlConstants.ElementName.DIV + CssConstants.Selector.CLASS
-																							+ HtmlConstants.Class.BARS;
-		private static final	CssRuleSet	RULE_SET	= new CssRuleSet
-		(
-			STYLE_SELECTOR,
-			new CssRuleSet.Decl(CssConstants.Property.POSITION, "absolute"),
-			new CssRuleSet.Decl(CssConstants.Property.Z_INDEX,  "1"),
-			new CssRuleSet.Decl(CssConstants.Property.WIDTH,    ""),
-			new CssRuleSet.Decl(CssConstants.Property.HEIGHT,   ""),
-			new CssRuleSet.Decl(CssConstants.Property.TOP,      ""),
-			new CssRuleSet.Decl(CssConstants.Property.LEFT,     ""),
-			new CssRuleSet.Decl(CssConstants.Property.BORDER,   "0 solid %1")
-		);
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Cell()
-		{
-			bars = EnumSet.noneOf(Edge.class);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		private static String getClassName(Set<Edge> edges)
-		{
-			StringBuilder buffer = new StringBuilder();
-			if (!edges.isEmpty())
-			{
-				buffer.append(CLASS_PREFIX);
-				for (Edge edge : edges)
-					buffer.append(edge.key);
-			}
-			return buffer.toString();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public Cell clone()
-		{
-			Cell copy = (Cell)super.clone();
-			copy.bars = bars.clone();
-			return copy;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected void write(XmlWriter writer,
-							 int       indent,
-							 int       cellSize,
-							 int       fieldNumber,
-							 char      entry)
-			throws IOException
-		{
-			writer.writeElementStart(HtmlConstants.ElementName.DIV, indent, false);
-			if (!bars.isEmpty())
-			{
-				AttributeList attributes = new AttributeList();
-				attributes.add(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.BARS + " " + getClassName(bars));
-				writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, 0, false, false);
-				writer.writeEndTag(HtmlConstants.ElementName.DIV);
-			}
-			writeContents(writer, fieldNumber, entry);
-			writer.writeElementEnd(HtmlConstants.ElementName.DIV, 0);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public boolean hasBar(Edge edge)
-		{
-			return bars.contains(edge);
-		}
-
-		//--------------------------------------------------------------
-
-		private void addBar(Edge edge)
-		{
-			bars.add(edge);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	EnumSet<Edge>	bars;
-
-	}
-
-	//==================================================================
-
-
-	// EDIT CLASS
-
-
-	private static class Edit
-		extends EditList.Element<BarGrid>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Edit(Symmetry oldSymmetry,
-					 Cell[][] oldCells,
-					 Symmetry newSymmetry,
-					 Cell[][] newCells)
-		{
-			this.oldSymmetry = oldSymmetry;
-			this.oldCells = oldCells;
-			this.newSymmetry = newSymmetry;
-			this.newCells = newCells;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String getText()
-		{
-			return null;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(BarGrid grid)
-		{
-			if (oldSymmetry != null)
-				grid.symmetry = oldSymmetry;
-			grid.cells = oldCells;
-			grid.initFields();
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(BarGrid grid)
-		{
-			if (newSymmetry != null)
-				grid.symmetry = newSymmetry;
-			grid.cells = newCells;
-			grid.initFields();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	Symmetry	oldSymmetry;
-		private	Cell[][]	oldCells;
-		private	Symmetry	newSymmetry;
-		private	Cell[][]	newCells;
-
-	}
-
-	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	public BarGrid(int      numColumns,
-				   int      numRows,
-				   Symmetry symmetry)
+	public BarGrid(
+		int			numColumns,
+		int			numRows,
+		Symmetry	symmetry)
 	{
 		// Initialise instance variables
 		this(numColumns, numRows);
@@ -551,10 +103,11 @@ class BarGrid
 
 	//------------------------------------------------------------------
 
-	public BarGrid(int      numColumns,
-				   int      numRows,
-				   Symmetry symmetry,
-				   String   definition)
+	public BarGrid(
+		int			numColumns,
+		int			numRows,
+		Symmetry	symmetry,
+		String		definition)
 		throws AppException
 	{
 		// Initialise instance variables
@@ -586,13 +139,14 @@ class BarGrid
 
 	//------------------------------------------------------------------
 
-	public BarGrid(int           numColumns,
-				   int           numRows,
-				   BufferedImage image,
-				   int           xOffset,
-				   int           yOffset,
-				   double        brightnessThreshold,
-				   int           barWidthThreshold)
+	public BarGrid(
+		int				numColumns,
+		int				numRows,
+		BufferedImage	image,
+		int				xOffset,
+		int				yOffset,
+		double			brightnessThreshold,
+		int				barWidthThreshold)
 		throws AppException
 	{
 		// Initialise instance variables
@@ -670,7 +224,8 @@ class BarGrid
 
 	//------------------------------------------------------------------
 
-	private BarGrid(BarGrid grid)
+	private BarGrid(
+		BarGrid	grid)
 	{
 		// Initialise instance variables
 		this(grid.numColumns, grid.numRows);
@@ -690,8 +245,9 @@ class BarGrid
 
 	//------------------------------------------------------------------
 
-	private BarGrid(int numColumns,
-					int numRows)
+	private BarGrid(
+		int	numColumns,
+		int	numRows)
 	{
 		// Call superclass contructor
 		super(numColumns, numRows);
@@ -711,7 +267,8 @@ class BarGrid
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	private static Cell[][] copyCells(Cell[][] cells)
+	private static Cell[][] copyCells(
+		Cell[][]	cells)
 	{
 		Cell[][] outCells = new Cell[cells.length][];
 		for (int i = 0; i < cells.length; i++)
@@ -726,13 +283,14 @@ class BarGrid
 
 	//------------------------------------------------------------------
 
-	private static boolean isBar(int           startIndex,
-								 int           endIndex,
-								 int           fixedCoord,
-								 boolean       vertical,
-								 BufferedImage image,
-								 double        brightnessThreshold,
-								 int           barWidthThreshold)
+	private static boolean isBar(
+		int				startIndex,
+		int				endIndex,
+		int				fixedCoord,
+		boolean			vertical,
+		BufferedImage	image,
+		double			brightnessThreshold,
+		int				barWidthThreshold)
 		throws AppException
 	{
 		int lineWidth = 0;
@@ -778,16 +336,17 @@ class BarGrid
 
 	//------------------------------------------------------------------
 
-	private static List<CssRuleSet> createCellRuleSets(int    cellSize,
-													   Color  gridColour,
-													   Color  barColour,
-													   Color  entryColour,
-													   double fieldNumberFontSizeFactor,
-													   int    barWidth,
-													   int    cellOffsetTop,
-													   int    cellOffsetLeft,
-													   int    fieldNumOffsetTop,
-													   int    fieldNumOffsetLeft)
+	private static List<CssRuleSet> createCellRuleSets(
+		int		cellSize,
+		Color	gridColour,
+		Color	barColour,
+		Color	entryColour,
+		double	fieldNumberFontSizeFactor,
+		int		barWidth,
+		int		cellOffsetTop,
+		int		cellOffsetLeft,
+		int		fieldNumOffsetTop,
+		int		fieldNumOffsetLeft)
 	{
 		// Initialise local variables
 		int halfBarWidth = barWidth / 2;
@@ -802,22 +361,13 @@ class BarGrid
 		// Get rule set for barred cell
 		CssRuleSet ruleSet = Cell.RULE_SET.clone();
 
-		// Fix up values in rule set
+		// Set property values in rule set
 		int outerSize = cellSize + 1;
-		String cellSizeStr = Integer.toString(outerSize);
-		CssRuleSet.Decl decl = ruleSet.findDeclaration(CssConstants.Property.WIDTH);
-		decl.value = IndexedSub.sub(PIXEL_SIZE_STR, cellSizeStr);
-		decl = ruleSet.findDeclaration(CssConstants.Property.HEIGHT);
-		decl.value = IndexedSub.sub(PIXEL_SIZE_STR, cellSizeStr);
-
-		decl = ruleSet.findDeclaration(CssConstants.Property.TOP);
-		decl.value = IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(cellOffsetTop - 1));
-		decl = ruleSet.findDeclaration(CssConstants.Property.LEFT);
-		decl.value = IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(cellOffsetLeft - 1));
-
-		String colourStr = ColourUtils.colourToHexString(barColour);
-		decl = ruleSet.findDeclaration(CssConstants.Property.BORDER);
-		decl.value = IndexedSub.sub(decl.value, colourStr);
+		ruleSet.replacePropertyValue(CssProperty.WIDTH, outerSize);
+		ruleSet.replacePropertyValue(CssProperty.HEIGHT, outerSize);
+		ruleSet.replacePropertyValue(CssProperty.TOP, cellOffsetTop - 1);
+		ruleSet.replacePropertyValue(CssProperty.LEFT, cellOffsetLeft - 1);
+		ruleSet.replacePropertyValue(CssProperty.BORDER, ColourUtils.colourToHexString(barColour));
 
 		// Add rule set for barred cell
 		ruleSets.add(1, ruleSet);
@@ -833,46 +383,39 @@ class BarGrid
 					edges.add(edge);
 			}
 
-			// Create a rule set
-			ruleSet = new CssRuleSet(HtmlConstants.ElementName.DIV + CssConstants.Selector.CLASS
-																							+ Cell.getClassName(edges));
+			// Create rule set
+			ruleSet = CssRuleSet.empty(HtmlConstants.ElementName.DIV + CssSelector.CLASS + Cell.getClassName(edges));
 
-			// Add a width declaration
+			// Add property: width
 			int numVerticalEdges = (int)edges.stream().filter(edge -> edge.isVertical()).count();
 			if (numVerticalEdges > 0)
 			{
 				int width = outerSize - ((numVerticalEdges == 1) ? halfBarWidth : barWidth);
-				ruleSet.addDeclaration(CssConstants.Property.WIDTH,
-									   IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(width)));
+				ruleSet.addProperty(CssProperty.WIDTH, String.format(PIXEL_SIZE_STR, width));
 			}
 
-			// Add a height declaration
+			// Add property: height
 			int numHorizontalEdges = (int)edges.stream().filter(edge -> edge.isHorizontal()).count();
 			if (numHorizontalEdges > 0)
 			{
 				int height = outerSize - ((numHorizontalEdges == 1) ? halfBarWidth : barWidth);
-				ruleSet.addDeclaration(CssConstants.Property.HEIGHT,
-									   IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(height)));
+				ruleSet.addProperty(CssProperty.HEIGHT, String.format(PIXEL_SIZE_STR, height));
 			}
 
-			// Add a top-offset declaration
+			// Add property: top offset
 			if (edges.contains(Edge.TOP))
-				ruleSet.addDeclaration(CssConstants.Property.TOP,
-									   IndexedSub.sub(PIXEL_SIZE_STR,
-													  Integer.toString(cellOffsetTop - halfBarWidth - 1)));
+				ruleSet.addProperty(CssProperty.TOP, String.format(PIXEL_SIZE_STR, cellOffsetTop - halfBarWidth - 1));
 
-			// Add a left-offset declaration
+			// Add property: left offset
 			if (edges.contains(Edge.LEFT))
-				ruleSet.addDeclaration(CssConstants.Property.LEFT,
-									   IndexedSub.sub(PIXEL_SIZE_STR,
-													  Integer.toString(cellOffsetLeft - halfBarWidth - 1)));
+				ruleSet.addProperty(CssProperty.LEFT, String.format(PIXEL_SIZE_STR, cellOffsetLeft - halfBarWidth - 1));
 
-			// Add border-width declarations
+			// Add properties: border width
 			for (Edge edge : edges)
-				ruleSet.addDeclaration(IndexedSub.sub(BORDER_WIDTH_PROPERTY, edge.text),
-									   IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(barWidth)));
+				ruleSet.addProperty(String.format(BORDER_WIDTH_PROPERTY, edge.text),
+									String.format(PIXEL_SIZE_STR, barWidth));
 
-			// Add the rule set to the list
+			// Add rule set to list
 			ruleSets.add(ruleSet);
 		}
 
@@ -894,8 +437,9 @@ class BarGrid
 	//------------------------------------------------------------------
 
 	@Override
-	public Cell getCell(int row,
-						int column)
+	public Cell getCell(
+		int	row,
+		int	column)
 	{
 		return cells[row][column];
 	}
@@ -945,10 +489,11 @@ class BarGrid
 	//------------------------------------------------------------------
 
 	@Override
-	public List<CssRuleSet> getStyleRuleSets(int    cellSize,
-											 Color  gridColour,
-											 Color  entryColour,
-											 double fieldNumberFontSizeFactor)
+	public List<CssRuleSet> getStyleRuleSets(
+		int		cellSize,
+		Color	gridColour,
+		Color	entryColour,
+		double	fieldNumberFontSizeFactor)
 	{
 		List<CssRuleSet> ruleSets = new ArrayList<>();
 		ruleSets.addAll(RULE_SETS);
@@ -1015,7 +560,8 @@ class BarGrid
 	//------------------------------------------------------------------
 
 	@Override
-	public void setSymmetry(Symmetry symmetry)
+	public void setSymmetry(
+		Symmetry	symmetry)
 	{
 		if (this.symmetry != symmetry)
 		{
@@ -1061,7 +607,8 @@ class BarGrid
 	//------------------------------------------------------------------
 
 	@Override
-	protected boolean isSymmetry(Symmetry symmetry)
+	protected boolean isSymmetry(
+		Symmetry	symmetry)
 	{
 		int[] dimensions = symmetry.getPrincipalDimensions(numColumns, numRows);
 		for (int r1 = 0; r1 < dimensions[1]; r1++)
@@ -1117,10 +664,11 @@ class BarGrid
 //  Instance methods
 ////////////////////////////////////////////////////////////////////////
 
-	public void setCellBars(int           row,
-							int           column,
-							EnumSet<Edge> removeBars,
-							EnumSet<Edge> addBars)
+	public void setCellBars(
+		int				row,
+		int				column,
+		EnumSet<Edge>	removeBars,
+		EnumSet<Edge>	addBars)
 	{
 		// Set specified cell
 		Edge.Sets barSets = new Edge.Sets(removeBars, addBars);
@@ -1165,9 +713,10 @@ class BarGrid
 
 	//------------------------------------------------------------------
 
-	public void toggleBar(int          row,
-						  int          column,
-						  BarGrid.Edge edge)
+	public void toggleBar(
+		int				row,
+		int				column,
+		BarGrid.Edge	edge)
 	{
 		Cell[][] oldCells = copyCells(cells);
 		EnumSet<BarGrid.Edge> bars = EnumSet.noneOf(BarGrid.Edge.class);
@@ -1237,9 +786,10 @@ class BarGrid
 
 	//------------------------------------------------------------------
 
-	private void setBars(int       row,
-						 int       column,
-						 Edge.Sets edgeSets)
+	private void setBars(
+		int			row,
+		int			column,
+		Edge.Sets	edgeSets)
 	{
 		// Remove bars from and add bars to cell
 		Cell cell = cells[row][column];
@@ -1309,6 +859,476 @@ class BarGrid
 
 	private	Cell[][]			cells;
 	private	EditList<BarGrid>	editList;
+
+////////////////////////////////////////////////////////////////////////
+//  Enumerated types
+////////////////////////////////////////////////////////////////////////
+
+
+	// ENUMERATION: CELL EDGE
+
+
+	enum Edge
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		TOP
+		(
+			'T',
+			"top"
+		),
+
+		RIGHT
+		(
+			'R',
+			"right"
+		),
+
+		BOTTOM
+		(
+			'B',
+			"bottom"
+		),
+
+		LEFT
+		(
+			'L',
+			"left"
+		);
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	char	key;
+		private	String	text;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Edge(
+			char	key,
+			String	text)
+		{
+			this.key = key;
+			this.text = text;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Class methods
+	////////////////////////////////////////////////////////////////////
+
+		private static EnumSet<Edge> reflectVAxis(
+			Set<Edge>	edges)
+		{
+			EnumSet<Edge> outEdges = EnumSet.noneOf(Edge.class);
+			for (Edge edge : edges)
+				outEdges.add(edge.reflectVAxis());
+			return outEdges;
+		}
+
+		//--------------------------------------------------------------
+
+		private static Sets reflectVAxis(
+			Sets	edgeSets)
+		{
+			return new Sets(reflectVAxis(edgeSets.remove), reflectVAxis(edgeSets.add));
+		}
+
+		//--------------------------------------------------------------
+
+		private static EnumSet<Edge> reflectHAxis(
+			Set<Edge>	edges)
+		{
+			EnumSet<Edge> outEdges = EnumSet.noneOf(Edge.class);
+			for (Edge edge : edges)
+				outEdges.add(edge.reflectHAxis());
+			return outEdges;
+		}
+
+		//--------------------------------------------------------------
+
+		private static Sets reflectHAxis(
+			Sets	edgeSets)
+		{
+			return new Sets(reflectHAxis(edgeSets.remove), reflectHAxis(edgeSets.add));
+		}
+
+		//--------------------------------------------------------------
+
+		private static EnumSet<Edge> rotateQuarter(
+			Set<Edge>	edges,
+			int			numQuarters)
+		{
+			EnumSet<Edge> outEdges = EnumSet.noneOf(Edge.class);
+			for (Edge edge : edges)
+				outEdges.add(edge.rotateQuarter(numQuarters));
+			return outEdges;
+		}
+
+		//--------------------------------------------------------------
+
+		private static Sets rotateQuarter(
+			Sets	edgeSets,
+			int		numQuarters)
+		{
+			return new Sets(rotateQuarter(edgeSets.remove, numQuarters),
+							rotateQuarter(edgeSets.add, numQuarters));
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private int getMask()
+		{
+			return 1 << ordinal();
+		}
+
+		//--------------------------------------------------------------
+
+		private boolean isVertical()
+		{
+			return ((ordinal() % 2) != 0);
+		}
+
+		//--------------------------------------------------------------
+
+		private boolean isHorizontal()
+		{
+			return ((ordinal() % 2) == 0);
+		}
+
+		//--------------------------------------------------------------
+
+		private Edge reflectVAxis()
+		{
+			return isVertical() ? values()[(ordinal() + 2) % values().length] : this;
+		}
+
+		//--------------------------------------------------------------
+
+		private Edge reflectHAxis()
+		{
+			return isHorizontal() ? values()[(ordinal() + 2) % values().length] : this;
+		}
+
+		//--------------------------------------------------------------
+
+		private Edge rotateQuarter(
+			int	numQuarters)
+		{
+			return values()[(ordinal() + numQuarters) % values().length];
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Member classes : non-inner classes
+	////////////////////////////////////////////////////////////////////
+
+
+		// CLASS: EDGE SETS
+
+
+		private static class Sets
+		{
+
+		////////////////////////////////////////////////////////////////
+		//  Instance variables
+		////////////////////////////////////////////////////////////////
+
+			private	Set<Edge>	remove;
+			private	Set<Edge>	add;
+
+		////////////////////////////////////////////////////////////////
+		//  Constructors
+		////////////////////////////////////////////////////////////////
+
+			private Sets(
+				Set<Edge>	remove,
+				Set<Edge>	add)
+			{
+				this.remove = remove;
+				this.add = add;
+			}
+
+			//----------------------------------------------------------
+
+		}
+
+		//==============================================================
+
+	}
+
+	//==================================================================
+
+
+	// ENUMERATION: ERROR IDENTIFIERS
+
+
+	private enum ErrorId
+		implements AppException.IId
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		MALFORMED_GRID_IMAGE
+		("The grid image is malformed."),
+
+		ILLEGAL_CHARACTER_IN_GRID_DEFINITION
+		("The grid definition contains an illegal character, \"%1\"."),
+
+		MALFORMED_GRID_DEFINITION
+		("The grid definition is malformed.");
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	message;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ErrorId(
+			String	message)
+		{
+			this.message = message;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : AppException.IId interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getMessage()
+		{
+			return message;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+////////////////////////////////////////////////////////////////////////
+//  Member classes : non-inner classes
+////////////////////////////////////////////////////////////////////////
+
+
+	// CLASS: CELL
+
+
+	public static class Cell
+		extends Grid.Cell
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	CLASS_PREFIX	= "bar-";
+
+		private static final	String	STYLE_SELECTOR	= HtmlConstants.ElementName.DIV + CssSelector.CLASS
+																							+ HtmlConstants.Class.BARS;
+		private static final	CssRuleSet	RULE_SET	= CssRuleSet.of
+		(
+			STYLE_SELECTOR,
+			StrKVPair.of(CssProperty.POSITION, "absolute"),
+			StrKVPair.of(CssProperty.Z_INDEX,  "1"),
+			StrKVPair.of(CssProperty.WIDTH,    "%dpx"),
+			StrKVPair.of(CssProperty.HEIGHT,   "%dpx"),
+			StrKVPair.of(CssProperty.TOP,      "%dpx"),
+			StrKVPair.of(CssProperty.LEFT,     "%dpx"),
+			StrKVPair.of(CssProperty.BORDER,   "0 solid %s")
+		);
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	EnumSet<Edge>	bars;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Cell()
+		{
+			bars = EnumSet.noneOf(Edge.class);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Class methods
+	////////////////////////////////////////////////////////////////////
+
+		private static String getClassName(
+			Set<Edge>	edges)
+		{
+			StringBuilder buffer = new StringBuilder();
+			if (!edges.isEmpty())
+			{
+				buffer.append(CLASS_PREFIX);
+				for (Edge edge : edges)
+					buffer.append(edge.key);
+			}
+			return buffer.toString();
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public Cell clone()
+		{
+			Cell copy = (Cell)super.clone();
+			copy.bars = bars.clone();
+			return copy;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected void write(
+			XmlWriter	writer,
+			int			indent,
+			int			cellSize,
+			int			fieldNumber,
+			char		entry)
+			throws IOException
+		{
+			writer.writeElementStart(HtmlConstants.ElementName.DIV, indent, false);
+			if (!bars.isEmpty())
+			{
+				AttributeList attributes = new AttributeList();
+				attributes.add(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.BARS + " " + getClassName(bars));
+				writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, 0, false, false);
+				writer.writeEndTag(HtmlConstants.ElementName.DIV);
+			}
+			writeContents(writer, fieldNumber, entry);
+			writer.writeElementEnd(HtmlConstants.ElementName.DIV, 0);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public boolean hasBar(
+			Edge	edge)
+		{
+			return bars.contains(edge);
+		}
+
+		//--------------------------------------------------------------
+
+		private void addBar(
+			Edge	edge)
+		{
+			bars.add(edge);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: EDIT
+
+
+	private static class Edit
+		extends EditList.Element<BarGrid>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	Symmetry	oldSymmetry;
+		private	Cell[][]	oldCells;
+		private	Symmetry	newSymmetry;
+		private	Cell[][]	newCells;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Edit(
+			Symmetry	oldSymmetry,
+			Cell[][]	oldCells,
+			Symmetry	newSymmetry,
+			Cell[][]	newCells)
+		{
+			this.oldSymmetry = oldSymmetry;
+			this.oldCells = oldCells;
+			this.newSymmetry = newSymmetry;
+			this.newCells = newCells;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getText()
+		{
+			return null;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void undo(
+			BarGrid	grid)
+		{
+			if (oldSymmetry != null)
+				grid.symmetry = oldSymmetry;
+			grid.cells = oldCells;
+			grid.initFields();
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo(
+			BarGrid	grid)
+		{
+			if (newSymmetry != null)
+				grid.symmetry = newSymmetry;
+			grid.cells = newCells;
+			grid.initFields();
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

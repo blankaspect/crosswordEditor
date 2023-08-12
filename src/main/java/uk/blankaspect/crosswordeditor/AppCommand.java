@@ -2,7 +2,7 @@
 
 AppCommand.java
 
-Application command enumeration.
+Enumeration: application command.
 
 \*====================================================================*/
 
@@ -26,12 +26,12 @@ import java.beans.PropertyChangeListener;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
 
-import uk.blankaspect.common.swing.action.Command;
+import uk.blankaspect.ui.swing.action.Command;
 
 //----------------------------------------------------------------------
 
 
-// APPLICATION COMMAND ENUMERATION
+// ENUMERATION: APPLICATION COMMAND
 
 
 enum AppCommand
@@ -132,10 +132,10 @@ enum AppCommand
 		"Show full pathnames"
 	),
 
-	MANAGE_FILE_ASSOCIATIONS
+	MANAGE_FILE_ASSOCIATION
 	(
-		"manageFileAssociations",
-		"Manage file associations" + AppConstants.ELLIPSIS_STR
+		"manageFileAssociation",
+		"Manage file association" + AppConstants.ELLIPSIS_STR
 	),
 
 	EDIT_PREFERENCES
@@ -151,6 +151,12 @@ enum AppCommand
 	{
 		String	FILES	= "files";
 	}
+
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	Command	command;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -187,6 +193,7 @@ enum AppCommand
 //  Instance methods : Action interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void addPropertyChangeListener(PropertyChangeListener listener)
 	{
 		command.addPropertyChangeListener(listener);
@@ -194,6 +201,7 @@ enum AppCommand
 
 	//------------------------------------------------------------------
 
+	@Override
 	public Object getValue(String key)
 	{
 		return command.getValue(key);
@@ -201,6 +209,7 @@ enum AppCommand
 
 	//------------------------------------------------------------------
 
+	@Override
 	public boolean isEnabled()
 	{
 		return command.isEnabled();
@@ -208,6 +217,7 @@ enum AppCommand
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void putValue(String key,
 						 Object value)
 	{
@@ -216,6 +226,7 @@ enum AppCommand
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void removePropertyChangeListener(PropertyChangeListener listener)
 	{
 		command.removePropertyChangeListener(listener);
@@ -223,6 +234,7 @@ enum AppCommand
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void setEnabled(boolean enabled)
 	{
 		command.setEnabled(enabled);
@@ -234,6 +246,7 @@ enum AppCommand
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void actionPerformed(ActionEvent event)
 	{
 		App.INSTANCE.executeCommand(this);
@@ -258,12 +271,6 @@ enum AppCommand
 	}
 
 	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	Command	command;
 
 }
 

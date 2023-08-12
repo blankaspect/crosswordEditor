@@ -2,7 +2,7 @@
 
 ErrorListDialog.java
 
-Error list dialog box class.
+Error list dialog class.
 
 \*====================================================================*/
 
@@ -47,16 +47,16 @@ import javax.swing.text.TabStop;
 
 import uk.blankaspect.common.exception.AppException;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.dialog.AbstractNonEditableTextPaneDialog;
+import uk.blankaspect.ui.swing.dialog.AbstractNonEditableTextPaneDialog;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
 //----------------------------------------------------------------------
 
 
-// NON-EDITABLE TEXT PANE DIALOG BOX CLASS
+// NON-EDITABLE TEXT PANE DIALOG CLASS
 
 
 class ErrorListDialog

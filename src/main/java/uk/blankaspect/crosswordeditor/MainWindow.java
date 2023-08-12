@@ -55,15 +55,15 @@ import javax.swing.event.MenuListener;
 
 import uk.blankaspect.common.exception.AppException;
 
-import uk.blankaspect.common.swing.menu.FCheckBoxMenuItem;
-import uk.blankaspect.common.swing.menu.FMenu;
-import uk.blankaspect.common.swing.menu.FMenuItem;
+import uk.blankaspect.ui.swing.menu.FCheckBoxMenuItem;
+import uk.blankaspect.ui.swing.menu.FMenu;
+import uk.blankaspect.ui.swing.menu.FMenuItem;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
-import uk.blankaspect.common.swing.tabbedpane.TabbedPane;
+import uk.blankaspect.ui.swing.tabbedpane.TabbedPane;
 
-import uk.blankaspect.common.swing.transfer.DataImporter;
+import uk.blankaspect.ui.swing.transfer.DataImporter;
 
 //----------------------------------------------------------------------
 
@@ -82,6 +82,461 @@ class MainWindow
 
 	public static final		int	DEFAULT_WIDTH	= 800;
 	public static final		int	DEFAULT_HEIGHT	= 600;
+
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	TabbedPane	tabbedPanel;
+	private	StatusPanel	statusPanel;
+	private	JPopupMenu	contextMenu;
+
+////////////////////////////////////////////////////////////////////////
+//  Constructors
+////////////////////////////////////////////////////////////////////////
+
+	public MainWindow()
+	{
+		// Set icons
+		setIconImages(Images.APP_ICON_IMAGES);
+
+
+		//----  Menu bar
+
+		JMenuBar menuBar = new JMenuBar();
+		menuBar.setBorder(null);
+
+		// File menu
+		JMenu menu = Menu.FILE.menu;
+		menu.addMenuListener(this);
+
+		menu.add(new FMenuItem(AppCommand.CREATE_DOCUMENT, KeyEvent.VK_N));
+		menu.add(new FMenuItem(AppCommand.OPEN_DOCUMENT, KeyEvent.VK_O));
+		menu.add(new FMenuItem(AppCommand.REVERT_DOCUMENT, KeyEvent.VK_R));
+
+		menu.addSeparator();
+
+		menu.add(new FMenuItem(AppCommand.CLOSE_DOCUMENT, KeyEvent.VK_C));
+		menu.add(new FMenuItem(AppCommand.CLOSE_ALL_DOCUMENTS, KeyEvent.VK_L));
+
+		menu.addSeparator();
+
+		menu.add(new FMenuItem(AppCommand.SAVE_DOCUMENT, KeyEvent.VK_S));
+		menu.add(new FMenuItem(AppCommand.SAVE_DOCUMENT_AS, KeyEvent.VK_A));
+
+		menu.addSeparator();
+
+		menu.add(new FMenuItem(AppCommand.EXPORT_HTML_FILE, KeyEvent.VK_H));
+
+		menu.addSeparator();
+
+		menu.add(new FMenuItem(AppCommand.EXIT, KeyEvent.VK_X));
+
+		menuBar.add(menu);
+
+		// Edit menu
+		menu = Menu.EDIT.menu;
+		menu.addMenuListener(this);
+
+		menu.add(new FMenuItem(CrosswordDocument.Command.UNDO, KeyEvent.VK_U));
+		menu.add(new FMenuItem(CrosswordDocument.Command.REDO, KeyEvent.VK_R));
+		menu.add(new FMenuItem(CrosswordDocument.Command.CLEAR_EDIT_LIST, KeyEvent.VK_L));
+
+		menu.addSeparator();
+
+		menu.add(new FMenuItem(CrosswordDocument.Command.EDIT_CLUE, KeyEvent.VK_C));
+		menu.add(new FMenuItem(CrosswordDocument.Command.EDIT_GRID, KeyEvent.VK_G));
+		menu.add(new FMenuItem(CrosswordDocument.Command.EDIT_TEXT_SECTIONS, KeyEvent.VK_T));
+		menu.add(new FMenuItem(CrosswordDocument.Command.EDIT_INDICATIONS, KeyEvent.VK_I));
+
+		menu.addSeparator();
+
+		menu.add(new FMenuItem(CrosswordDocument.Command.COPY_CLUES_TO_CLIPBOARD, KeyEvent.VK_Y));
+		menu.add(new FMenuItem(CrosswordDocument.Command.IMPORT_CLUES_FROM_CLIPBOARD, KeyEvent.VK_P));
+		menu.add(new FMenuItem(CrosswordDocument.Command.CLEAR_CLUES, KeyEvent.VK_A));
+
+		menu.addSeparator();
+
+		menu.add(new FMenuItem(CrosswordDocument.Command.COPY_ENTRIES_TO_CLIPBOARD, KeyEvent.VK_N));
+		menu.add(new FMenuItem(CrosswordDocument.Command.IMPORT_ENTRIES_FROM_CLIPBOARD, KeyEvent.VK_M));
+		menu.add(new FMenuItem(CrosswordDocument.Command.CLEAR_ENTRIES, KeyEvent.VK_E));
+
+		menu.addSeparator();
+
+		menu.add(new FMenuItem(CrosswordDocument.Command.COPY_FIELD_NUMBERS_TO_CLIPBOARD,
+							   KeyEvent.VK_F));
+		menu.add(new FMenuItem(CrosswordDocument.Command.COPY_FIELD_IDS_TO_CLIPBOARD, KeyEvent.VK_D));
+
+		menuBar.add(menu);
+
+		// Crossword menu
+		menu = Menu.CROSSWORD.menu;
+		menu.addMenuListener(this);
+
+		menu.add(new FMenuItem(AppCommand.CAPTURE_CROSSWORD, KeyEvent.VK_C));
+
+		menuBar.add(menu);
+
+		// Solution menu
+		menu = Menu.SOLUTION.menu;
+		menu.addMenuListener(this);
+
+		menu.add(new FMenuItem(CrosswordDocument.Command.HIGHLIGHT_INCORRECT_ENTRIES, KeyEvent.VK_I));
+		menu.add(new FMenuItem(CrosswordDocument.Command.SHOW_SOLUTION, KeyEvent.VK_S));
+
+		menu.addSeparator();
+
+		menu.add(new FMenuItem(CrosswordDocument.Command.SET_SOLUTION, KeyEvent.VK_E));
+		menu.add(new FMenuItem(CrosswordDocument.Command.IMPORT_SOLUTION_FROM_CLIPBOARD,
+							   KeyEvent.VK_I));
+		menu.add(new FMenuItem(CrosswordDocument.Command.LOAD_SOLUTION, KeyEvent.VK_L));
+		menu.add(new FMenuItem(CrosswordDocument.Command.CLEAR_SOLUTION, KeyEvent.VK_C));
+
+		menu.addSeparator();
+
+		menu.add(new FMenuItem(CrosswordDocument.Command.COPY_SOLUTION_TO_CLIPBOARD, KeyEvent.VK_Y));
+		menu.add(new FMenuItem(AppCommand.CREATE_SOLUTION_DOCUMENT, KeyEvent.VK_D));
+
+		menu.addSeparator();
+
+		menu.add(new FMenuItem(CrosswordDocument.Command.EDIT_SOLUTION_PROPERTIES, KeyEvent.VK_P));
+
+		menuBar.add(menu);
+
+		// View menu
+		menu = Menu.VIEW.menu;
+		menu.addMenuListener(this);
+
+		menu.add(new FCheckBoxMenuItem(CrosswordDocument.Command.TOGGLE_FIELD_NUMBERS, KeyEvent.VK_F));
+		menu.add(new FCheckBoxMenuItem(CrosswordDocument.Command.TOGGLE_CLUES, KeyEvent.VK_C));
+
+		menu.addSeparator();
+
+		menu.add(new FMenuItem(CrosswordDocument.Command.RESIZE_WINDOW_TO_VIEW, KeyEvent.VK_R));
+
+		menuBar.add(menu);
+
+		// Options menu
+		menu = Menu.OPTIONS.menu;
+		menu.addMenuListener(this);
+
+		menu.add(new FCheckBoxMenuItem(AppCommand.TOGGLE_SHOW_FULL_PATHNAMES, KeyEvent.VK_F));
+		menu.add(new FMenuItem(AppCommand.MANAGE_FILE_ASSOCIATION, KeyEvent.VK_A));
+		menu.add(new FMenuItem(AppCommand.EDIT_PREFERENCES, KeyEvent.VK_P));
+
+		menuBar.add(menu);
+
+		// Set menu bar
+		setJMenuBar(menuBar);
+
+
+		//----  Tabbed panel
+
+		tabbedPanel = new TabbedPane();
+		tabbedPanel.setIgnoreCase(true);
+		tabbedPanel.addChangeListener(this);
+		tabbedPanel.addMouseListener(this);
+
+
+		//----  Status panel
+
+		statusPanel = new StatusPanel();
+
+
+		//----  Main panel
+
+		MainPanel mainPanel = new MainPanel();
+
+
+		//----  Window
+
+		// Set content pane
+		setContentPane(mainPanel);
+
+		// Set transfer handler
+		setTransferHandler(new FileTransferHandler());
+
+		// Dispose of window explicitly
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+
+		// Handle window closing
+		addWindowListener(new WindowAdapter()
+		{
+			@Override
+			public void windowClosing(WindowEvent event)
+			{
+				AppCommand.EXIT.execute();
+			}
+		});
+
+		// Respond to changes to data flavours on system clipboard
+		getToolkit().getSystemClipboard().addFlavorListener(this);
+
+		// Resize window to its preferred size
+		pack();
+
+		// Set mininum size of window
+		setMinimumSize(getPreferredSize());
+
+		// Set size of window
+		AppConfig config = AppConfig.INSTANCE;
+		Dimension size = config.getMainWindowSize();
+		if ((size != null) && (size.width > 0) && (size.height > 0))
+			setSize(size);
+
+		// Set location of window
+		setLocation(config.isMainWindowLocation()
+								? GuiUtils.getLocationWithinScreen(this, config.getMainWindowLocation())
+								: GuiUtils.getComponentLocation(this));
+
+		// Update title, menus and status
+		updateAll();
+
+		// Make window visible
+		setVisible(true);
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods : ChangeListener interface
+////////////////////////////////////////////////////////////////////////
+
+	@Override
+	public void stateChanged(ChangeEvent event)
+	{
+		if (event.getSource() == tabbedPanel)
+		{
+			if (isVisible())
+				updateAll();
+		}
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods : FlavorListener interface
+////////////////////////////////////////////////////////////////////////
+
+	@Override
+	public void flavorsChanged(FlavorEvent event)
+	{
+		CrosswordDocument.Command.IMPORT_SOLUTION_FROM_CLIPBOARD.
+															setEnabled(App.INSTANCE.hasDocuments() &&
+																	   Utils.clipboardHasText());
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods : MenuListener interface
+////////////////////////////////////////////////////////////////////////
+
+	@Override
+	public void menuCanceled(MenuEvent event)
+	{
+		// do nothing
+	}
+
+	//------------------------------------------------------------------
+
+	@Override
+	public void menuDeselected(MenuEvent event)
+	{
+		// do nothing
+	}
+
+	//------------------------------------------------------------------
+
+	@Override
+	public void menuSelected(MenuEvent event)
+	{
+		Object eventSource = event.getSource();
+		for (Menu menu : Menu.values())
+		{
+			if (eventSource == menu.menu)
+				menu.update();
+		}
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods : MouseListener interface
+////////////////////////////////////////////////////////////////////////
+
+	@Override
+	public void mouseClicked(MouseEvent event)
+	{
+		// do nothing
+	}
+
+	//------------------------------------------------------------------
+
+	@Override
+	public void mouseEntered(MouseEvent event)
+	{
+		// do nothing
+	}
+
+	//------------------------------------------------------------------
+
+	@Override
+	public void mouseExited(MouseEvent event)
+	{
+		// do nothing
+	}
+
+	//------------------------------------------------------------------
+
+	@Override
+	public void mousePressed(MouseEvent event)
+	{
+		showContextMenu(event);
+	}
+
+	//------------------------------------------------------------------
+
+	@Override
+	public void mouseReleased(MouseEvent event)
+	{
+		showContextMenu(event);
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods
+////////////////////////////////////////////////////////////////////////
+
+	public int getTabIndex()
+	{
+		return tabbedPanel.getSelectedIndex();
+	}
+
+	//------------------------------------------------------------------
+
+	public void addView(String        title,
+						String        tooltipText,
+						CrosswordView view)
+	{
+		tabbedPanel.addComponent(title, new CloseAction(), view);
+		int index = tabbedPanel.getNumTabs() - 1;
+		tabbedPanel.setTooltipText(index, tooltipText);
+		tabbedPanel.setSelectedIndex(index);
+	}
+
+	//------------------------------------------------------------------
+
+	public void removeView(int index)
+	{
+		tabbedPanel.removeComponent(index);
+	}
+
+	//------------------------------------------------------------------
+
+	public void setView(int           index,
+						CrosswordView view)
+	{
+		tabbedPanel.setComponent(index, view);
+	}
+
+	//------------------------------------------------------------------
+
+	public void selectView(int index)
+	{
+		tabbedPanel.setSelectedIndex(index);
+	}
+
+	//------------------------------------------------------------------
+
+	public void setTabText(int    index,
+						   String title,
+						   String tooltipText)
+	{
+		tabbedPanel.setTitle(index, title);
+		tabbedPanel.setTooltipText(index, tooltipText);
+	}
+
+	//------------------------------------------------------------------
+
+	public boolean isMaximised()
+	{
+		return ((getExtendedState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH);
+	}
+
+	//------------------------------------------------------------------
+
+	public void resize()
+	{
+		if (!isMaximised())
+			pack();
+	}
+
+	//------------------------------------------------------------------
+
+	public void updateAll()
+	{
+		updateTitle();
+		updateMenus();
+		updateStatus();
+	}
+
+	//------------------------------------------------------------------
+
+	private void updateTitle()
+	{
+		CrosswordDocument document = App.INSTANCE.getDocument();
+		boolean fullPathname = AppConfig.INSTANCE.isShowFullPathnames();
+		setTitle((document == null) ? App.LONG_NAME + " " + App.INSTANCE.getVersionString()
+									: App.SHORT_NAME + " - " + document.getTitleString(fullPathname));
+	}
+
+	//------------------------------------------------------------------
+
+	private void updateMenus()
+	{
+		for (Menu menu : Menu.values())
+			menu.update();
+	}
+
+	//------------------------------------------------------------------
+
+	private void updateStatus()
+	{
+		CrosswordDocument document = App.INSTANCE.getDocument();
+		statusPanel.setSolution((document != null) && document.getGrid().hasSolution());
+		statusPanel.setComplete((document != null) && document.getGrid().isEntriesComplete());
+	}
+
+	//------------------------------------------------------------------
+
+	private void showContextMenu(MouseEvent event)
+	{
+		if (event.isPopupTrigger())
+		{
+			// Create context menu
+			if (contextMenu == null)
+			{
+				contextMenu = new JPopupMenu();
+
+				contextMenu.add(new FMenuItem(AppCommand.CREATE_DOCUMENT));
+				contextMenu.add(new FMenuItem(AppCommand.OPEN_DOCUMENT));
+
+				contextMenu.addSeparator();
+
+				contextMenu.add(new FMenuItem(AppCommand.CAPTURE_CROSSWORD));
+			}
+
+			// Update commands for menu items
+			App.INSTANCE.updateCommands();
+
+			// Display menu
+			contextMenu.show(event.getComponent(), event.getX(), event.getY());
+		}
+	}
+
+	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
 //  Enumerated types
@@ -104,6 +559,7 @@ class MainWindow
 			KeyEvent.VK_F
 		)
 		{
+			@Override
 			protected void update()
 			{
 				updateAppCommands();
@@ -116,6 +572,7 @@ class MainWindow
 			KeyEvent.VK_E
 		)
 		{
+			@Override
 			protected void update()
 			{
 				getMenu().setEnabled(App.INSTANCE.hasDocuments());
@@ -129,6 +586,7 @@ class MainWindow
 			KeyEvent.VK_C
 		)
 		{
+			@Override
 			protected void update()
 			{
 				updateAppCommands();
@@ -141,6 +599,7 @@ class MainWindow
 			KeyEvent.VK_S
 		)
 		{
+			@Override
 			protected void update()
 			{
 				getMenu().setEnabled(App.INSTANCE.hasDocuments());
@@ -155,6 +614,7 @@ class MainWindow
 			KeyEvent.VK_V
 		)
 		{
+			@Override
 			protected void update()
 			{
 				getMenu().setEnabled(App.INSTANCE.hasDocuments());
@@ -168,11 +628,18 @@ class MainWindow
 			KeyEvent.VK_O
 		)
 		{
+			@Override
 			protected void update()
 			{
 				updateAppCommands();
 			}
 		};
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	JMenu	menu;
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
@@ -227,12 +694,6 @@ class MainWindow
 
 		//--------------------------------------------------------------
 
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	JMenu	menu;
-
 	}
 
 	//==================================================================
@@ -256,6 +717,12 @@ class MainWindow
 		("An error occurred while transferring data.");
 
 	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	message;
+
+	////////////////////////////////////////////////////////////////////
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
@@ -270,18 +737,13 @@ class MainWindow
 	//  Instance methods : AppException.IId interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public String getMessage()
 		{
 			return message;
 		}
 
 		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	message;
 
 	}
 
@@ -305,6 +767,13 @@ class MainWindow
 
 		private static final	String	SOLUTION_STR	= "Solution";
 		private static final	String	COMPLETE_STR	= "Complete";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	StatusField	solutionField;
+		private	StatusField	completeField;
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
@@ -344,13 +813,6 @@ class MainWindow
 
 		//--------------------------------------------------------------
 
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	StatusField	solutionField;
-		private	StatusField	completeField;
-
 	}
 
 	//==================================================================
@@ -378,6 +840,7 @@ class MainWindow
 	//  Instance methods : ActionListener interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public void actionPerformed(ActionEvent event)
 		{
 			App.INSTANCE.closeDocument(Integer.parseInt(event.getActionCommand()));
@@ -548,452 +1011,6 @@ class MainWindow
 	}
 
 	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
-//  Constructors
-////////////////////////////////////////////////////////////////////////
-
-	public MainWindow()
-	{
-
-		// Set icons
-		setIconImages(Images.APP_ICON_IMAGES);
-
-
-		//----  Menu bar
-
-		JMenuBar menuBar = new JMenuBar();
-		menuBar.setBorder(null);
-
-		// File menu
-		JMenu menu = Menu.FILE.menu;
-		menu.addMenuListener(this);
-
-		menu.add(new FMenuItem(AppCommand.CREATE_DOCUMENT, KeyEvent.VK_N));
-		menu.add(new FMenuItem(AppCommand.OPEN_DOCUMENT, KeyEvent.VK_O));
-		menu.add(new FMenuItem(AppCommand.REVERT_DOCUMENT, KeyEvent.VK_R));
-
-		menu.addSeparator();
-
-		menu.add(new FMenuItem(AppCommand.CLOSE_DOCUMENT, KeyEvent.VK_C));
-		menu.add(new FMenuItem(AppCommand.CLOSE_ALL_DOCUMENTS, KeyEvent.VK_L));
-
-		menu.addSeparator();
-
-		menu.add(new FMenuItem(AppCommand.SAVE_DOCUMENT, KeyEvent.VK_S));
-		menu.add(new FMenuItem(AppCommand.SAVE_DOCUMENT_AS, KeyEvent.VK_A));
-
-		menu.addSeparator();
-
-		menu.add(new FMenuItem(AppCommand.EXPORT_HTML_FILE, KeyEvent.VK_H));
-
-		menu.addSeparator();
-
-		menu.add(new FMenuItem(AppCommand.EXIT, KeyEvent.VK_X));
-
-		menuBar.add(menu);
-
-		// Edit menu
-		menu = Menu.EDIT.menu;
-		menu.addMenuListener(this);
-
-		menu.add(new FMenuItem(CrosswordDocument.Command.UNDO, KeyEvent.VK_U));
-		menu.add(new FMenuItem(CrosswordDocument.Command.REDO, KeyEvent.VK_R));
-		menu.add(new FMenuItem(CrosswordDocument.Command.CLEAR_EDIT_LIST, KeyEvent.VK_L));
-
-		menu.addSeparator();
-
-		menu.add(new FMenuItem(CrosswordDocument.Command.EDIT_CLUE, KeyEvent.VK_C));
-		menu.add(new FMenuItem(CrosswordDocument.Command.EDIT_GRID, KeyEvent.VK_G));
-		menu.add(new FMenuItem(CrosswordDocument.Command.EDIT_TEXT_SECTIONS, KeyEvent.VK_T));
-		menu.add(new FMenuItem(CrosswordDocument.Command.EDIT_INDICATIONS, KeyEvent.VK_I));
-
-		menu.addSeparator();
-
-		menu.add(new FMenuItem(CrosswordDocument.Command.COPY_CLUES_TO_CLIPBOARD, KeyEvent.VK_Y));
-		menu.add(new FMenuItem(CrosswordDocument.Command.IMPORT_CLUES_FROM_CLIPBOARD, KeyEvent.VK_P));
-		menu.add(new FMenuItem(CrosswordDocument.Command.CLEAR_CLUES, KeyEvent.VK_A));
-
-		menu.addSeparator();
-
-		menu.add(new FMenuItem(CrosswordDocument.Command.COPY_ENTRIES_TO_CLIPBOARD, KeyEvent.VK_N));
-		menu.add(new FMenuItem(CrosswordDocument.Command.IMPORT_ENTRIES_FROM_CLIPBOARD, KeyEvent.VK_M));
-		menu.add(new FMenuItem(CrosswordDocument.Command.CLEAR_ENTRIES, KeyEvent.VK_E));
-
-		menu.addSeparator();
-
-		menu.add(new FMenuItem(CrosswordDocument.Command.COPY_FIELD_NUMBERS_TO_CLIPBOARD,
-							   KeyEvent.VK_F));
-		menu.add(new FMenuItem(CrosswordDocument.Command.COPY_FIELD_IDS_TO_CLIPBOARD, KeyEvent.VK_D));
-
-		menuBar.add(menu);
-
-		// Crossword menu
-		menu = Menu.CROSSWORD.menu;
-		menu.addMenuListener(this);
-
-		menu.add(new FMenuItem(AppCommand.CAPTURE_CROSSWORD, KeyEvent.VK_C));
-
-		menuBar.add(menu);
-
-		// Solution menu
-		menu = Menu.SOLUTION.menu;
-		menu.addMenuListener(this);
-
-		menu.add(new FMenuItem(CrosswordDocument.Command.HIGHLIGHT_INCORRECT_ENTRIES, KeyEvent.VK_I));
-		menu.add(new FMenuItem(CrosswordDocument.Command.SHOW_SOLUTION, KeyEvent.VK_S));
-
-		menu.addSeparator();
-
-		menu.add(new FMenuItem(CrosswordDocument.Command.SET_SOLUTION, KeyEvent.VK_E));
-		menu.add(new FMenuItem(CrosswordDocument.Command.IMPORT_SOLUTION_FROM_CLIPBOARD,
-							   KeyEvent.VK_I));
-		menu.add(new FMenuItem(CrosswordDocument.Command.LOAD_SOLUTION, KeyEvent.VK_L));
-		menu.add(new FMenuItem(CrosswordDocument.Command.CLEAR_SOLUTION, KeyEvent.VK_C));
-
-		menu.addSeparator();
-
-		menu.add(new FMenuItem(CrosswordDocument.Command.COPY_SOLUTION_TO_CLIPBOARD, KeyEvent.VK_Y));
-		menu.add(new FMenuItem(AppCommand.CREATE_SOLUTION_DOCUMENT, KeyEvent.VK_D));
-
-		menu.addSeparator();
-
-		menu.add(new FMenuItem(CrosswordDocument.Command.EDIT_SOLUTION_PROPERTIES, KeyEvent.VK_P));
-
-		menuBar.add(menu);
-
-		// View menu
-		menu = Menu.VIEW.menu;
-		menu.addMenuListener(this);
-
-		menu.add(new FCheckBoxMenuItem(CrosswordDocument.Command.TOGGLE_FIELD_NUMBERS, KeyEvent.VK_F));
-		menu.add(new FCheckBoxMenuItem(CrosswordDocument.Command.TOGGLE_CLUES, KeyEvent.VK_C));
-
-		menu.addSeparator();
-
-		menu.add(new FMenuItem(CrosswordDocument.Command.RESIZE_WINDOW_TO_VIEW, KeyEvent.VK_R));
-
-		menuBar.add(menu);
-
-		// Options menu
-		menu = Menu.OPTIONS.menu;
-		menu.addMenuListener(this);
-
-		menu.add(new FCheckBoxMenuItem(AppCommand.TOGGLE_SHOW_FULL_PATHNAMES, KeyEvent.VK_F));
-		menu.add(new FMenuItem(AppCommand.MANAGE_FILE_ASSOCIATIONS, KeyEvent.VK_A));
-		menu.add(new FMenuItem(AppCommand.EDIT_PREFERENCES, KeyEvent.VK_P));
-
-		menuBar.add(menu);
-
-		// Set menu bar
-		setJMenuBar(menuBar);
-
-
-		//----  Tabbed panel
-
-		tabbedPanel = new TabbedPane();
-		tabbedPanel.setIgnoreCase(true);
-		tabbedPanel.addChangeListener(this);
-		tabbedPanel.addMouseListener(this);
-
-
-		//----  Status panel
-
-		statusPanel = new StatusPanel();
-
-
-		//----  Main panel
-
-		MainPanel mainPanel = new MainPanel();
-
-
-		//----  Window
-
-		// Set content pane
-		setContentPane(mainPanel);
-
-		// Set transfer handler
-		setTransferHandler(new FileTransferHandler());
-
-		// Dispose of window explicitly
-		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-
-		// Handle window closing
-		addWindowListener(new WindowAdapter()
-		{
-			@Override
-			public void windowClosing(WindowEvent event)
-			{
-				AppCommand.EXIT.execute();
-			}
-		});
-
-		// Respond to changes to data flavours on system clipboard
-		getToolkit().getSystemClipboard().addFlavorListener(this);
-
-		// Resize window to its preferred size
-		pack();
-
-		// Set mininum size of window
-		setMinimumSize(getPreferredSize());
-
-		// Set location of window
-		AppConfig config = AppConfig.INSTANCE;
-		if (config.isMainWindowLocation())
-			setLocation(GuiUtils.getLocationWithinScreen(this, config.getMainWindowLocation()));
-
-		// Set size of window
-		Dimension size = config.getMainWindowSize();
-		if ((size != null) && (size.width > 0) && (size.height > 0))
-			setSize(size);
-
-		// Update title, menus and status
-		updateAll();
-
-		// Make window visible
-		setVisible(true);
-
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods : ChangeListener interface
-////////////////////////////////////////////////////////////////////////
-
-	public void stateChanged(ChangeEvent event)
-	{
-		if (event.getSource() == tabbedPanel)
-		{
-			if (isVisible())
-				updateAll();
-		}
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods : FlavorListener interface
-////////////////////////////////////////////////////////////////////////
-
-	public void flavorsChanged(FlavorEvent event)
-	{
-		CrosswordDocument.Command.IMPORT_SOLUTION_FROM_CLIPBOARD.
-															setEnabled(App.INSTANCE.hasDocuments() &&
-																	   Utils.clipboardHasText());
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods : MenuListener interface
-////////////////////////////////////////////////////////////////////////
-
-	public void menuCanceled(MenuEvent event)
-	{
-		// do nothing
-	}
-
-	//------------------------------------------------------------------
-
-	public void menuDeselected(MenuEvent event)
-	{
-		// do nothing
-	}
-
-	//------------------------------------------------------------------
-
-	public void menuSelected(MenuEvent event)
-	{
-		Object eventSource = event.getSource();
-		for (Menu menu : Menu.values())
-		{
-			if (eventSource == menu.menu)
-				menu.update();
-		}
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods : MouseListener interface
-////////////////////////////////////////////////////////////////////////
-
-	public void mouseClicked(MouseEvent event)
-	{
-		// do nothing
-	}
-
-	//------------------------------------------------------------------
-
-	public void mouseEntered(MouseEvent event)
-	{
-		// do nothing
-	}
-
-	//------------------------------------------------------------------
-
-	public void mouseExited(MouseEvent event)
-	{
-		// do nothing
-	}
-
-	//------------------------------------------------------------------
-
-	public void mousePressed(MouseEvent event)
-	{
-		showContextMenu(event);
-	}
-
-	//------------------------------------------------------------------
-
-	public void mouseReleased(MouseEvent event)
-	{
-		showContextMenu(event);
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods
-////////////////////////////////////////////////////////////////////////
-
-	public int getTabIndex()
-	{
-		return tabbedPanel.getSelectedIndex();
-	}
-
-	//------------------------------------------------------------------
-
-	public void addView(String        title,
-						String        tooltipText,
-						CrosswordView view)
-	{
-		tabbedPanel.addComponent(title, new CloseAction(), view);
-		int index = tabbedPanel.getNumTabs() - 1;
-		tabbedPanel.setTooltipText(index, tooltipText);
-		tabbedPanel.setSelectedIndex(index);
-	}
-
-	//------------------------------------------------------------------
-
-	public void removeView(int index)
-	{
-		tabbedPanel.removeComponent(index);
-	}
-
-	//------------------------------------------------------------------
-
-	public void setView(int           index,
-						CrosswordView view)
-	{
-		tabbedPanel.setComponent(index, view);
-	}
-
-	//------------------------------------------------------------------
-
-	public void selectView(int index)
-	{
-		tabbedPanel.setSelectedIndex(index);
-	}
-
-	//------------------------------------------------------------------
-
-	public void setTabText(int    index,
-						   String title,
-						   String tooltipText)
-	{
-		tabbedPanel.setTitle(index, title);
-		tabbedPanel.setTooltipText(index, tooltipText);
-	}
-
-	//------------------------------------------------------------------
-
-	public boolean isMaximised()
-	{
-		return ((getExtendedState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH);
-	}
-
-	//------------------------------------------------------------------
-
-	public void resize()
-	{
-		if (!isMaximised())
-			pack();
-	}
-
-	//------------------------------------------------------------------
-
-	public void updateAll()
-	{
-		updateTitle();
-		updateMenus();
-		updateStatus();
-	}
-
-	//------------------------------------------------------------------
-
-	private void updateTitle()
-	{
-		CrosswordDocument document = App.INSTANCE.getDocument();
-		boolean fullPathname = AppConfig.INSTANCE.isShowFullPathnames();
-		setTitle((document == null) ? App.LONG_NAME + " " + App.INSTANCE.getVersionString()
-									: App.SHORT_NAME + " - " + document.getTitleString(fullPathname));
-	}
-
-	//------------------------------------------------------------------
-
-	private void updateMenus()
-	{
-		for (Menu menu : Menu.values())
-			menu.update();
-	}
-
-	//------------------------------------------------------------------
-
-	private void updateStatus()
-	{
-		CrosswordDocument document = App.INSTANCE.getDocument();
-		statusPanel.setSolution((document != null) && document.getGrid().hasSolution());
-		statusPanel.setComplete((document != null) && document.getGrid().isEntriesComplete());
-	}
-
-	//------------------------------------------------------------------
-
-	private void showContextMenu(MouseEvent event)
-	{
-		if (event.isPopupTrigger())
-		{
-			// Create context menu
-			if (contextMenu == null)
-			{
-				contextMenu = new JPopupMenu();
-
-				contextMenu.add(new FMenuItem(AppCommand.CREATE_DOCUMENT));
-				contextMenu.add(new FMenuItem(AppCommand.OPEN_DOCUMENT));
-
-				contextMenu.addSeparator();
-
-				contextMenu.add(new FMenuItem(AppCommand.CAPTURE_CROSSWORD));
-			}
-
-			// Update commands for menu items
-			App.INSTANCE.updateCommands();
-
-			// Display menu
-			contextMenu.show(event.getComponent(), event.getX(), event.getY());
-		}
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	TabbedPane	tabbedPanel;
-	private	StatusPanel	statusPanel;
-	private	JPopupMenu	contextMenu;
 
 }
 

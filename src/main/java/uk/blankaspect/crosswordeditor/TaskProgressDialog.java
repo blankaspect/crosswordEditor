@@ -2,7 +2,7 @@
 
 TaskProgressDialog.java
 
-Task progress dialog box class.
+Task progress dialog class.
 
 \*====================================================================*/
 
@@ -25,16 +25,16 @@ import java.io.File;
 
 import uk.blankaspect.common.exception.AppException;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
 //----------------------------------------------------------------------
 
 
-// TASK PROGRESS DIALOG BOX CLASS
+// TASK PROGRESS DIALOG CLASS
 
 
 class TaskProgressDialog
-	extends uk.blankaspect.common.swing.dialog.TaskProgressDialog
+	extends uk.blankaspect.ui.swing.dialog.TaskProgressDialog
 {
 
 ////////////////////////////////////////////////////////////////////////

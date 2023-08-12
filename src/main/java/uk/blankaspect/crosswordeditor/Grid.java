@@ -2,7 +2,7 @@
 
 Grid.java
 
-Grid base class.
+Class: crossword grid.
 
 \*====================================================================*/
 
@@ -26,6 +26,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import java.nio.charset.Charset;
@@ -51,32 +53,35 @@ import uk.blankaspect.common.base64.Base64Encoder;
 import uk.blankaspect.common.crypto.HmacSha256;
 import uk.blankaspect.common.crypto.Salsa20;
 
+import uk.blankaspect.common.css.CssMediaRule;
+import uk.blankaspect.common.css.CssProperty;
+import uk.blankaspect.common.css.CssRuleSet;
+import uk.blankaspect.common.css.CssSelector;
+
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.TaskCancelledException;
 import uk.blankaspect.common.exception.UnexpectedRuntimeException;
 
-import uk.blankaspect.common.html.CssMediaRule;
-import uk.blankaspect.common.html.CssRuleSet;
-
-import uk.blankaspect.common.indexedsub.IndexedSub;
-
 import uk.blankaspect.common.misc.IStringKeyed;
 
+import uk.blankaspect.common.number.NumberCodec;
 import uk.blankaspect.common.number.NumberUtils;
 
 import uk.blankaspect.common.string.StringUtils;
 
-import uk.blankaspect.common.swing.colour.ColourUtils;
+import uk.blankaspect.common.tuple.StrKVPair;
 
 import uk.blankaspect.common.xml.AttributeList;
 import uk.blankaspect.common.xml.XmlParseException;
 import uk.blankaspect.common.xml.XmlUtils;
 import uk.blankaspect.common.xml.XmlWriter;
 
+import uk.blankaspect.ui.swing.colour.ColourUtils;
+
 //----------------------------------------------------------------------
 
 
-// GRID BASE CLASS
+// CLASS: CROSSWORD GRID
 
 
 abstract class Grid
@@ -86,33 +91,33 @@ abstract class Grid
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	public static final		int	MIN_NUM_COLUMNS		= 2;
-	public static final		int	MAX_NUM_COLUMNS		= 99;
-	public static final		int	DEFAULT_NUM_COLUMNS	= 15;
+	public static final		int		MIN_NUM_COLUMNS		= 2;
+	public static final		int		MAX_NUM_COLUMNS		= 99;
+	public static final		int		DEFAULT_NUM_COLUMNS	= 15;
 
-	public static final		int	MIN_NUM_ROWS		= MIN_NUM_COLUMNS;
-	public static final		int	MAX_NUM_ROWS		= MAX_NUM_COLUMNS;
-	public static final		int	DEFAULT_NUM_ROWS	= DEFAULT_NUM_COLUMNS;
+	public static final		int		MIN_NUM_ROWS		= MIN_NUM_COLUMNS;
+	public static final		int		MAX_NUM_ROWS		= MAX_NUM_COLUMNS;
+	public static final		int		DEFAULT_NUM_ROWS	= DEFAULT_NUM_COLUMNS;
 
-	public static final		int	MIN_CELL_SIZE		= 8;
-	public static final		int	MAX_CELL_SIZE		= 80;
-	public static final		int	DEFAULT_CELL_SIZE	= 24;
+	public static final		int		MIN_CELL_SIZE		= 8;
+	public static final		int		MAX_CELL_SIZE		= 80;
+	public static final		int		DEFAULT_CELL_SIZE	= 24;
 
-	public static final		int						MIN_HTML_CELL_SIZE		= 8;
-	public static final		int						MAX_HTML_CELL_SIZE		= 80;
+	public static final		int		MIN_HTML_CELL_SIZE		= 8;
+	public static final		int		MAX_HTML_CELL_SIZE		= 80;
 	public static final		Map<Separator, Integer>	DEFAULT_HTML_CELL_SIZES;
 
-	public static final		int	MIN_HTML_FONT_SIZE		= 6;
-	public static final		int	MAX_HTML_FONT_SIZE		= 128;
-	public static final		int	DEFAULT_HTML_FONT_SIZE	= 8;
+	public static final		int		MIN_HTML_FONT_SIZE		= 6;
+	public static final		int		MAX_HTML_FONT_SIZE		= 128;
+	public static final		int		DEFAULT_HTML_FONT_SIZE	= 8;
 
-	public static final		int	MIN_HTML_CELL_OFFSET		= -9;
-	public static final		int	MAX_HTML_CELL_OFFSET		= 9;
-	public static final		int	DEFAULT_HTML_CELL_OFFSET	= 0;
+	public static final		int		MIN_HTML_CELL_OFFSET		= -9;
+	public static final		int		MAX_HTML_CELL_OFFSET		= 9;
+	public static final		int		DEFAULT_HTML_CELL_OFFSET	= 0;
 
-	public static final		int	MIN_HTML_FIELD_NUM_OFFSET		= -9;
-	public static final		int	MAX_HTML_FIELD_NUM_OFFSET		= 9;
-	public static final		int	DEFAULT_HTML_FIELD_NUM_OFFSET	= 0;
+	public static final		int		MIN_HTML_FIELD_NUM_OFFSET		= -9;
+	public static final		int		MAX_HTML_FIELD_NUM_OFFSET		= 9;
+	public static final		int		DEFAULT_HTML_FIELD_NUM_OFFSET	= 0;
 
 	public static final		double	MIN_HTML_FIELD_NUM_FONT_SIZE_FACTOR		= 0.05;
 	public static final		double	MAX_HTML_FIELD_NUM_FONT_SIZE_FACTOR		= 1.0;
@@ -125,23 +130,21 @@ abstract class Grid
 	public static final		Color	DEFAULT_HTML_GRID_COLOUR	= new Color(160, 160, 160);
 	public static final		Color	DEFAULT_HTML_ENTRY_COLOUR	= new Color(96, 96, 96);
 
-	protected static final	String	PIXEL_SIZE_STR	= "%1px";
-
-	protected static final	List<CssRuleSet>	RULE_SETS	= Arrays.asList
+	protected static final	List<CssRuleSet>	RULE_SETS	= List.of
 	(
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.DIV + CssConstants.Selector.ID + HtmlConstants.Id.GRID,
-			new CssRuleSet.Decl(CssConstants.Property.DISPLAY,         "table"),
-			new CssRuleSet.Decl(CssConstants.Property.BORDER_COLLAPSE, "collapse"),
-			new CssRuleSet.Decl(CssConstants.Property.EMPTY_CELLS,     "show"),
-			new CssRuleSet.Decl(CssConstants.Property.MARGIN,          "1.0em 0")
+			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.GRID,
+			StrKVPair.of(CssProperty.DISPLAY,         "table"),
+			StrKVPair.of(CssProperty.BORDER_COLLAPSE, "collapse"),
+			StrKVPair.of(CssProperty.EMPTY_CELLS,     "show"),
+			StrKVPair.of(CssProperty.MARGIN,          "1.0em 0")
 		),
-		new CssRuleSet
+		CssRuleSet.of
 		(
-			HtmlConstants.ElementName.DIV + CssConstants.Selector.ID + HtmlConstants.Id.GRID
-														+ CssConstants.Selector.CHILD + HtmlConstants.ElementName.DIV,
-			new CssRuleSet.Decl(CssConstants.Property.DISPLAY, "table-row")
+			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.GRID + CssSelector.CHILD
+					+ HtmlConstants.ElementName.DIV,
+			StrKVPair.of(CssProperty.DISPLAY, "table-row")
 		)
 	);
 
@@ -188,1978 +191,35 @@ abstract class Grid
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Enumerated types
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// GRID SEPARATOR
-
-
-	enum Separator
-		implements IStringKeyed
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		BLOCK
-		(
-			"block"
-		)
-		{
-			@Override
-			public Grid createGrid(int      numColumns,
-								   int      numRows,
-								   Symmetry symmetry)
-			{
-				return new BlockGrid(numColumns, numRows, symmetry);
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			public Grid createGrid(int      numColumns,
-								   int      numRows,
-								   Symmetry symmetry,
-								   String   definition)
-				throws AppException
-			{
-				return new BlockGrid(numColumns, numRows, symmetry, definition);
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			public GridPanel createGridPanel(CrosswordDocument document)
-			{
-				return new GridPanel.Block(document);
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			public GridPanel createGridPanel(Grid grid)
-			{
-				return ((grid instanceof BlockGrid) ? new GridPanel.Block(grid.createCopy()) : null);
-			}
-
-			//----------------------------------------------------------
-		},
-
-		BAR
-		(
-			"bar"
-		)
-		{
-			@Override
-			public Grid createGrid(int      numColumns,
-								   int      numRows,
-								   Symmetry symmetry)
-			{
-				return new BarGrid(numColumns, numRows, symmetry);
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			public Grid createGrid(int      numColumns,
-								   int      numRows,
-								   Symmetry symmetry,
-								   String   definition)
-				throws AppException
-			{
-				return new BarGrid(numColumns, numRows, symmetry, definition);
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			public GridPanel createGridPanel(CrosswordDocument document)
-			{
-				return new GridPanel.Bar(document);
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			public GridPanel createGridPanel(Grid grid)
-			{
-				return ((grid instanceof BarGrid) ? new GridPanel.Bar(grid.createCopy()) : null);
-			}
-
-			//----------------------------------------------------------
-		};
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Separator(String key)
-		{
-			this.key = key;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		public static Separator forKey(String key)
-		{
-			for (Separator value : values())
-			{
-				if (value.key.equals(key))
-					return value;
-			}
-			return null;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Abstract methods
-	////////////////////////////////////////////////////////////////////
-
-		public abstract Grid createGrid(int      numColumns,
-										int      numRows,
-										Symmetry symmetry);
-
-		//--------------------------------------------------------------
-
-		public abstract Grid createGrid(int      numColumns,
-										int      numRows,
-										Symmetry symmetry,
-										String   definition)
-			throws AppException;
-
-		//--------------------------------------------------------------
-
-		public abstract GridPanel createGridPanel(CrosswordDocument document);
-
-		//--------------------------------------------------------------
-
-		public abstract GridPanel createGridPanel(Grid grid);
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : IStringKeyed interface
-	////////////////////////////////////////////////////////////////////
-
-		public String getKey()
-		{
-			return key;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String toString()
-		{
-			return StringUtils.firstCharToUpperCase(key);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	key;
-
-	}
-
-	//==================================================================
-
-
-	// SYMMETRY
-
-
-	enum Symmetry
-		implements IStringKeyed
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		NONE
-		(
-			"none",
-			"None"
-		)
-		{
-			@Override
-			public int[] getPrincipalDimensions(int numColumns,
-												int numRows)
-			{
-				return new int[] { numColumns, numRows };
-			}
-		},
-
-		ROTATION_HALF
-		(
-			"rotate2",
-			"Rotation by a half-turn"
-		)
-		{
-			@Override
-			public int[] getPrincipalDimensions(int numColumns,
-												int numRows)
-			{
-				return new int[] { numColumns, (numRows + 1) / 2 };
-			}
-		},
-
-		ROTATION_QUARTER
-		(
-			"rotate4",
-			"Rotation by a quarter-turn"
-		)
-		{
-			@Override
-			public int[] getPrincipalDimensions(int numColumns,
-												int numRows)
-			{
-				return new int[] { (numColumns + 1) / 2, (numRows + 1) / 2 };
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			public boolean supportsDimensions(int numColumns,
-											  int numRows)
-			{
-				return (numColumns == numRows);
-			}
-
-			//----------------------------------------------------------
-		},
-
-		REFLECTION_VERTICAL_AXIS
-		(
-			"reflectVAxis",
-			"Reflection in vertical axis"
-		)
-		{
-			@Override
-			public int[] getPrincipalDimensions(int numColumns,
-												int numRows)
-			{
-				return new int[] { (numColumns + 1) / 2, numRows };
-			}
-		},
-
-		REFLECTION_HORIZONTAL_AXIS
-		(
-			"reflectHAxis",
-			"Reflection in horizontal axis"
-		)
-		{
-			@Override
-			public int[] getPrincipalDimensions(int numColumns,
-												int numRows)
-			{
-				return new int[] { numColumns, (numRows + 1) / 2 };
-			}
-		},
-
-		REFLECTION_VERTICAL_HORIZONTAL_AXES
-		(
-			"reflectVHAxes",
-			"Reflection in V and H axes"
-		)
-		{
-			@Override
-			public int[] getPrincipalDimensions(int numColumns,
-												int numRows)
-			{
-				return new int[] { (numColumns + 1) / 2, (numRows + 1) / 2 };
-			}
-		};
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Symmetry(String key,
-						 String text)
-		{
-			this.key = key;
-			this.text = text;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		public static Symmetry forKey(String key)
-		{
-			for (Symmetry value : values())
-			{
-				if (value.key.equals(key))
-					return value;
-			}
-			return null;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Abstract methods
-	////////////////////////////////////////////////////////////////////
-
-		public abstract int[] getPrincipalDimensions(int numColumns,
-													 int numRows);
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : IStringKeyed interface
-	////////////////////////////////////////////////////////////////////
-
-		public String getKey()
-		{
-			return key;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String toString()
-		{
-			return text;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public boolean supportsDimensions(int numColumns,
-										  int numRows)
-		{
-			return true;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	key;
-		private	String	text;
-
-	}
-
-	//==================================================================
-
-
-	// ENCRYPTION KIND
-
-
-	enum EncryptionKind
-		implements IStringKeyed
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		NONE    ("none"),
-		SALSA20 ("salsa20");
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private EncryptionKind(String key)
-		{
-			this.key = key;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		public static EncryptionKind forKey(String key)
-		{
-			for (EncryptionKind value : values())
-			{
-				if (value.key.equals(key))
-					return value;
-			}
-			return null;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : IStringKeyed interface
-	////////////////////////////////////////////////////////////////////
-
-		public String getKey()
-		{
-			return key;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String toString()
-		{
-			return StringUtils.firstCharToUpperCase(key);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	key;
-
-	}
-
-	//==================================================================
-
-
-	// ERROR IDENTIFIERS
-
-
-	private enum ErrorId
-		implements AppException.IId
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		NO_ATTRIBUTE
-		("The required attribute is missing."),
-
-		INVALID_ATTRIBUTE
-		("The attribute is invalid."),
-
-		ATTRIBUTE_OUT_OF_BOUNDS
-		("The attribute value is out of bounds."),
-
-		INCOMPATIBLE_SYMMETRY_AND_DIMENSIONS
-		("The symmetry of the grid is not compatible with the dimensions of the grid."),
-
-		CLUES_NOT_DEFINED
-		("%1 clues are not defined."),
-
-		ERRORS_IN_CLUE_LISTS
-		("The lists of clues have the following errors:\n%1"),
-
-		TOO_FEW_LINES
-		("There are fewer than " + MIN_NUM_LINES_PER_DIMENSION + " %1 lines of sufficient length in the image."),
-
-		TOO_FEW_COINCIDENT_HORIZONTAL_AND_VERTICAL_LINES
-		("The largest coincident sets of horizontal and vertical lines are too small to form a grid."),
-
-		INVALID_FIELD_ID
-		("The ID does not correspond to a field in the grid."),
-
-		INCORRECT_NUMBER_OF_ENTRIES
-		("The number of entries does not match the number of fields."),
-
-		INCORRECT_ENTRY_LENGTH
-		("The length of the entry for %1 incorrect."),
-
-		ILLEGAL_CHARACTER_IN_ENTRY
-		("The entry for %1 contains an illegal character: '%2'"),
-
-		CONFLICTING_ENTRY
-		("The entry for %1 conflicts with an intersecting entry at index %2."),
-
-		ILLEGAL_CHARACTER_IN_SOLUTION_ENCODING
-		("The Base64 encoding of the solution contains an illegal character."),
-
-		MALFORMED_SOLUTION_ENCODING
-		("The Base64 encoding of the solution is malformed."),
-
-		INCORRECT_PASSPHRASE
-		("The passphrase does not match the one that was used to encrypt the solution."),
-
-		SOLUTION_LENGTH_NOT_CONSISTENT_WITH_GRID
-		("The length of the solution is not consistent with the grid."),
-
-		INCORRECT_NUMBER_OF_ANSWERS
-		("The number of answers does not match the number of fields."),
-
-		INCORRECT_ANSWER_LENGTH
-		("The length of the answer for %1 is incorrect."),
-
-		ILLEGAL_CHARACTER_IN_ANSWER
-		("The answer for %1 contains an illegal character: '%2'"),
-
-		CONFLICTING_ANSWER
-		("The answer for %1 conflicts with an intersecting answer at index %2."),
-
-		UNSUPPORTED_ENCRYPTION
-		("The kind of encryption is not supported by this application.");
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ErrorId(String message)
-		{
-			this.message = message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : AppException.IId interface
-	////////////////////////////////////////////////////////////////////
-
-		public String getMessage()
-		{
-			return message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	message;
-
-	}
-
-	//==================================================================
+	protected	int							numRows;
+	protected	int							numColumns;
+	protected	Symmetry					symmetry;
+	protected	Map<Direction, List<Field>>	fieldLists;
+	protected	Entries						entries;
+	protected	Entries						solution;
+	protected	boolean[][]					incorrectEntries;
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Static initialiser
 ////////////////////////////////////////////////////////////////////////
 
-
-	// GRID INFORMATION CLASS
-
-
-	public static class Info
+	static
 	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Info(int x,
-					 int y,
-					 int width,
-					 int height,
-					 int numColumns,
-					 int numRows)
-		{
-			this.x = x;
-			this.y = y;
-			this.width = width;
-			this.height = height;
-			this.numColumns = numColumns;
-			this.numRows = numRows;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public Rectangle getBounds()
-		{
-			return new Rectangle(x, y, width, height);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		int	x;
-		int	y;
-		int	width;
-		int	height;
-		int	numColumns;
-		int	numRows;
-
+		DEFAULT_HTML_CELL_SIZES = new EnumMap<>(Separator.class);
+		DEFAULT_HTML_CELL_SIZES.put(Separator.BLOCK, 20);
+		DEFAULT_HTML_CELL_SIZES.put(Separator.BAR,   20);
 	}
-
-	//==================================================================
-
-
-	// CELL INDEX PAIR CLASS
-
-
-	public static class IndexPair
-		implements Cloneable
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public IndexPair(int row,
-						 int column)
-		{
-			this.row = row;
-			this.column = column;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public boolean equals(Object obj)
-		{
-			if (obj instanceof IndexPair)
-			{
-				IndexPair other = (IndexPair)obj;
-				return ((row == other.row) && (column == other.column));
-			}
-			return false;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public int hashCode()
-		{
-			return ((row << 16) | column);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public IndexPair clone()
-		{
-			try
-			{
-				return (IndexPair)super.clone();
-			}
-			catch (CloneNotSupportedException e)
-			{
-				throw new UnexpectedRuntimeException(e);
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public String toString()
-		{
-			return (row + ", " + column);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public void set(int row,
-						int column)
-		{
-			this.row = row;
-			this.column = column;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		int	row;
-		int	column;
-
-	}
-
-	//==================================================================
-
-
-	// GRID FIELD CLASS
-
-
-	public static class Field
-		implements Cloneable, Comparable<Field>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Member interfaces
-	////////////////////////////////////////////////////////////////////
-
-
-		// FILTER INTERFACE
-
-
-		@FunctionalInterface
-		interface IFilter
-		{
-
-		////////////////////////////////////////////////////////////////
-		//  Methods
-		////////////////////////////////////////////////////////////////
-
-			public boolean acceptField(Field field);
-
-			//----------------------------------------------------------
-
-		}
-
-		//==============================================================
-
-	////////////////////////////////////////////////////////////////////
-	//  Member classes : non-inner classes
-	////////////////////////////////////////////////////////////////////
-
-
-		// FIELD IDENTIFIER CLASS
-
-
-		public static class Id
-			implements Cloneable, Comparable<Id>
-		{
-
-		////////////////////////////////////////////////////////////////
-		//  Constants
-		////////////////////////////////////////////////////////////////
-
-			public static final		Pattern	PATTERN;
-
-			private static final	String	REGEX_FRAG1	= "(\\d+)(";
-			private static final	String	REGEX_FRAG2	= ")?";
-
-		////////////////////////////////////////////////////////////////
-		//  Constructors
-		////////////////////////////////////////////////////////////////
-
-			public Id(int number)
-			{
-				this(number, Direction.NONE);
-			}
-
-			//----------------------------------------------------------
-
-			public Id(int       number,
-					  Direction direction)
-			{
-				this.number = number;
-				this.direction = direction;
-			}
-
-			//----------------------------------------------------------
-
-			/**
-			 * @throws IllegalArgumentException
-			 */
-
-			public Id(String str)
-			{
-				Matcher matcher = PATTERN.matcher(str);
-				if (!matcher.matches())
-					throw new IllegalArgumentException();
-
-				number = Integer.parseInt(matcher.group(1));
-				direction = Direction.forSuffix(matcher.group(2));
-			}
-
-			//----------------------------------------------------------
-
-			/**
-			 * @throws NumberFormatException
-			 */
-
-			public Id(String numberStr,
-					  String directionStr)
-			{
-				this(Integer.parseInt(numberStr));
-				for (Direction direction : Direction.DEFINED_DIRECTIONS)
-				{
-					if (directionStr == null)
-						break;
-					for (String keyword : AppConfig.INSTANCE.getClueDirectionKeywords(direction))
-					{
-						keyword = StringUtils.stripBefore(keyword);
-						if (keyword.equals(directionStr))
-						{
-							this.direction = direction;
-							directionStr = null;
-							break;
-						}
-					}
-				}
-			}
-
-			//----------------------------------------------------------
-
-		////////////////////////////////////////////////////////////////
-		//  Instance methods : Comparable interface
-		////////////////////////////////////////////////////////////////
-
-			@Override
-			public int compareTo(Id other)
-			{
-				int result = Integer.compare(number, other.number);
-				if (result == 0)
-					result = Integer.compare(direction.ordinal(), other.direction.ordinal());
-				return result;
-			}
-
-			//----------------------------------------------------------
-
-		////////////////////////////////////////////////////////////////
-		//  Instance methods : overriding methods
-		////////////////////////////////////////////////////////////////
-
-			@Override
-			public boolean equals(Object obj)
-			{
-				if (obj instanceof Id)
-				{
-					Id other = (Id)obj;
-					return ((number == other.number) && (direction == other.direction));
-				}
-				return false;
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			public int hashCode()
-			{
-				return ((number << 2) | direction.ordinal());
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			public Id clone()
-			{
-				try
-				{
-					return (Id)super.clone();
-				}
-				catch (CloneNotSupportedException e)
-				{
-					throw new UnexpectedRuntimeException(e);
-				}
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			public String toString()
-			{
-				return (Integer.toString(number) + direction.getSuffix());
-			}
-
-			//----------------------------------------------------------
-
-		////////////////////////////////////////////////////////////////
-		//  Instance methods
-		////////////////////////////////////////////////////////////////
-
-			public boolean matches(Id other)
-			{
-				return ((number == other.number) &&
-						 ((direction == Direction.NONE) || (other.direction == Direction.NONE) ||
-						  (direction == other.direction)));
-			}
-
-			//----------------------------------------------------------
-
-			public Id undefined()
-			{
-				return new Id(number, Direction.NONE);
-			}
-
-			//----------------------------------------------------------
-
-		////////////////////////////////////////////////////////////////
-		//  Static initialiser
-		////////////////////////////////////////////////////////////////
-
-			static
-			{
-				List<String> suffixes = new ArrayList<>();
-				for (Direction direction : Direction.values())
-					suffixes.add(direction.getSuffix());
-
-				StringBuilder buffer = new StringBuilder();
-				buffer.append(REGEX_FRAG1);
-				buffer.append(StringUtils.join(Clue.REGEX_ALTERNATION_CHAR, suffixes));
-				buffer.append(REGEX_FRAG2);
-				PATTERN = Pattern.compile(buffer.toString());
-			}
-
-		////////////////////////////////////////////////////////////////
-		//  Instance variables
-		////////////////////////////////////////////////////////////////
-
-			int			number;
-			Direction	direction;
-
-		}
-
-		//==============================================================
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		protected Field(int       row,
-						int       column,
-						Direction direction,
-						int       length,
-						int       number)
-		{
-			this.row = row;
-			this.column = column;
-			this.direction = direction;
-			this.length = length;
-			this.number = number;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : Comparable interface
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public int compareTo(Field other)
-		{
-			int result = Integer.compare(direction.ordinal(), other.direction.ordinal());
-			if (result == 0)
-				result = Integer.compare(row, other.row);
-			if (result == 0)
-				result = Integer.compare(column, other.column);
-			return result;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public boolean equals(Object obj)
-		{
-			if (obj instanceof Field)
-			{
-				Field other = (Field)obj;
-				return ((row == other.row) && (column == other.column) && (direction == other.direction));
-			}
-			return false;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public int hashCode()
-		{
-			return ((row << 12) | (column << 2) | direction.ordinal());
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public Field clone()
-		{
-			try
-			{
-				return (Field)super.clone();
-			}
-			catch (CloneNotSupportedException e)
-			{
-				throw new UnexpectedRuntimeException(e);
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public int getRow()
-		{
-			return row;
-		}
-
-		//--------------------------------------------------------------
-
-		public int getColumn()
-		{
-			return column;
-		}
-
-		//--------------------------------------------------------------
-
-		public Direction getDirection()
-		{
-			return direction;
-		}
-
-		//--------------------------------------------------------------
-
-		public int getLength()
-		{
-			return length;
-		}
-
-		//--------------------------------------------------------------
-
-		public int getNumber()
-		{
-			return number;
-		}
-
-		//--------------------------------------------------------------
-
-		public Id getId()
-		{
-			return new Id(number, direction);
-		}
-
-		//--------------------------------------------------------------
-
-		public int getEndRow()
-		{
-			switch (direction)
-			{
-				case NONE:
-					// do nothing
-					break;
-
-				case ACROSS:
-					return row;
-
-				case DOWN:
-					return (row + length - 1);
-			}
-			return -1;
-		}
-
-		//--------------------------------------------------------------
-
-		public int getEndColumn()
-		{
-			switch (direction)
-			{
-				case NONE:
-					// do nothing
-					break;
-
-				case ACROSS:
-					return (column + length - 1);
-
-				case DOWN:
-					return column;
-			}
-			return -1;
-		}
-
-		//--------------------------------------------------------------
-
-		public IndexPair getStartIndices()
-		{
-			return new IndexPair(row, column);
-		}
-
-		//--------------------------------------------------------------
-
-		public IndexPair getEndIndices()
-		{
-			switch (direction)
-			{
-				case NONE:
-					// do nothing
-					break;
-
-				case ACROSS:
-					return new IndexPair(row, column + length - 1);
-
-				case DOWN:
-					return new IndexPair(row  + length - 1, column);
-			}
-			return null;
-		}
-
-		//--------------------------------------------------------------
-
-		public boolean containsCell(int row,
-									int column)
-		{
-			switch (direction)
-			{
-				case NONE:
-					// do nothing
-					break;
-
-				case ACROSS:
-					return (row == this.row) && (column >= this.column) && (column < this.column + length);
-
-				case DOWN:
-					return (column == this.column) && (row >= this.row) && (row < this.row + length);
-			}
-			return false;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	int			row;
-		private	int			column;
-		private	Direction	direction;
-		private	int			length;
-		private	int			number;
-
-	}
-
-	//==================================================================
-
-
-	// GRID ENTRY VALUE CLASS
-
-
-	public static class EntryValue
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public EntryValue(int  row,
-						  int  column,
-						  char value)
-		{
-			this.row = row;
-			this.column = column;
-			this.value = value;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		int		row;
-		int		column;
-		char	value;
-
-	}
-
-	//==================================================================
-
-
-	// GRID ENTRY CLASS
-
-
-	public static class Entry
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Entry(Field.Id fieldId,
-					  String   text)
-		{
-			this.fieldId = fieldId.clone();
-			this.text = text;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		Field.Id	fieldId;
-		String		text;
-
-	}
-
-	//==================================================================
-
-
-	// GRID ENTRIES CLASS
-
-
-	public static class Entries
-		implements Cloneable
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		public static final		char	UNDEFINED_VALUE	= '?';
-		private static final	char	NO_VALUE		= '\0';
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Entries(int numColumns,
-						int numRows)
-		{
-			values = new char[numRows][];
-			for (int i = 0; i < values.length; i++)
-				values[i] = new char[numColumns];
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public Entries clone()
-		{
-			try
-			{
-				Entries copy = (Entries)super.clone();
-				copy.values = values.clone();
-				for (int i = 0; i < values.length; i++)
-					copy.values[i] = values[i].clone();
-				return copy;
-			}
-			catch (CloneNotSupportedException e)
-			{
-				throw new UnexpectedRuntimeException(e);
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public void clear()
-		{
-			for (int row = 0; row < values.length; row++)
-			{
-				for (int column = 0; column < values[row].length; column++)
-				{
-					if (values[row][column] != NO_VALUE)
-						values[row][column] = UNDEFINED_VALUE;
-				}
-			}
-			numValues = 0;
-		}
-
-		//--------------------------------------------------------------
-
-		protected void init()
-		{
-			for (int i = 0; i < values.length; i++)
-				Arrays.fill(values[i], NO_VALUE);
-			numCells = 0;
-			numValues = 0;
-		}
-
-		//--------------------------------------------------------------
-
-		protected void initValue(int row,
-								 int column)
-		{
-			if (values[row][column] == NO_VALUE)
-				++numCells;
-			values[row][column] = UNDEFINED_VALUE;
-		}
-
-		//--------------------------------------------------------------
-
-		private void setValue(int  row,
-							  int  column,
-							  char value)
-		{
-			if (values[row][column] != UNDEFINED_VALUE)
-				--numValues;
-			values[row][column] = value;
-			if (value != UNDEFINED_VALUE)
-				++numValues;
-		}
-
-		//--------------------------------------------------------------
-
-		private boolean[][] compare(Entries other)
-		{
-			boolean[][] differences = new boolean[values.length][];
-			for (int row = 0; row < values.length; row++)
-			{
-				differences[row] = new boolean[values[row].length];
-				for (int column = 0; column < values[row].length; column++)
-				{
-					if (values[row][column] != NO_VALUE)
-						differences[row][column] = (values[row][column] != other.values[row][column]);
-				}
-			}
-			return differences;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	int			numCells;
-		private	int			numValues;
-		private	char[][]	values;
-
-	}
-
-	//==================================================================
-
-
-	// ENCODED SOLUTION CLASS
-
-
-	public static class EncodedSolution
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private EncodedSolution(byte[] nonce,
-								byte[] hashValue,
-								byte[] data)
-		{
-			this.nonce = nonce;
-			this.hashValue = hashValue;
-			this.data = data;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public byte[] getNonce()
-		{
-			return nonce;
-		}
-
-		//--------------------------------------------------------------
-
-		public byte[] getHashValue()
-		{
-			return hashValue;
-		}
-
-		//--------------------------------------------------------------
-
-		public byte[] getData()
-		{
-			return data;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	byte[]	nonce;
-		private	byte[]	hashValue;
-		private	byte[]	data;
-
-	}
-
-	//==================================================================
-
-
-	// CELL BASE CLASS
-
-
-	protected static abstract class Cell
-		implements Cloneable
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	double	ENTRY_TOP_OFFSET_FRACTION	= 0.1;
-		private static final	int		ENTRY_LEFT_OFFSET			= 1;
-
-		private static final	String	STYLE_SELECTOR1	= HtmlConstants.ElementName.DIV + CssConstants.Selector.ID
-															+ HtmlConstants.Id.GRID + CssConstants.Selector.CHILD
-															+ HtmlConstants.ElementName.DIV
-															+ CssConstants.Selector.CHILD
-															+ HtmlConstants.ElementName.DIV;
-		private static final	String	STYLE_SELECTOR2	= HtmlConstants.ElementName.DIV + CssConstants.Selector.CLASS
-															+ HtmlConstants.Class.FIELD_NUMBER;
-		private static final	String	STYLE_SELECTOR3	= HtmlConstants.ElementName.DIV + CssConstants.Selector.CLASS
-															+ HtmlConstants.Class.ENTRY;
-
-		private static final	CssRuleSet	CONTAINER_RULE_SET	= new CssRuleSet
-		(
-			STYLE_SELECTOR1,
-			new CssRuleSet.Decl(CssConstants.Property.DISPLAY,        "table-cell"),
-			new CssRuleSet.Decl(CssConstants.Property.POSITION,       "relative"),
-			new CssRuleSet.Decl(CssConstants.Property.VERTICAL_ALIGN, "top"),
-			new CssRuleSet.Decl(CssConstants.Property.WIDTH,          ""),
-			new CssRuleSet.Decl(CssConstants.Property.HEIGHT,         ""),
-			new CssRuleSet.Decl(CssConstants.Property.BORDER,         "1px solid %1")
-		);
-		private static final	CssRuleSet	FIELD_NUMBER_RULE_SET	= new CssRuleSet
-		(
-			STYLE_SELECTOR2,
-			new CssRuleSet.Decl(CssConstants.Property.POSITION,    "absolute"),
-			new CssRuleSet.Decl(CssConstants.Property.Z_INDEX,     "2"),
-			new CssRuleSet.Decl(CssConstants.Property.WIDTH,       "100%"),
-			new CssRuleSet.Decl(CssConstants.Property.HEIGHT,      "100%"),
-			new CssRuleSet.Decl(CssConstants.Property.TOP,         ""),
-			new CssRuleSet.Decl(CssConstants.Property.LEFT,        ""),
-			new CssRuleSet.Decl(CssConstants.Property.TEXT_ALIGN,  "left"),
-			new CssRuleSet.Decl(CssConstants.Property.LINE_HEIGHT, "100%"),
-			new CssRuleSet.Decl(CssConstants.Property.FONT_SIZE,   "%1%%")
-		);
-		private static final	CssRuleSet	ENTRY_RULE_SET	= new CssRuleSet
-		(
-			STYLE_SELECTOR3,
-			new CssRuleSet.Decl(CssConstants.Property.POSITION,    "absolute"),
-			new CssRuleSet.Decl(CssConstants.Property.Z_INDEX,     "3"),
-			new CssRuleSet.Decl(CssConstants.Property.WIDTH,       "100%"),
-			new CssRuleSet.Decl(CssConstants.Property.HEIGHT,      "100%"),
-			new CssRuleSet.Decl(CssConstants.Property.TOP,         "%1%%"),
-			new CssRuleSet.Decl(CssConstants.Property.LEFT,        ""),
-			new CssRuleSet.Decl(CssConstants.Property.TEXT_ALIGN,  "center"),
-			new CssRuleSet.Decl(CssConstants.Property.LINE_HEIGHT, "125%"),
-			new CssRuleSet.Decl(CssConstants.Property.FONT_SIZE,   "125%"),
-			new CssRuleSet.Decl(CssConstants.Property.COLOUR,      "%1")
-		);
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		protected Cell()
-		{
-			fields = new EnumMap<>(Direction.class);
-			fieldOrigins = new EnumMap<>(Direction.class);
-			for (Direction direction : Direction.DEFINED_DIRECTIONS)
-				fieldOrigins.put(direction, Boolean.FALSE);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		public static List<CssRuleSet> getStyleRuleSets(int    cellSize,
-														int    cellOffsetTop,
-														int    cellOffsetLeft,
-														Color  gridColour,
-														Color  entryColour,
-														int    fieldNumOffsetTop,
-														int    fieldNumOffsetLeft,
-														double fieldNumFontSizeFactor)
-		{
-			List<CssRuleSet> ruleSets = new ArrayList<>();
-
-			// Add rule set for cell container
-			CssRuleSet ruleSet = CONTAINER_RULE_SET.clone();
-
-			String cellSizeStr = Integer.toString(cellSize);
-			CssRuleSet.Decl decl = ruleSet.findDeclaration(CssConstants.Property.WIDTH);
-			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, cellSizeStr);
-			decl = ruleSet.findDeclaration(CssConstants.Property.HEIGHT);
-			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, cellSizeStr);
-
-			String colourStr = ColourUtils.colourToHexString(gridColour);
-			decl = ruleSet.findDeclaration(CssConstants.Property.BORDER);
-			decl.value = IndexedSub.sub(decl.value, colourStr);
-
-			ruleSets.add(ruleSet);
-
-			// Add rule set for field number
-			ruleSet = FIELD_NUMBER_RULE_SET.clone();
-
-			decl = ruleSet.findDeclaration(CssConstants.Property.TOP);
-			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(cellOffsetTop + fieldNumOffsetTop));
-			decl = ruleSet.findDeclaration(CssConstants.Property.LEFT);
-			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(cellOffsetLeft + fieldNumOffsetLeft));
-
-			String fontSizeStr = AppConstants.FORMAT_1_1.format(fieldNumFontSizeFactor * 100.0);
-			decl = ruleSet.findDeclaration(CssConstants.Property.FONT_SIZE);
-			decl.value = IndexedSub.sub(decl.value, fontSizeStr);
-
-			ruleSets.add(ruleSet);
-
-			// Add rule set for entry
-			ruleSet = ENTRY_RULE_SET.clone();
-
-			decl = ruleSet.findDeclaration(CssConstants.Property.TOP);
-			double offset = (double)cellOffsetTop / (double)cellSize + ENTRY_TOP_OFFSET_FRACTION;
-			decl.value = IndexedSub.sub(decl.value, AppConstants.FORMAT_1_3.format(offset * 100.0));
-			decl = ruleSet.findDeclaration(CssConstants.Property.LEFT);
-			decl.value = IndexedSub.sub(PIXEL_SIZE_STR, Integer.toString(cellOffsetLeft + ENTRY_LEFT_OFFSET));
-
-			colourStr = ColourUtils.colourToHexString(entryColour);
-			decl = ruleSet.findDeclaration(CssConstants.Property.COLOUR);
-			decl.value = IndexedSub.sub(decl.value, colourStr);
-
-			ruleSets.add(ruleSet);
-
-			return ruleSets;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Abstract methods
-	////////////////////////////////////////////////////////////////////
-
-		protected abstract void write(XmlWriter writer,
-									  int       indent,
-									  int       cellSize,
-									  int       fieldNumber,
-									  char      entry)
-			throws IOException;
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public Cell clone()
-		{
-			try
-			{
-				Cell copy = (Cell)super.clone();
-
-				copy.fields = new EnumMap<>(Direction.class);
-				for (Direction direction : fields.keySet())
-					copy.fields.put(direction, fields.get(direction).clone());
-
-				copy.fieldOrigins = new EnumMap<>(Direction.class);
-				for (Direction direction : fieldOrigins.keySet())
-					copy.fieldOrigins.put(direction, fieldOrigins.get(direction).booleanValue());
-
-				return copy;
-			}
-			catch (CloneNotSupportedException e)
-			{
-				throw new UnexpectedRuntimeException(e);
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public Field getField(Direction direction)
-		{
-			return fields.get(direction);
-		}
-
-		//--------------------------------------------------------------
-
-		public boolean isInField()
-		{
-			return !fields.isEmpty();
-		}
-
-		//--------------------------------------------------------------
-
-		public boolean isFieldOrigin()
-		{
-			for (Direction direction : fieldOrigins.keySet())
-			{
-				if (fieldOrigins.get(direction))
-					return true;
-			}
-			return false;
-		}
-
-		//--------------------------------------------------------------
-
-		public int getFieldNumber()
-		{
-			for (Direction direction : fieldOrigins.keySet())
-			{
-				if (fieldOrigins.get(direction))
-					return fields.get(direction).number;
-			}
-			return 0;
-		}
-
-		//--------------------------------------------------------------
-
-		protected List<Field> getFields()
-		{
-			List<Field> fields = new ArrayList<>();
-			for (Direction direction : this.fields.keySet())
-				fields.add(this.fields.get(direction));
-			return fields;
-		}
-
-		//--------------------------------------------------------------
-
-		protected void setField(Direction direction,
-								Field     field)
-		{
-			fields.put(direction, field);
-		}
-
-		//--------------------------------------------------------------
-
-		protected void setFieldOrigin(Direction direction,
-									  Field     field)
-		{
-			fields.put(direction, field);
-			fieldOrigins.put(direction, Boolean.TRUE);
-		}
-
-		//--------------------------------------------------------------
-
-		protected void resetFields()
-		{
-			fields.clear();
-			fieldOrigins.clear();
-			for (Direction direction : Direction.DEFINED_DIRECTIONS)
-				fieldOrigins.put(direction, Boolean.FALSE);
-		}
-
-		//--------------------------------------------------------------
-
-		protected void writeContents(XmlWriter writer,
-									 int       fieldNumber,
-									 char      entry)
-			throws IOException
-		{
-			AttributeList attributes = new AttributeList();
-			if (fieldNumber > 0)
-			{
-				attributes.add(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.FIELD_NUMBER);
-				writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, 0, false, false);
-				writer.write(Integer.toString(fieldNumber));
-				writer.writeEndTag(HtmlConstants.ElementName.DIV);
-			}
-
-			if (entry != Entries.UNDEFINED_VALUE)
-			{
-				attributes.clear();
-				attributes.add(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.ENTRY);
-				writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, 0, false, false);
-				writer.write(entry);
-				writer.writeEndTag(HtmlConstants.ElementName.DIV);
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	Map<Direction, Field>	fields;
-		private	Map<Direction, Boolean>	fieldOrigins;
-
-	}
-
-	//==================================================================
-
-
-	// LINE CLASS
-
-
-	private static class Line
-		implements Cloneable
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Enumerated types
-	////////////////////////////////////////////////////////////////////
-
-
-		// LINE ORIENTATION
-
-
-		private enum Orientation
-		{
-
-		////////////////////////////////////////////////////////////////
-		//  Constants
-		////////////////////////////////////////////////////////////////
-
-			HORIZONTAL  ("horizontal"),
-			VERTICAL    ("vertical");
-
-		////////////////////////////////////////////////////////////////
-		//  Constructors
-		////////////////////////////////////////////////////////////////
-
-			private Orientation(String text)
-			{
-				this.text = text;
-			}
-
-			//----------------------------------------------------------
-
-		////////////////////////////////////////////////////////////////
-		//  Instance methods : overriding methods
-		////////////////////////////////////////////////////////////////
-
-			@Override
-			public String toString()
-			{
-				return text;
-			}
-
-			//----------------------------------------------------------
-
-		////////////////////////////////////////////////////////////////
-		//  Instance variables
-		////////////////////////////////////////////////////////////////
-
-			private	String	text;
-
-		}
-
-		//==============================================================
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Line(Orientation orientation,
-					 int         x,
-					 int         y)
-		{
-			this.orientation = orientation;
-			x1 = x2 = x;
-			y1 = y2 = y;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public Line clone()
-		{
-			try
-			{
-				return (Line)super.clone();
-			}
-			catch (CloneNotSupportedException e)
-			{
-				throw new UnexpectedRuntimeException(e);
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public String toString()
-		{
-			return (orientation.name().charAt(0) + ": " + x1 + ", " + y1 + ", " + getLength());
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private int getLength()
-		{
-			return (((orientation == Orientation.HORIZONTAL) ? x2 - x1 : y2 - y1) + 1);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	Orientation	orientation;
-		private	int			x1;
-		private	int			y1;
-		private	int			x2;
-		private	int			y2;
-
-	}
-
-	//==================================================================
-
-
-	// BOUNDS CLASS
-
-
-	private static class Bounds
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Bounds(int x1,
-					   int y1,
-					   int x2,
-					   int y2)
-		{
-			this.x1 = x1;
-			this.y1 = y1;
-			this.x2 = x2;
-			this.y2 = y2;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	int	x1;
-		private	int	y1;
-		private	int	x2;
-		private	int	y2;
-
-	}
-
-	//==================================================================
-
-
-	// PSEUDO-RANDOM NUMBER GENERATOR CLASS
-
-
-	private static class Prng
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	int	NUM_ROUNDS	= 20;
-		private static final	int	BUFFER_SIZE	= Salsa20.BLOCK_SIZE;
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Prng(String passphrase,
-					 byte[] nonce)
-		{
-			prng = new Salsa20(NUM_ROUNDS, Salsa20.stringToKey(passphrase), nonce);
-			buffer = new byte[BUFFER_SIZE];
-			indexMask = BUFFER_SIZE - 1;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		private static byte[] createNonce()
-		{
-			byte[] nonce = new byte[Salsa20.NONCE_SIZE];
-			NumberUtils.longToBytesLE(nonceGenerator.nextLong(), nonce);
-			return nonce;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private byte[] getKey()
-		{
-			return prng.getKey();
-		}
-
-		//--------------------------------------------------------------
-
-		private void combine(byte[] data)
-		{
-			for (int i = 0; i < data.length; i++)
-			{
-				if (index == 0)
-					prng.getNextBlock(buffer, 0);
-				data[i] ^= buffer[index++];
-				index &= indexMask;
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class variables
-	////////////////////////////////////////////////////////////////////
-
-		private static	Random	nonceGenerator	= new Random();
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	Salsa20	prng;
-		private	byte[]	buffer;
-		private	int		index;
-		private	int		indexMask;
-
-	}
-
-	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	protected Grid(int numColumns,
-				   int numRows)
+	protected Grid(
+		int	numColumns,
+		int	numRows)
 	{
 		this.numColumns = numColumns;
 		this.numRows = numRows;
@@ -2174,28 +234,32 @@ abstract class Grid
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static boolean isGridElement(Element element)
+	public static boolean isGridElement(
+		Element	element)
 	{
 		return element.getTagName().equals(ElementName.GRID);
 	}
 
 	//------------------------------------------------------------------
 
-	public static boolean isEntriesElement(Element element)
+	public static boolean isEntriesElement(
+		Element	element)
 	{
 		return element.getTagName().equals(ElementName.ENTRIES);
 	}
 
 	//------------------------------------------------------------------
 
-	public static boolean isSolutionElement(Element element)
+	public static boolean isSolutionElement(
+		Element	element)
 	{
 		return element.getTagName().equals(ElementName.SOLUTION);
 	}
 
 	//------------------------------------------------------------------
 
-	public static Grid create(Element element)
+	public static Grid create(
+		Element	element)
 		throws XmlParseException
 	{
 		// Get element path
@@ -2295,11 +359,12 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public static Info findGrid(BufferedImage image,
-								double        brightnessThreshold,
-								int           minLineLength,
-								int           minLineSeparation,
-								int           endpointTolerance)
+	public static Info findGrid(
+		BufferedImage	image,
+		double			brightnessThreshold,
+		int				minLineLength,
+		int				minLineSeparation,
+		int				endpointTolerance)
 		throws AppException
 	{
 		// Find the set of horizontal lines that satisfy the brightness and length constraints
@@ -2495,7 +560,8 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	private static Bounds getBoundsH(List<Line> lines)
+	private static Bounds getBoundsH(
+		List<Line>	lines)
 	{
 		// Get x coordinates
 		int x1 = Integer.MAX_VALUE;
@@ -2523,7 +589,8 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	private static Bounds getBoundsV(List<Line> lines)
+	private static Bounds getBoundsV(
+		List<Line>	lines)
 	{
 		// Get x coordinates
 		int x1 = 0;
@@ -2551,8 +618,9 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	private static Rectangle getCombinedBounds(Bounds hBounds,
-											   Bounds vBounds)
+	private static Rectangle getCombinedBounds(
+		Bounds	hBounds,
+		Bounds	vBounds)
 	{
 		int x = Math.min(hBounds.x1, vBounds.x1);
 		int y = Math.min(hBounds.y1, vBounds.y1);
@@ -2571,8 +639,9 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public abstract Cell getCell(int row,
-								 int column);
+	public abstract Cell getCell(
+		int	row,
+		int	column);
 
 	//------------------------------------------------------------------
 
@@ -2584,10 +653,11 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public abstract List<CssRuleSet> getStyleRuleSets(int    cellSize,
-													  Color  gridColour,
-													  Color  entryColour,
-													  double fieldNumberFontSizeFactor);
+	public abstract List<CssRuleSet> getStyleRuleSets(
+		int		cellSize,
+		Color	gridColour,
+		Color	entryColour,
+		double	fieldNumberFontSizeFactor);
 
 	//------------------------------------------------------------------
 
@@ -2615,11 +685,13 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public abstract void setSymmetry(Symmetry symmetry);
+	public abstract void setSymmetry(
+		Symmetry	symmetry);
 
 	//------------------------------------------------------------------
 
-	protected abstract boolean isSymmetry(Symmetry symmetry);
+	protected abstract boolean isSymmetry(
+		Symmetry	symmetry);
 
 	//------------------------------------------------------------------
 
@@ -2648,14 +720,16 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public int getNumFields(Direction direction)
+	public int getNumFields(
+		Direction	direction)
 	{
-		return (fieldLists.containsKey(direction) ? fieldLists.get(direction).size() : 0);
+		return fieldLists.containsKey(direction) ? fieldLists.get(direction).size() : 0;
 	}
 
 	//------------------------------------------------------------------
 
-	public Field getField(Field.Id fieldId)
+	public Field getField(
+		Field.Id	fieldId)
 	{
 		if (fieldLists.containsKey(fieldId.direction))
 		{
@@ -2670,7 +744,8 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public List<Field> getFields(Clue clue)
+	public List<Field> getFields(
+		Clue	clue)
 	{
 		List<Field> fields = new ArrayList<>();
 		for (int i = 0; i < clue.getNumFields(); i++)
@@ -2694,25 +769,28 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public List<Field> getFields(Direction direction)
+	public List<Field> getFields(
+		Direction	direction)
 	{
-		return (fieldLists.containsKey(direction) ? Collections.unmodifiableList(fieldLists.get(direction))
-												  : new ArrayList<Field>());
+		return fieldLists.containsKey(direction) ? Collections.unmodifiableList(fieldLists.get(direction))
+												 : new ArrayList<>();
 	}
 
 	//------------------------------------------------------------------
 
-	public boolean isEntryValue(int row,
-								int column)
+	public boolean isEntryValue(
+		int	row,
+		int	column)
 	{
 		char ch = entries.values[row][column];
-		return ((ch != Entries.NO_VALUE) && (ch != Entries.UNDEFINED_VALUE));
+		return (ch != Entries.NO_VALUE) && (ch != Entries.UNDEFINED_VALUE);
 	}
 
 	//------------------------------------------------------------------
 
-	public char getEntryValue(int row,
-							  int column)
+	public char getEntryValue(
+		int	row,
+		int	column)
 	{
 		return entries.values[row][column];
 	}
@@ -2726,14 +804,15 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public String getEntriesString(String separator)
+	public String getEntriesString(
+		String	separator)
 	{
 		StringBuilder buffer = new StringBuilder(1024);
 		for (Direction direction : Direction.DEFINED_DIRECTIONS)
 		{
 			for (Field field : fieldLists.get(direction))
 			{
-				if ((separator != null) && (buffer.length() > 0))
+				if ((separator != null) && !buffer.isEmpty())
 					buffer.append(separator);
 
 				switch (direction)
@@ -2759,9 +838,10 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public void setEntryValue(int  row,
-							  int  column,
-							  char value)
+	public void setEntryValue(
+		int		row,
+		int		column,
+		char	value)
 	{
 		entries.setValue(row, column, value);
 		incorrectEntries = null;
@@ -2769,7 +849,8 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public void setEntries(Entries entries)
+	public void setEntries(
+		Entries	entries)
 	{
 		this.entries = entries.clone();
 		incorrectEntries = null;
@@ -2777,7 +858,8 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public void setEntries(List<String> entries)
+	public void setEntries(
+		List<String>	entries)
 		throws AppException
 	{
 		// Get list of fields
@@ -2819,8 +901,9 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public boolean isIncorrectEntry(int row,
-									int column)
+	public boolean isIncorrectEntry(
+		int	row,
+		int	column)
 	{
 		return incorrectEntries[row][column];
 	}
@@ -2836,12 +919,13 @@ abstract class Grid
 
 	public Entries getSolution()
 	{
-		return ((solution == null) ? null : solution.clone());
+		return (solution == null) ? null : solution.clone();
 	}
 
 	//------------------------------------------------------------------
 
-	public String getSolutionString(String separator)
+	public String getSolutionString(
+		String	separator)
 	{
 		StringBuilder buffer = new StringBuilder(1024);
 		if (solution != null)
@@ -2850,7 +934,7 @@ abstract class Grid
 			{
 				for (Field field : fieldLists.get(direction))
 				{
-					if ((separator != null) && (buffer.length() > 0))
+					if ((separator != null) && !buffer.isEmpty())
 						buffer.append(separator);
 
 					switch (direction)
@@ -2884,14 +968,16 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public void setSolution(Entries solution)
+	public void setSolution(
+		Entries	solution)
 	{
 		this.solution = (solution == null) ? null : solution.clone();
 	}
 
 	//------------------------------------------------------------------
 
-	public void setSolution(List<String> answers)
+	public void setSolution(
+		List<String>	answers)
 		throws AppException
 	{
 		// Get list of fields
@@ -2956,7 +1042,8 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public List<Field> findFields(Field.IFilter filter)
+	public List<Field> findFields(
+		Field.IFilter	filter)
 	{
 		List<Field> fields = new ArrayList<>();
 		for (Direction direction : fieldLists.keySet())
@@ -2972,9 +1059,10 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public List<Field> findFields(int       row,
-								  int       column,
-								  Direction direction)
+	public List<Field> findFields(
+		int			row,
+		int			column,
+		Direction	direction)
 	{
 		return findFields(field -> ((direction == Direction.NONE) || (direction == field.direction))
 								   && field.containsCell(row, column));
@@ -2982,7 +1070,8 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public List<Field> findFields(Field.Id id)
+	public List<Field> findFields(
+		Field.Id	id)
 	{
 		return findFields(field -> ((id.direction == Direction.NONE) || (id.direction == field.direction))
 								   && (id.number == field.number));
@@ -3051,7 +1140,8 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public void parseEntries(Element entriesElement)
+	public void parseEntries(
+		Element	entriesElement)
 		throws XmlParseException
 	{
 		for (Element element : XmlUtils.getChildElements(entriesElement, ElementName.ENTRY))
@@ -3096,8 +1186,9 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public CrosswordDocument.SolutionProperties parseSolution(Element       element,
-															  final boolean required)
+	public CrosswordDocument.SolutionProperties parseSolution(
+		Element	element,
+		boolean	required)
 		throws AppException
 	{
 		// Get element path
@@ -3130,9 +1221,9 @@ abstract class Grid
 		{
 			try
 			{
-				location = new URL(attrValue);
+				location = new URI(attrValue).toURL();
 			}
-			catch (MalformedURLException e)
+			catch (URISyntaxException | MalformedURLException e)
 			{
 				throw new XmlParseException(ErrorId.INVALID_ATTRIBUTE, attrKey, attrValue);
 			}
@@ -3158,9 +1249,8 @@ abstract class Grid
 				String[] result = new String[1];
 				try
 				{
-					SwingUtilities.invokeAndWait(() -> result[0] =
-														PassphraseDialog.showDialog(App.INSTANCE.getMainWindow(),
-																					SOLUTION_STR, !required));
+					SwingUtilities.invokeAndWait(() ->
+							result[0] = PassphraseDialog.showDialog(App.INSTANCE.getMainWindow(), SOLUTION_STR, !required));
 				}
 				catch (Exception e)
 				{
@@ -3247,8 +1337,9 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public void writeGrid(XmlWriter writer,
-						  int       indent)
+	public void writeGrid(
+		XmlWriter	writer,
+		int			indent)
 		throws IOException
 	{
 		// Write start tag, grid
@@ -3276,8 +1367,9 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public void writeEntries(XmlWriter writer,
-							 int       indent)
+	public void writeEntries(
+		XmlWriter	writer,
+		int			indent)
 		throws IOException
 	{
 		// Write start tag, entries
@@ -3303,7 +1395,8 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public EncodedSolution getEncodedSolution(String passphrase)
+	public EncodedSolution getEncodedSolution(
+		String	passphrase)
 	{
 		// Convert solution string to bytes
 		byte[] data = getSolutionString(null).getBytes(SOLUTION_ENCODING);
@@ -3325,9 +1418,10 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public void writeSolution(XmlWriter writer,
-							  int       indent,
-							  String    passphrase)
+	public void writeSolution(
+		XmlWriter	writer,
+		int			indent,
+		String		passphrase)
 		throws IOException
 	{
 		// Encode and encrypt solution
@@ -3360,10 +1454,11 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public void writeSolution(XmlWriter writer,
-							  int       indent,
-							  URL       location,
-							  byte[]    hashValue)
+	public void writeSolution(
+		XmlWriter	writer,
+		int			indent,
+		URL			location,
+		byte[]		hashValue)
 		throws IOException
 	{
 		AttributeList attributes = new AttributeList();
@@ -3376,11 +1471,12 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	public void writeHtml(XmlWriter writer,
-						  int       indent,
-						  int       cellSize,
-						  boolean   writeFieldNumbers,
-						  boolean   writeEntries)
+	public void writeHtml(
+		XmlWriter	writer,
+		int			indent,
+		int			cellSize,
+		boolean		writeFieldNumbers,
+		boolean		writeEntries)
 		throws IOException
 	{
 		// Write start tag, table division
@@ -3427,11 +1523,12 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	protected Field addField(int       row,
-							 int       column,
-							 Direction direction,
-							 int       length,
-							 int       fieldNumber)
+	protected Field addField(
+		int			row,
+		int			column,
+		Direction	direction,
+		int			length,
+		int			fieldNumber)
 	{
 		Field field = new Field(row, column, direction, length, fieldNumber);
 		List<Field> fields = fieldLists.get(direction);
@@ -3446,7 +1543,8 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	private List<Entry> getEntries(Direction direction)
+	private List<Entry> getEntries(
+		Direction	direction)
 	{
 		List<Entry> outEntries = new ArrayList<>();
 		for (Field field : fieldLists.get(direction))
@@ -3489,9 +1587,10 @@ abstract class Grid
 
 	//------------------------------------------------------------------
 
-	private void setEntry(Field   field,
-						  String  entry,
-						  boolean validateChars)
+	private void setEntry(
+		Field	field,
+		String	entry,
+		boolean	validateChars)
 		throws AppException
 	{
 		// Compare length of entry with length of field
@@ -3539,27 +1638,2027 @@ abstract class Grid
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Static initialiser
+//  Enumerated types
 ////////////////////////////////////////////////////////////////////////
 
-	static
+
+	// ENUMERATION: GRID SEPARATOR
+
+
+	enum Separator
+		implements IStringKeyed
 	{
-		DEFAULT_HTML_CELL_SIZES = new EnumMap<>(Separator.class);
-		DEFAULT_HTML_CELL_SIZES.put(Separator.BLOCK, 20);
-		DEFAULT_HTML_CELL_SIZES.put(Separator.BAR,   20);
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		BLOCK
+		(
+			"block"
+		)
+		{
+			@Override
+			public Grid createGrid(
+				int			numColumns,
+				int			numRows,
+				Symmetry	symmetry)
+			{
+				return new BlockGrid(numColumns, numRows, symmetry);
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			public Grid createGrid(
+				int			numColumns,
+				int			numRows,
+				Symmetry	symmetry,
+				String		definition)
+				throws AppException
+			{
+				return new BlockGrid(numColumns, numRows, symmetry, definition);
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			public GridPanel createGridPanel(
+				CrosswordDocument	document)
+			{
+				return new GridPanel.Block(document);
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			public GridPanel createGridPanel(
+				Grid	grid)
+			{
+				return (grid instanceof BlockGrid) ? new GridPanel.Block(grid.createCopy()) : null;
+			}
+
+			//----------------------------------------------------------
+		},
+
+		BAR
+		(
+			"bar"
+		)
+		{
+			@Override
+			public Grid createGrid(
+				int			numColumns,
+				int			numRows,
+				Symmetry	symmetry)
+			{
+				return new BarGrid(numColumns, numRows, symmetry);
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			public Grid createGrid(
+				int			numColumns,
+				int			numRows,
+				Symmetry	symmetry,
+				String		definition)
+				throws AppException
+			{
+				return new BarGrid(numColumns, numRows, symmetry, definition);
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			public GridPanel createGridPanel(
+				CrosswordDocument	document)
+			{
+				return new GridPanel.Bar(document);
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			public GridPanel createGridPanel(
+				Grid	grid)
+			{
+				return (grid instanceof BarGrid) ? new GridPanel.Bar(grid.createCopy()) : null;
+			}
+
+			//----------------------------------------------------------
+		};
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	key;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Separator(
+			String	key)
+		{
+			this.key = key;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Class methods
+	////////////////////////////////////////////////////////////////////
+
+		public static Separator forKey(
+			String	key)
+		{
+			for (Separator value : values())
+			{
+				if (value.key.equals(key))
+					return value;
+			}
+			return null;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Abstract methods
+	////////////////////////////////////////////////////////////////////
+
+		public abstract Grid createGrid(
+			int			numColumns,
+			int			numRows,
+			Symmetry	symmetry);
+
+		//--------------------------------------------------------------
+
+		public abstract Grid createGrid(
+			int			numColumns,
+			int			numRows,
+			Symmetry	symmetry,
+			String		definition)
+			throws AppException;
+
+		//--------------------------------------------------------------
+
+		public abstract GridPanel createGridPanel(
+			CrosswordDocument	document);
+
+		//--------------------------------------------------------------
+
+		public abstract GridPanel createGridPanel(
+			Grid	grid);
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : IStringKeyed interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getKey()
+		{
+			return key;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String toString()
+		{
+			return StringUtils.firstCharToUpperCase(key);
+		}
+
+		//--------------------------------------------------------------
+
 	}
 
+	//==================================================================
+
+
+	// ENUMERATION: SYMMETRY
+
+
+	enum Symmetry
+		implements IStringKeyed
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		NONE
+		(
+			"none",
+			"None"
+		)
+		{
+			@Override
+			public int[] getPrincipalDimensions(
+				int	numColumns,
+				int	numRows)
+			{
+				return new int[] { numColumns, numRows };
+			}
+		},
+
+		ROTATION_HALF
+		(
+			"rotate2",
+			"Rotation by a half-turn"
+		)
+		{
+			@Override
+			public int[] getPrincipalDimensions(
+				int	numColumns,
+				int	numRows)
+			{
+				return new int[] { numColumns, (numRows + 1) / 2 };
+			}
+		},
+
+		ROTATION_QUARTER
+		(
+			"rotate4",
+			"Rotation by a quarter-turn"
+		)
+		{
+			@Override
+			public int[] getPrincipalDimensions(
+				int	numColumns,
+				int	numRows)
+			{
+				return new int[] { (numColumns + 1) / 2, (numRows + 1) / 2 };
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			public boolean supportsDimensions(
+				int	numColumns,
+				int	numRows)
+			{
+				return (numColumns == numRows);
+			}
+
+			//----------------------------------------------------------
+		},
+
+		REFLECTION_VERTICAL_AXIS
+		(
+			"reflectVAxis",
+			"Reflection in vertical axis"
+		)
+		{
+			@Override
+			public int[] getPrincipalDimensions(
+				int	numColumns,
+				int	numRows)
+			{
+				return new int[] { (numColumns + 1) / 2, numRows };
+			}
+		},
+
+		REFLECTION_HORIZONTAL_AXIS
+		(
+			"reflectHAxis",
+			"Reflection in horizontal axis"
+		)
+		{
+			@Override
+			public int[] getPrincipalDimensions(
+				int	numColumns,
+				int	numRows)
+			{
+				return new int[] { numColumns, (numRows + 1) / 2 };
+			}
+		},
+
+		REFLECTION_VERTICAL_HORIZONTAL_AXES
+		(
+			"reflectVHAxes",
+			"Reflection in V and H axes"
+		)
+		{
+			@Override
+			public int[] getPrincipalDimensions(
+				int	numColumns,
+				int	numRows)
+			{
+				return new int[] { (numColumns + 1) / 2, (numRows + 1) / 2 };
+			}
+		};
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	key;
+		private	String	text;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Symmetry(
+			String	key,
+			String	text)
+		{
+			this.key = key;
+			this.text = text;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Class methods
+	////////////////////////////////////////////////////////////////////
+
+		public static Symmetry forKey(
+			String	key)
+		{
+			for (Symmetry value : values())
+			{
+				if (value.key.equals(key))
+					return value;
+			}
+			return null;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Abstract methods
+	////////////////////////////////////////////////////////////////////
+
+		public abstract int[] getPrincipalDimensions(
+			int	numColumns,
+			int	numRows);
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : IStringKeyed interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getKey()
+		{
+			return key;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String toString()
+		{
+			return text;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public boolean supportsDimensions(
+			int	numColumns,
+			int	numRows)
+		{
+			return true;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// ENUMERATION: KIND OF ENCRYPTION
+
+
+	enum EncryptionKind
+		implements IStringKeyed
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		NONE
+		(
+			"none"
+		),
+
+		SALSA20
+		(
+			"salsa20"
+		);
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	key;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private EncryptionKind(
+			String	key)
+		{
+			this.key = key;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Class methods
+	////////////////////////////////////////////////////////////////////
+
+		public static EncryptionKind forKey(
+			String	key)
+		{
+			for (EncryptionKind value : values())
+			{
+				if (value.key.equals(key))
+					return value;
+			}
+			return null;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : IStringKeyed interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getKey()
+		{
+			return key;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String toString()
+		{
+			return StringUtils.firstCharToUpperCase(key);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// ENUMERATION: ERROR IDENTIFIERS
+
+
+	private enum ErrorId
+		implements AppException.IId
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		NO_ATTRIBUTE
+		("The required attribute is missing."),
+
+		INVALID_ATTRIBUTE
+		("The attribute is invalid."),
+
+		ATTRIBUTE_OUT_OF_BOUNDS
+		("The attribute value is out of bounds."),
+
+		INCOMPATIBLE_SYMMETRY_AND_DIMENSIONS
+		("The symmetry of the grid is not compatible with the dimensions of the grid."),
+
+		CLUES_NOT_DEFINED
+		("%1 clues are not defined."),
+
+		ERRORS_IN_CLUE_LISTS
+		("The lists of clues have the following errors:\n%1"),
+
+		TOO_FEW_LINES
+		("There are fewer than " + MIN_NUM_LINES_PER_DIMENSION + " %1 lines of sufficient length in the image."),
+
+		TOO_FEW_COINCIDENT_HORIZONTAL_AND_VERTICAL_LINES
+		("The largest coincident sets of horizontal and vertical lines are too small to form a grid."),
+
+		INVALID_FIELD_ID
+		("The ID does not correspond to a field in the grid."),
+
+		INCORRECT_NUMBER_OF_ENTRIES
+		("The number of entries does not match the number of fields."),
+
+		INCORRECT_ENTRY_LENGTH
+		("The length of the entry for %1 incorrect."),
+
+		ILLEGAL_CHARACTER_IN_ENTRY
+		("The entry for %1 contains an illegal character: '%2'"),
+
+		CONFLICTING_ENTRY
+		("The entry for %1 conflicts with an intersecting entry at index %2."),
+
+		ILLEGAL_CHARACTER_IN_SOLUTION_ENCODING
+		("The Base64 encoding of the solution contains an illegal character."),
+
+		MALFORMED_SOLUTION_ENCODING
+		("The Base64 encoding of the solution is malformed."),
+
+		INCORRECT_PASSPHRASE
+		("The passphrase does not match the one that was used to encrypt the solution."),
+
+		SOLUTION_LENGTH_NOT_CONSISTENT_WITH_GRID
+		("The length of the solution is not consistent with the grid."),
+
+		INCORRECT_NUMBER_OF_ANSWERS
+		("The number of answers does not match the number of fields."),
+
+		INCORRECT_ANSWER_LENGTH
+		("The length of the answer for %1 is incorrect."),
+
+		ILLEGAL_CHARACTER_IN_ANSWER
+		("The answer for %1 contains an illegal character: '%2'"),
+
+		CONFLICTING_ANSWER
+		("The answer for %1 conflicts with an intersecting answer at index %2."),
+
+		UNSUPPORTED_ENCRYPTION
+		("The kind of encryption is not supported by this application.");
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	message;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ErrorId(
+			String	message)
+		{
+			this.message = message;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : AppException.IId interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getMessage()
+		{
+			return message;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	protected	int							numRows;
-	protected	int							numColumns;
-	protected	Symmetry					symmetry;
-	protected	Map<Direction, List<Field>>	fieldLists;
-	protected	Entries						entries;
-	protected	Entries						solution;
-	protected	boolean[][]					incorrectEntries;
+
+	// CLASS: GRID INFORMATION
+
+
+	public static class Info
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		int	x;
+		int	y;
+		int	width;
+		int	height;
+		int	numColumns;
+		int	numRows;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Info(
+			int	x,
+			int	y,
+			int	width,
+			int	height,
+			int	numColumns,
+			int	numRows)
+		{
+			this.x = x;
+			this.y = y;
+			this.width = width;
+			this.height = height;
+			this.numColumns = numColumns;
+			this.numRows = numRows;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public Rectangle getBounds()
+		{
+			return new Rectangle(x, y, width, height);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: CELL INDEX PAIR
+
+
+	public static class IndexPair
+		implements Cloneable
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		int	row;
+		int	column;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		public IndexPair(
+			int	row,
+			int	column)
+		{
+			this.row = row;
+			this.column = column;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public boolean equals(
+			Object	obj)
+		{
+			if (this == obj)
+				return true;
+
+			return (obj instanceof IndexPair other) && (row == other.row) && (column == other.column);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public int hashCode()
+		{
+			return (row << 16) | column;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public IndexPair clone()
+		{
+			try
+			{
+				return (IndexPair)super.clone();
+			}
+			catch (CloneNotSupportedException e)
+			{
+				throw new UnexpectedRuntimeException(e);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public String toString()
+		{
+			return row + ", " + column;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public void set(
+			int	row,
+			int	column)
+		{
+			this.row = row;
+			this.column = column;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: GRID FIELD
+
+
+	public static class Field
+		implements Cloneable, Comparable<Field>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	int			row;
+		private	int			column;
+		private	Direction	direction;
+		private	int			length;
+		private	int			number;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		protected Field(
+			int			row,
+			int			column,
+			Direction	direction,
+			int			length,
+			int			number)
+		{
+			this.row = row;
+			this.column = column;
+			this.direction = direction;
+			this.length = length;
+			this.number = number;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : Comparable interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public int compareTo(
+			Field	other)
+		{
+			int result = Integer.compare(direction.ordinal(), other.direction.ordinal());
+			if (result == 0)
+				result = Integer.compare(row, other.row);
+			if (result == 0)
+				result = Integer.compare(column, other.column);
+			return result;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public boolean equals(
+			Object	obj)
+		{
+			if (this == obj)
+				return true;
+
+			return (obj instanceof Field other) && (row == other.row) && (column == other.column)
+						&& (direction == other.direction);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public int hashCode()
+		{
+			return (row << 12) | (column << 2) | direction.ordinal();
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public Field clone()
+		{
+			try
+			{
+				return (Field)super.clone();
+			}
+			catch (CloneNotSupportedException e)
+			{
+				throw new UnexpectedRuntimeException(e);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public int getRow()
+		{
+			return row;
+		}
+
+		//--------------------------------------------------------------
+
+		public int getColumn()
+		{
+			return column;
+		}
+
+		//--------------------------------------------------------------
+
+		public Direction getDirection()
+		{
+			return direction;
+		}
+
+		//--------------------------------------------------------------
+
+		public int getLength()
+		{
+			return length;
+		}
+
+		//--------------------------------------------------------------
+
+		public int getNumber()
+		{
+			return number;
+		}
+
+		//--------------------------------------------------------------
+
+		public Id getId()
+		{
+			return new Id(number, direction);
+		}
+
+		//--------------------------------------------------------------
+
+		public int getEndRow()
+		{
+			switch (direction)
+			{
+				case NONE:
+					// do nothing
+					break;
+
+				case ACROSS:
+					return row;
+
+				case DOWN:
+					return row + length - 1;
+			}
+			return -1;
+		}
+
+		//--------------------------------------------------------------
+
+		public int getEndColumn()
+		{
+			switch (direction)
+			{
+				case NONE:
+					// do nothing
+					break;
+
+				case ACROSS:
+					return column + length - 1;
+
+				case DOWN:
+					return column;
+			}
+			return -1;
+		}
+
+		//--------------------------------------------------------------
+
+		public IndexPair getStartIndices()
+		{
+			return new IndexPair(row, column);
+		}
+
+		//--------------------------------------------------------------
+
+		public IndexPair getEndIndices()
+		{
+			switch (direction)
+			{
+				case NONE:
+					// do nothing
+					break;
+
+				case ACROSS:
+					return new IndexPair(row, column + length - 1);
+
+				case DOWN:
+					return new IndexPair(row  + length - 1, column);
+			}
+			return null;
+		}
+
+		//--------------------------------------------------------------
+
+		public boolean containsCell(
+			int	row,
+			int	column)
+		{
+			switch (direction)
+			{
+				case NONE:
+					// do nothing
+					break;
+
+				case ACROSS:
+					return (row == this.row) && (column >= this.column) && (column < this.column + length);
+
+				case DOWN:
+					return (column == this.column) && (row >= this.row) && (row < this.row + length);
+			}
+			return false;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Member interfaces
+	////////////////////////////////////////////////////////////////////
+
+
+		// INTERFACE: FILTER
+
+
+		@FunctionalInterface
+		interface IFilter
+		{
+
+		////////////////////////////////////////////////////////////////
+		//  Methods
+		////////////////////////////////////////////////////////////////
+
+			public boolean acceptField(
+				Field	field);
+
+			//----------------------------------------------------------
+
+		}
+
+		//==============================================================
+
+	////////////////////////////////////////////////////////////////////
+	//  Member classes : non-inner classes
+	////////////////////////////////////////////////////////////////////
+
+
+		// CLASS: FIELD IDENTIFIER
+
+
+		public static class Id
+			implements Cloneable, Comparable<Id>
+		{
+
+		////////////////////////////////////////////////////////////////
+		//  Constants
+		////////////////////////////////////////////////////////////////
+
+			public static final		Pattern	PATTERN;
+
+			private static final	String	REGEX_FRAG1	= "(\\d+)(";
+			private static final	String	REGEX_FRAG2	= ")?";
+
+		////////////////////////////////////////////////////////////////
+		//  Instance variables
+		////////////////////////////////////////////////////////////////
+
+			int			number;
+			Direction	direction;
+
+		////////////////////////////////////////////////////////////////
+		//  Static initialiser
+		////////////////////////////////////////////////////////////////
+
+			static
+			{
+				List<String> suffixes = new ArrayList<>();
+				for (Direction direction : Direction.values())
+					suffixes.add(direction.getSuffix());
+
+				StringBuilder buffer = new StringBuilder();
+				buffer.append(REGEX_FRAG1);
+				buffer.append(StringUtils.join(Clue.REGEX_ALTERNATION_CHAR, suffixes));
+				buffer.append(REGEX_FRAG2);
+				PATTERN = Pattern.compile(buffer.toString());
+			}
+
+		////////////////////////////////////////////////////////////////
+		//  Constructors
+		////////////////////////////////////////////////////////////////
+
+			public Id(
+				int	number)
+			{
+				this(number, Direction.NONE);
+			}
+
+			//----------------------------------------------------------
+
+			public Id(
+				int			number,
+				Direction	direction)
+			{
+				this.number = number;
+				this.direction = direction;
+			}
+
+			//----------------------------------------------------------
+
+			/**
+			 * @throws IllegalArgumentException
+			 */
+
+			public Id(
+				String	str)
+			{
+				Matcher matcher = PATTERN.matcher(str);
+				if (!matcher.matches())
+					throw new IllegalArgumentException();
+
+				number = Integer.parseInt(matcher.group(1));
+				direction = Direction.forSuffix(matcher.group(2));
+			}
+
+			//----------------------------------------------------------
+
+			/**
+			 * @throws NumberFormatException
+			 */
+
+			public Id(
+				String	numberStr,
+				String	directionStr)
+			{
+				this(Integer.parseInt(numberStr));
+				for (Direction direction : Direction.DEFINED_DIRECTIONS)
+				{
+					if (directionStr == null)
+						break;
+					for (String keyword : AppConfig.INSTANCE.getClueDirectionKeywords(direction))
+					{
+						keyword = StringUtils.stripBefore(keyword);
+						if (keyword.equals(directionStr))
+						{
+							this.direction = direction;
+							directionStr = null;
+							break;
+						}
+					}
+				}
+			}
+
+			//----------------------------------------------------------
+
+		////////////////////////////////////////////////////////////////
+		//  Instance methods : Comparable interface
+		////////////////////////////////////////////////////////////////
+
+			@Override
+			public int compareTo(
+				Id	other)
+			{
+				int result = Integer.compare(number, other.number);
+				if (result == 0)
+					result = Integer.compare(direction.ordinal(), other.direction.ordinal());
+				return result;
+			}
+
+			//----------------------------------------------------------
+
+		////////////////////////////////////////////////////////////////
+		//  Instance methods : overriding methods
+		////////////////////////////////////////////////////////////////
+
+			@Override
+			public boolean equals(
+				Object	obj)
+			{
+				if (this == obj)
+					return true;
+
+				return (obj instanceof Id other) && (number == other.number) && (direction == other.direction);
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			public int hashCode()
+			{
+				return (number << 2) | direction.ordinal();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			public Id clone()
+			{
+				try
+				{
+					return (Id)super.clone();
+				}
+				catch (CloneNotSupportedException e)
+				{
+					throw new UnexpectedRuntimeException(e);
+				}
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			public String toString()
+			{
+				return Integer.toString(number) + direction.getSuffix();
+			}
+
+			//----------------------------------------------------------
+
+		////////////////////////////////////////////////////////////////
+		//  Instance methods
+		////////////////////////////////////////////////////////////////
+
+			public boolean matches(
+				Id	other)
+			{
+				return (number == other.number) &&
+							((direction == Direction.NONE) || (other.direction == Direction.NONE) ||
+								(direction == other.direction));
+			}
+
+			//----------------------------------------------------------
+
+			public Id undefined()
+			{
+				return new Id(number, Direction.NONE);
+			}
+
+			//----------------------------------------------------------
+
+		}
+
+		//==============================================================
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: GRID ENTRY VALUE
+
+
+	public static class EntryValue
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		int		row;
+		int		column;
+		char	value;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		public EntryValue(
+			int		row,
+			int		column,
+			char	value)
+		{
+			this.row = row;
+			this.column = column;
+			this.value = value;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: GRID ENTRY
+
+
+	public static class Entry
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		Field.Id	fieldId;
+		String		text;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Entry(
+			Field.Id	fieldId,
+			String		text)
+		{
+			this.fieldId = fieldId.clone();
+			this.text = text;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: GRID ENTRIES
+
+
+	public static class Entries
+		implements Cloneable
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		public static final		char	UNDEFINED_VALUE	= '?';
+		private static final	char	NO_VALUE		= '\0';
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	int			numCells;
+		private	int			numValues;
+		private	char[][]	values;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Entries(
+			int	numColumns,
+			int	numRows)
+		{
+			values = new char[numRows][];
+			for (int i = 0; i < values.length; i++)
+				values[i] = new char[numColumns];
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public Entries clone()
+		{
+			try
+			{
+				Entries copy = (Entries)super.clone();
+				copy.values = values.clone();
+				for (int i = 0; i < values.length; i++)
+					copy.values[i] = values[i].clone();
+				return copy;
+			}
+			catch (CloneNotSupportedException e)
+			{
+				throw new UnexpectedRuntimeException(e);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public void clear()
+		{
+			for (int row = 0; row < values.length; row++)
+			{
+				for (int column = 0; column < values[row].length; column++)
+				{
+					if (values[row][column] != NO_VALUE)
+						values[row][column] = UNDEFINED_VALUE;
+				}
+			}
+			numValues = 0;
+		}
+
+		//--------------------------------------------------------------
+
+		protected void init()
+		{
+			for (int i = 0; i < values.length; i++)
+				Arrays.fill(values[i], NO_VALUE);
+			numCells = 0;
+			numValues = 0;
+		}
+
+		//--------------------------------------------------------------
+
+		protected void initValue(
+			int	row,
+			int	column)
+		{
+			if (values[row][column] == NO_VALUE)
+				++numCells;
+			values[row][column] = UNDEFINED_VALUE;
+		}
+
+		//--------------------------------------------------------------
+
+		private void setValue(
+			int		row,
+			int		column,
+			char	value)
+		{
+			if (values[row][column] != UNDEFINED_VALUE)
+				--numValues;
+			values[row][column] = value;
+			if (value != UNDEFINED_VALUE)
+				++numValues;
+		}
+
+		//--------------------------------------------------------------
+
+		private boolean[][] compare(
+			Entries	other)
+		{
+			boolean[][] differences = new boolean[values.length][];
+			for (int row = 0; row < values.length; row++)
+			{
+				differences[row] = new boolean[values[row].length];
+				for (int column = 0; column < values[row].length; column++)
+				{
+					if (values[row][column] != NO_VALUE)
+						differences[row][column] = (values[row][column] != other.values[row][column]);
+				}
+			}
+			return differences;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: ENCODED SOLUTION
+
+
+	public static class EncodedSolution
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	byte[]	nonce;
+		private	byte[]	hashValue;
+		private	byte[]	data;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private EncodedSolution(
+			byte[]	nonce,
+			byte[]	hashValue,
+			byte[]	data)
+		{
+			this.nonce = nonce;
+			this.hashValue = hashValue;
+			this.data = data;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public byte[] getNonce()
+		{
+			return nonce;
+		}
+
+		//--------------------------------------------------------------
+
+		public byte[] getHashValue()
+		{
+			return hashValue;
+		}
+
+		//--------------------------------------------------------------
+
+		public byte[] getData()
+		{
+			return data;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: CELL BASE
+
+
+	protected static abstract class Cell
+		implements Cloneable
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	double	ENTRY_TOP_OFFSET_FRACTION	= 0.1;
+		private static final	int		ENTRY_LEFT_OFFSET			= 1;
+
+		private static final	String	STYLE_SELECTOR1	= HtmlConstants.ElementName.DIV + CssSelector.ID
+															+ HtmlConstants.Id.GRID + CssSelector.CHILD
+															+ HtmlConstants.ElementName.DIV
+															+ CssSelector.CHILD
+															+ HtmlConstants.ElementName.DIV;
+		private static final	String	STYLE_SELECTOR2	= HtmlConstants.ElementName.DIV + CssSelector.CLASS
+															+ HtmlConstants.Class.FIELD_NUMBER;
+		private static final	String	STYLE_SELECTOR3	= HtmlConstants.ElementName.DIV + CssSelector.CLASS
+															+ HtmlConstants.Class.ENTRY;
+
+		private static final	CssRuleSet	CONTAINER_RULE_SET	= CssRuleSet.of
+		(
+			STYLE_SELECTOR1,
+			StrKVPair.of(CssProperty.DISPLAY,        "table-cell"),
+			StrKVPair.of(CssProperty.POSITION,       "relative"),
+			StrKVPair.of(CssProperty.VERTICAL_ALIGN, "top"),
+			StrKVPair.of(CssProperty.WIDTH,          "%dpx"),
+			StrKVPair.of(CssProperty.HEIGHT,         "%dpx"),
+			StrKVPair.of(CssProperty.BORDER,         "1px solid %s")
+		);
+		private static final	CssRuleSet	FIELD_NUMBER_RULE_SET	= CssRuleSet.of
+		(
+			STYLE_SELECTOR2,
+			StrKVPair.of(CssProperty.POSITION,    "absolute"),
+			StrKVPair.of(CssProperty.Z_INDEX,     "2"),
+			StrKVPair.of(CssProperty.WIDTH,       "100%"),
+			StrKVPair.of(CssProperty.HEIGHT,      "100%"),
+			StrKVPair.of(CssProperty.TOP,         "%dpx"),
+			StrKVPair.of(CssProperty.LEFT,        "%dpx"),
+			StrKVPair.of(CssProperty.TEXT_ALIGN,  "left"),
+			StrKVPair.of(CssProperty.LINE_HEIGHT, "100%"),
+			StrKVPair.of(CssProperty.FONT_SIZE,   "%s%%")
+		);
+		private static final	CssRuleSet	ENTRY_RULE_SET	= CssRuleSet.of
+		(
+			STYLE_SELECTOR3,
+			StrKVPair.of(CssProperty.POSITION,    "absolute"),
+			StrKVPair.of(CssProperty.Z_INDEX,     "3"),
+			StrKVPair.of(CssProperty.WIDTH,       "100%"),
+			StrKVPair.of(CssProperty.HEIGHT,      "100%"),
+			StrKVPair.of(CssProperty.TOP,         "%s%%"),
+			StrKVPair.of(CssProperty.LEFT,        "%dpx"),
+			StrKVPair.of(CssProperty.TEXT_ALIGN,  "center"),
+			StrKVPair.of(CssProperty.LINE_HEIGHT, "125%"),
+			StrKVPair.of(CssProperty.FONT_SIZE,   "125%"),
+			StrKVPair.of(CssProperty.COLOUR,      "%s")
+		);
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	Map<Direction, Field>	fields;
+		private	Map<Direction, Boolean>	fieldOrigins;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		protected Cell()
+		{
+			fields = new EnumMap<>(Direction.class);
+			fieldOrigins = new EnumMap<>(Direction.class);
+			for (Direction direction : Direction.DEFINED_DIRECTIONS)
+				fieldOrigins.put(direction, Boolean.FALSE);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Class methods
+	////////////////////////////////////////////////////////////////////
+
+		public static List<CssRuleSet> getStyleRuleSets(
+			int		cellSize,
+			int		cellOffsetTop,
+			int		cellOffsetLeft,
+			Color	gridColour,
+			Color	entryColour,
+			int		fieldNumOffsetTop,
+			int		fieldNumOffsetLeft,
+			double	fieldNumFontSizeFactor)
+		{
+			// Initialise list of rule sets
+			List<CssRuleSet> ruleSets = new ArrayList<>();
+
+			// Add rule set: cell container
+			CssRuleSet ruleSet = CONTAINER_RULE_SET.clone();
+			ruleSet.replacePropertyValue(CssProperty.WIDTH, cellSize);
+			ruleSet.replacePropertyValue(CssProperty.HEIGHT, cellSize);
+			ruleSet.replacePropertyValue(CssProperty.BORDER, ColourUtils.colourToHexString(gridColour));
+			ruleSets.add(ruleSet);
+
+			// Add rule set: field number
+			ruleSet = FIELD_NUMBER_RULE_SET.clone();
+			ruleSet.replacePropertyValue(CssProperty.TOP, cellOffsetTop + fieldNumOffsetTop);
+			ruleSet.replacePropertyValue(CssProperty.LEFT, cellOffsetLeft + fieldNumOffsetLeft);
+			ruleSet.replacePropertyValue(CssProperty.FONT_SIZE,
+										 AppConstants.FORMAT_1_1.format(fieldNumFontSizeFactor * 100.0));
+			ruleSets.add(ruleSet);
+
+			// Add rule set: entry
+			ruleSet = ENTRY_RULE_SET.clone();
+			double offset = (double)cellOffsetTop / (double)cellSize + ENTRY_TOP_OFFSET_FRACTION;
+			ruleSet.replacePropertyValue(CssProperty.TOP, AppConstants.FORMAT_1_3.format(offset * 100.0));
+			ruleSet.replacePropertyValue(CssProperty.LEFT, cellOffsetLeft + ENTRY_LEFT_OFFSET);
+			ruleSet.replacePropertyValue(CssProperty.COLOUR, ColourUtils.colourToHexString(entryColour));
+			ruleSets.add(ruleSet);
+
+			// Return list of rule sets
+			return ruleSets;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Abstract methods
+	////////////////////////////////////////////////////////////////////
+
+		protected abstract void write(
+			XmlWriter	writer,
+			int			indent,
+			int			cellSize,
+			int			fieldNumber,
+			char		entry)
+			throws IOException;
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public Cell clone()
+		{
+			try
+			{
+				Cell copy = (Cell)super.clone();
+
+				copy.fields = new EnumMap<>(Direction.class);
+				for (Direction direction : fields.keySet())
+					copy.fields.put(direction, fields.get(direction).clone());
+
+				copy.fieldOrigins = new EnumMap<>(Direction.class);
+				for (Direction direction : fieldOrigins.keySet())
+					copy.fieldOrigins.put(direction, fieldOrigins.get(direction).booleanValue());
+
+				return copy;
+			}
+			catch (CloneNotSupportedException e)
+			{
+				throw new UnexpectedRuntimeException(e);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public Field getField(
+			Direction	direction)
+		{
+			return fields.get(direction);
+		}
+
+		//--------------------------------------------------------------
+
+		public boolean isInField()
+		{
+			return !fields.isEmpty();
+		}
+
+		//--------------------------------------------------------------
+
+		public boolean isFieldOrigin()
+		{
+			for (Direction direction : fieldOrigins.keySet())
+			{
+				if (fieldOrigins.get(direction))
+					return true;
+			}
+			return false;
+		}
+
+		//--------------------------------------------------------------
+
+		public int getFieldNumber()
+		{
+			for (Direction direction : fieldOrigins.keySet())
+			{
+				if (fieldOrigins.get(direction))
+					return fields.get(direction).number;
+			}
+			return 0;
+		}
+
+		//--------------------------------------------------------------
+
+		protected List<Field> getFields()
+		{
+			List<Field> fields = new ArrayList<>();
+			for (Direction direction : this.fields.keySet())
+				fields.add(this.fields.get(direction));
+			return fields;
+		}
+
+		//--------------------------------------------------------------
+
+		protected void setField(
+			Direction	direction,
+			Field		field)
+		{
+			fields.put(direction, field);
+		}
+
+		//--------------------------------------------------------------
+
+		protected void setFieldOrigin(
+			Direction	direction,
+			Field		field)
+		{
+			fields.put(direction, field);
+			fieldOrigins.put(direction, Boolean.TRUE);
+		}
+
+		//--------------------------------------------------------------
+
+		protected void resetFields()
+		{
+			fields.clear();
+			fieldOrigins.clear();
+			for (Direction direction : Direction.DEFINED_DIRECTIONS)
+				fieldOrigins.put(direction, Boolean.FALSE);
+		}
+
+		//--------------------------------------------------------------
+
+		protected void writeContents(
+			XmlWriter	writer,
+			int			fieldNumber,
+			char		entry)
+			throws IOException
+		{
+			AttributeList attributes = new AttributeList();
+			if (fieldNumber > 0)
+			{
+				attributes.add(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.FIELD_NUMBER);
+				writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, 0, false, false);
+				writer.write(Integer.toString(fieldNumber));
+				writer.writeEndTag(HtmlConstants.ElementName.DIV);
+			}
+
+			if (entry != Entries.UNDEFINED_VALUE)
+			{
+				attributes.clear();
+				attributes.add(HtmlConstants.AttrName.CLASS, HtmlConstants.Class.ENTRY);
+				writer.writeElementStart(HtmlConstants.ElementName.DIV, attributes, 0, false, false);
+				writer.write(entry);
+				writer.writeEndTag(HtmlConstants.ElementName.DIV);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: LINE
+
+
+	private static class Line
+		implements Cloneable
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	Orientation	orientation;
+		private	int			x1;
+		private	int			y1;
+		private	int			x2;
+		private	int			y2;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Line(
+			Orientation	orientation,
+			int			x,
+			int			y)
+		{
+			this.orientation = orientation;
+			x1 = x2 = x;
+			y1 = y2 = y;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public Line clone()
+		{
+			try
+			{
+				return (Line)super.clone();
+			}
+			catch (CloneNotSupportedException e)
+			{
+				throw new UnexpectedRuntimeException(e);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public String toString()
+		{
+			return orientation.name().charAt(0) + ": " + x1 + ", " + y1 + ", " + getLength();
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private int getLength()
+		{
+			return ((orientation == Orientation.HORIZONTAL) ? x2 - x1 : y2 - y1) + 1;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Enumerated types
+	////////////////////////////////////////////////////////////////////
+
+
+		// ENUMERATION: LINE ORIENTATION
+
+
+		private enum Orientation
+		{
+
+		////////////////////////////////////////////////////////////////
+		//  Constants
+		////////////////////////////////////////////////////////////////
+
+			HORIZONTAL
+			(
+				"horizontal"
+			),
+
+			VERTICAL
+			(
+				"vertical"
+			);
+
+		////////////////////////////////////////////////////////////////
+		//  Instance variables
+		////////////////////////////////////////////////////////////////
+
+			private	String	text;
+
+		////////////////////////////////////////////////////////////////
+		//  Constructors
+		////////////////////////////////////////////////////////////////
+
+			private Orientation(
+				String	text)
+			{
+				this.text = text;
+			}
+
+			//----------------------------------------------------------
+
+		////////////////////////////////////////////////////////////////
+		//  Instance methods : overriding methods
+		////////////////////////////////////////////////////////////////
+
+			@Override
+			public String toString()
+			{
+				return text;
+			}
+
+			//----------------------------------------------------------
+
+		}
+
+		//==============================================================
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: BOUNDS
+
+
+	private static class Bounds
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	int	x1;
+		private	int	y1;
+		private	int	x2;
+		private	int	y2;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Bounds(
+			int	x1,
+			int	y1,
+			int	x2,
+			int	y2)
+		{
+			this.x1 = x1;
+			this.y1 = y1;
+			this.x2 = x2;
+			this.y2 = y2;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: PSEUDO-RANDOM NUMBER GENERATOR
+
+
+	private static class Prng
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	int	NUM_ROUNDS	= 20;
+		private static final	int	BUFFER_SIZE	= Salsa20.BLOCK_SIZE;
+
+	////////////////////////////////////////////////////////////////////
+	//  Class variables
+	////////////////////////////////////////////////////////////////////
+
+		private static	Random	nonceGenerator	= new Random();
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	Salsa20	prng;
+		private	byte[]	buffer;
+		private	int		index;
+		private	int		indexMask;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Prng(
+			String	passphrase,
+			byte[]	nonce)
+		{
+			prng = new Salsa20(NUM_ROUNDS, Salsa20.stringToKey(passphrase), nonce);
+			buffer = new byte[BUFFER_SIZE];
+			indexMask = BUFFER_SIZE - 1;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Class methods
+	////////////////////////////////////////////////////////////////////
+
+		private static byte[] createNonce()
+		{
+			byte[] nonce = new byte[Salsa20.NONCE_SIZE];
+			NumberCodec.uLongToBytesLE(nonceGenerator.nextLong(), nonce);
+			return nonce;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private byte[] getKey()
+		{
+			return prng.getKey();
+		}
+
+		//--------------------------------------------------------------
+
+		private void combine(
+			byte[]	data)
+		{
+			for (int i = 0; i < data.length; i++)
+			{
+				if (index == 0)
+					prng.getNextBlock(buffer, 0);
+				data[i] ^= buffer[index++];
+				index &= indexMask;
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

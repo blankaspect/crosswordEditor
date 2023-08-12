@@ -2,7 +2,7 @@
 
 GridPanel.java
 
-Grid panel base class.
+Class: grid panel base.
 
 \*====================================================================*/
 
@@ -48,16 +48,18 @@ import javax.swing.event.ChangeListener;
 
 import uk.blankaspect.common.collection.ArraySet;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.font.FontUtils;
+import uk.blankaspect.ui.swing.font.FontUtils;
 
-import uk.blankaspect.common.swing.text.TextRendering;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
+
+import uk.blankaspect.ui.swing.text.TextRendering;
 
 //----------------------------------------------------------------------
 
 
-// GRID PANEL BASE CLASS
+// CLASS: GRID PANEL BASE
 
 
 abstract class GridPanel
@@ -127,623 +129,28 @@ abstract class GridPanel
 	};
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// BLOCK GRID PANEL CLASS
-
-
-	public static class Block
-		extends GridPanel
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		// Commands
-		private interface Command
-		{
-			String	TOGGLE_BLOCK	= "toggleBlock";
-		}
-
-		private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS	=
-		{
-			new KeyAction.KeyCommandPair(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), Command.TOGGLE_BLOCK)
-		};
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public Block(Grid grid)
-		{
-			// Call superclass constructor
-			super(grid);
-
-			// Add commands to action map
-			KeyAction.create(this, JComponent.WHEN_FOCUSED, this, KEY_COMMANDS);
-		}
-
-		//--------------------------------------------------------------
-
-		public Block(CrosswordDocument document)
-		{
-			// Call superclass constructor
-			super(document);
-
-			// Initialise instance variables
-			this.grid = (BlockGrid)document.getGrid();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public void actionPerformed(ActionEvent event)
-		{
-			// Call superclass method
-			super.actionPerformed(event);
-
-			// Execute command
-			String command = event.getActionCommand();
-
-			if (command.equals(Command.TOGGLE_BLOCK))
-				onToggleBlock();
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public Grid getGrid()
-		{
-			return grid;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected void setGrid(Grid grid)
-		{
-			if (grid instanceof BlockGrid)
-				this.grid = (BlockGrid)grid;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected int[] getFieldNumberOffsets(int row,
-											  int column)
-		{
-			return new int[] { 1, 0 };
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected void drawSeparators(Graphics gr)
-		{
-			for (int row = 0; row < numRows; row++)
-			{
-				for (int column = 0; column < numColumns; column++)
-				{
-					if (grid.getCell(row, column).isBlocked())
-						gr.fillRect(column * cellSize + 1, row * cellSize + 1, cellSize - 1, cellSize - 1);
-				}
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected void drawSeparator(Graphics gr,
-									 int      row,
-									 int      column)
-		{
-			if (grid.getCell(row, column).isBlocked())
-				gr.fillRect(column * cellSize + 1, row * cellSize + 1, cellSize - 1, cellSize - 1);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected boolean toggleSeparator(int x,
-										  int y)
-		{
-			return toggleBlock(y / cellSize, x / cellSize);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private boolean toggleBlock(int row,
-									int column)
-		{
-			grid.toggleBlock(row, column);
-			updateHighlightedCells();
-			repaint();
-			fireStateChanged();
-			return true;
-		}
-
-		//--------------------------------------------------------------
-
-		private void onToggleBlock()
-		{
-			toggleBlock(editPosition.row, editPosition.column);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	BlockGrid	grid;
-
-	}
-
-	//==================================================================
-
-
-	// BAR GRID PANEL CLASS
-
-
-	public static class Bar
-		extends GridPanel
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		public static final		int	MIN_BAR_WIDTH		= 2;
-		public static final		int	MAX_BAR_WIDTH		= 20;
-		public static final		int	DEFAULT_BAR_WIDTH	= 4;
-
-		private static final	int	BAR_ZONE_HALF_WIDTH	= 4;
-
-		private static final	Map<BarGrid.Edge, Integer>	EDGE_SELECTORS;
-
-		// Commands
-		private interface Command
-		{
-			String	TOGGLE_BAR_TOP		= "toggleBarTop";
-			String	TOGGLE_BAR_RIGHT	= "toggleBarRight";
-			String	TOGGLE_BAR_BOTTOM	= "toggleBarBottom";
-			String	TOGGLE_BAR_LEFT		= "toggleBarLeft";
-		}
-
-		private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS	=
-		{
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_UP, KeyEvent.ALT_DOWN_MASK),
-				Command.TOGGLE_BAR_TOP
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK),
-				Command.TOGGLE_BAR_RIGHT
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, KeyEvent.ALT_DOWN_MASK),
-				Command.TOGGLE_BAR_BOTTOM
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, KeyEvent.ALT_DOWN_MASK),
-				Command.TOGGLE_BAR_LEFT
-			),
-		};
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public Bar(Grid grid)
-		{
-			// Call superclass constructor
-			super(grid);
-
-			// Add commands to action map
-			KeyAction.create(this, JComponent.WHEN_FOCUSED, this, KEY_COMMANDS);
-		}
-
-		//--------------------------------------------------------------
-
-		public Bar(CrosswordDocument document)
-		{
-			// Call superclass constructor
-			super(document);
-
-			// Initialise instance variables
-			this.grid = (BarGrid)document.getGrid();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		private static BarGrid.Edge getEdgeForSelector(int selector)
-		{
-			for (BarGrid.Edge edge : BarGrid.Edge.values())
-			{
-				if (EDGE_SELECTORS.get(edge) == selector)
-					return edge;
-			}
-			return null;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public void actionPerformed(ActionEvent event)
-		{
-			// Call superclass method
-			super.actionPerformed(event);
-
-			// Execute command
-			String command = event.getActionCommand();
-
-			if (command.equals(Command.TOGGLE_BAR_TOP))
-				onToggleBarTop();
-
-			else if (command.equals(Command.TOGGLE_BAR_RIGHT))
-				onToggleBarRight();
-
-			else if (command.equals(Command.TOGGLE_BAR_BOTTOM))
-				onToggleBarBottom();
-
-			else if (command.equals(Command.TOGGLE_BAR_LEFT))
-				onToggleBarLeft();
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public Grid getGrid()
-		{
-			return grid;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected void setGrid(Grid grid)
-		{
-			if (grid instanceof BarGrid)
-				this.grid = (BarGrid)grid;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected int[] getFieldNumberOffsets(int row,
-											  int column)
-		{
-			int barWidthIn = (AppConfig.INSTANCE.getBarGridBarWidth() - 1) / 2;
-			return new int[] { cellHasLeftBar(row, column) ? barWidthIn + 1 : 1,
-							   cellHasTopBar(row, column) ? barWidthIn : 0 };
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected void drawSeparators(Graphics gr)
-		{
-			int barWidth = AppConfig.INSTANCE.getBarGridBarWidth();
-			int barWidthIn = (barWidth - 1) / 2;
-			int barWidthOut = barWidth / 2;
-			for (int row = 0; row < numRows; row++)
-			{
-				for (int column = 0; column < numColumns; column++)
-				{
-					// Draw top bar
-					if (cellHasTopBar(row, column))
-					{
-						int x = column * cellSize + 1;
-						int y = row * cellSize - barWidthOut;
-						int width = cellSize - 1;
-						boolean left0 = (row > 0) && cellHasLeftBar(row - 1, column);
-						boolean left1 = cellHasLeftBar(row, column);
-						if ((column > 0) && (left0 || left1) && !(cellHasTopBar(row, column - 1) || (left0 && left1)))
-						{
-							x -= barWidthOut + 1;
-							width += barWidthOut + 1;
-						}
-						if (column < numColumns - 1)
-						{
-							left0 = (row > 0) && cellHasLeftBar(row - 1, column + 1);
-							left1 = cellHasLeftBar(row, column + 1);
-							if ((left0 || left1) && !(cellHasTopBar(row, column + 1) || (left0 && left1)))
-								width += barWidthIn + 1;
-						}
-						gr.fillRect(x, y, width, barWidth);
-					}
-
-					// Draw left bar
-					if (cellHasLeftBar(row, column))
-					{
-						int x = column * cellSize - barWidthOut;
-						int y = row * cellSize + 1;
-						int height = cellSize - 1;
-						boolean top0 = (column > 0) && cellHasTopBar(row, column - 1);
-						boolean top1 = cellHasTopBar(row, column);
-						if ((row > 0) && (top0 || top1) && !(cellHasLeftBar(row - 1, column) || (top0 && top1)))
-						{
-							y -= barWidthOut + 1;
-							height += barWidthOut + 1;
-						}
-						if (row < numRows - 1)
-						{
-							top0 = (column > 0) && cellHasTopBar(row + 1, column - 1);
-							top1 = cellHasTopBar(row + 1, column);
-							if ((top0 || top1) && !(cellHasLeftBar(row + 1, column) || (top0 && top1)))
-								height += barWidthIn + 1;
-						}
-						gr.fillRect(x, y, barWidth, height);
-					}
-				}
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected void drawSeparator(Graphics gr,
-									 int      row,
-									 int      column)
-		{
-			int barWidth = AppConfig.INSTANCE.getBarGridBarWidth();
-			int barWidthIn = (barWidth - 1) / 2;
-			int barWidthOut = barWidth / 2;
-			BarGrid.Cell cell = grid.getCell(row, column);
-			if (cell.hasBar(BarGrid.Edge.TOP))
-				gr.fillRect(column * cellSize + 1, row * cellSize + 1, cellSize - 1, barWidthIn);
-			if (cell.hasBar(BarGrid.Edge.LEFT))
-				gr.fillRect(column * cellSize + 1, row * cellSize + 1, barWidthIn, cellSize - 1);
-			if (cell.hasBar(BarGrid.Edge.BOTTOM))
-				gr.fillRect(column * cellSize + 1, (row + 1) * cellSize - barWidthOut, cellSize - 1, barWidthOut);
-			if (cell.hasBar(BarGrid.Edge.RIGHT))
-				gr.fillRect((column + 1) * cellSize - barWidthOut, row * cellSize + 1, barWidthOut, cellSize - 1);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected boolean toggleSeparator(int x,
-										  int y)
-		{
-			int a = BAR_ZONE_HALF_WIDTH + 1;
-			int b = cellSize - BAR_ZONE_HALF_WIDTH;
-			int dx = x % cellSize;
-			int selectorX = (dx < a) ? 0
-									 : (dx < b) ? 1 : 2;
-			int dy = y % cellSize;
-			int selectorY = (dy < a) ? 0
-									 : (dy < b) ? 1 : 2;
-			BarGrid.Edge edge = getEdgeForSelector((selectorX << 4) | selectorY);
-			return ((edge != null) && toggleBar(y / cellSize, x / cellSize, edge));
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private boolean cellHasTopBar(int row,
-									  int column)
-		{
-			return grid.getCell(row, column).hasBar(BarGrid.Edge.TOP);
-		}
-
-		//--------------------------------------------------------------
-
-		private boolean cellHasLeftBar(int row,
-									   int column)
-		{
-			return grid.getCell(row, column).hasBar(BarGrid.Edge.LEFT);
-		}
-
-		//--------------------------------------------------------------
-
-		private boolean toggleBar(int          row,
-								  int          column,
-								  BarGrid.Edge edge)
-		{
-			switch (edge)
-			{
-				case LEFT:
-					if (column == 0)
-						edge = null;
-					break;
-
-				case TOP:
-					if (row == 0)
-						edge = null;
-					break;
-
-				case BOTTOM:
-					if (row < numRows - 1)
-					{
-						edge = BarGrid.Edge.TOP;
-						++row;
-					}
-					else
-						edge = null;
-					break;
-
-				case RIGHT:
-					if (column < numColumns - 1)
-					{
-						edge = BarGrid.Edge.LEFT;
-						++column;
-					}
-					else
-						edge = null;
-					break;
-			}
-			if (edge == null)
-				return false;
-
-			grid.toggleBar(row, column, edge);
-			updateHighlightedCells();
-			repaint();
-			fireStateChanged();
-			return true;
-		}
-
-		//--------------------------------------------------------------
-
-		private void onToggleBarTop()
-		{
-			toggleBar(editPosition.row, editPosition.column, BarGrid.Edge.TOP);
-		}
-
-		//--------------------------------------------------------------
-
-		private void onToggleBarRight()
-		{
-			toggleBar(editPosition.row, editPosition.column, BarGrid.Edge.RIGHT);
-		}
-
-		//--------------------------------------------------------------
-
-		private void onToggleBarBottom()
-		{
-			toggleBar(editPosition.row, editPosition.column, BarGrid.Edge.BOTTOM);
-		}
-
-		//--------------------------------------------------------------
-
-		private void onToggleBarLeft()
-		{
-			toggleBar(editPosition.row, editPosition.column, BarGrid.Edge.LEFT);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Static initialiser
-	////////////////////////////////////////////////////////////////////
-
-		static
-		{
-			EDGE_SELECTORS = new EnumMap<>(BarGrid.Edge.class);
-			EDGE_SELECTORS.put(BarGrid.Edge.TOP,    0x10);
-			EDGE_SELECTORS.put(BarGrid.Edge.RIGHT,  0x21);
-			EDGE_SELECTORS.put(BarGrid.Edge.BOTTOM, 0x12);
-			EDGE_SELECTORS.put(BarGrid.Edge.LEFT,   0x01);
-		}
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	BarGrid	grid;
-
-	}
-
-	//==================================================================
-
-
-	// CARET CLASS
-
-
-	private static class Caret
-		implements ActionListener
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	int	BLINK_INTERVAL	= 400;
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Caret()
-		{
-			timer = new Timer(BLINK_INTERVAL, this);
-			timer.start();
-			drawn = true;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : ActionListener interface
-	////////////////////////////////////////////////////////////////////
-
-		public void actionPerformed(ActionEvent event)
-		{
-			drawn = !drawn;
-			show();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private void setVisible(boolean visible)
-		{
-			if (this.visible != visible)
-			{
-				this.visible = visible;
-				show();
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		private void show()
-		{
-			CrosswordView view = App.INSTANCE.getView();
-			if (view != null)
-				view.drawCaret(visible && drawn);
-		}
-
-		//--------------------------------------------------------------
-
-		private void reset()
-		{
-			timer.restart();
-			drawn = true;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	boolean	visible;
-		private	boolean	drawn;
-		private	Timer	timer;
-
-	}
-
-	//==================================================================
+	private static	Caret	caret	= new Caret();
+
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	protected	CrosswordDocument		document;
+	protected	int						numColumns;
+	protected	int						numRows;
+	protected	int						cellSize;
+	protected	List<Grid.IndexPair>	isolatedCells;
+	protected	boolean					highlightFullyIntersectingFields;
+	protected	List<Grid.IndexPair>	fullyIntersectingFieldCells;
+	protected	Grid.IndexPair			editPosition;
+	private		Grid.IndexPair			caretPosition;
+	private		Grid.IndexPair			caretDrawnPosition;
+	private		Clue.FieldList			selectedFields;
+	private		List<ChangeListener>	changeListeners;
+	private		ChangeEvent				changeEvent;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -868,6 +275,7 @@ abstract class GridPanel
 //  Instance methods : FocusListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void focusGained(FocusEvent event)
 	{
 		caret.setVisible(true);
@@ -876,6 +284,7 @@ abstract class GridPanel
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void focusLost(FocusEvent event)
 	{
 		caret.setVisible(false);
@@ -888,6 +297,7 @@ abstract class GridPanel
 //  Instance methods : MouseListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void mouseClicked(MouseEvent event)
 	{
 		// do nothing
@@ -895,6 +305,7 @@ abstract class GridPanel
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void mouseEntered(MouseEvent event)
 	{
 		// do nothing
@@ -902,6 +313,7 @@ abstract class GridPanel
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void mouseExited(MouseEvent event)
 	{
 		// do nothing
@@ -909,6 +321,7 @@ abstract class GridPanel
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void mousePressed(MouseEvent event)
 	{
 		if (SwingUtilities.isLeftMouseButton(event))
@@ -939,6 +352,7 @@ abstract class GridPanel
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void mouseReleased(MouseEvent event)
 	{
 		// do nothing
@@ -962,13 +376,32 @@ abstract class GridPanel
 	protected void paintComponent(Graphics gr)
 	{
 		// Create copy of graphics context
-		gr = gr.create();
+		Graphics2D gr2d = GuiUtils.copyGraphicsContext(gr);
+
+// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI monitor with a scale factor of 2
+		// Create procedure to draw rectangle
+		interface RectDrawer
+		{
+			void draw(
+				int	x,
+				int	y,
+				int	width,
+				int	height,
+				int	thickness);
+		}
+		RectDrawer rectDrawer = (x, y, width, height, thickness) ->
+		{
+			gr2d.fillRect(x, y, width, thickness);
+			gr2d.fillRect(x, y, thickness, height);
+			gr2d.fillRect(x + width - thickness, y, thickness, height);
+			gr2d.fillRect(x, y + height - thickness, width, thickness);
+		};
 
 		// Set rendering hints for text antialiasing and fractional metrics
-		TextRendering.setHints((Graphics2D)gr);
+		TextRendering.setHints(gr2d);
 
 		// Get clip bounds
-		Rectangle rect = gr.getClipBounds();
+		Rectangle rect = gr2d.getClipBounds();
 
 		// Get row and column indices and grid
 		int row = rect.y / cellSize;
@@ -976,35 +409,34 @@ abstract class GridPanel
 		Grid grid = getGrid();
 
 		// Draw interior of a single cell
-		AppConfig config = AppConfig.INSTANCE;
 		if (!isEditing()
 			&& ((rect.x + rect.width - 1) / cellSize == column) && ((rect.y + rect.height - 1) / cellSize == row))
 		{
 			// Fill background
 			Color fillColour = null;
 			if (grid.isIncorrectEntries() && grid.isIncorrectEntry(row, column))
-				fillColour = config.getViewColour(CrosswordView.Colour.ISOLATED_CELL_BACKGROUND);
+				fillColour = CrosswordView.Colour.ISOLATED_CELL_BACKGROUND.get();
 			else
 			{
 				for (Grid.Field field : selectedFields.fields)
 				{
 					if (field.containsCell(row, column))
 					{
-						fillColour = config.getViewColour((isFocusOwner() && selectedFields.enabled)
-															? CrosswordView.Colour.FOCUSED_SELECTED_FIELD_BACKGROUND
-															: CrosswordView.Colour.SELECTED_FIELD_BACKGROUND);
+						fillColour = (isFocusOwner() && selectedFields.enabled)
+														? CrosswordView.Colour.FOCUSED_SELECTED_FIELD_BACKGROUND.get()
+														: CrosswordView.Colour.SELECTED_FIELD_BACKGROUND.get();
 						break;
 					}
 				}
 				if (fillColour == null)
-					fillColour = config.getViewColour(CrosswordView.Colour.BACKGROUND);
+					fillColour = CrosswordView.Colour.BACKGROUND.get();
 			}
-			gr.setColor(fillColour);
-			gr.fillRect(rect.x, rect.y, rect.width, rect.height);
+			gr2d.setColor(fillColour);
+			gr2d.fillRect(rect.x, rect.y, rect.width, rect.height);
 
 			// Draw separator
-			gr.setColor(config.getViewColour(CrosswordView.Colour.GRID_LINE));
-			drawSeparator(gr, row, column);
+			gr2d.setColor(CrosswordView.Colour.GRID_LINE.get());
+			drawSeparator(gr2d, row, column);
 
 			// Draw field number
 			int x = column * cellSize;
@@ -1014,11 +446,11 @@ abstract class GridPanel
 				int fieldNumber = grid.getCell(row, column).getFieldNumber();
 				if (fieldNumber > 0)
 				{
-					gr.setColor(config.getViewColour(CrosswordView.Colour.FIELD_NUMBER_TEXT));
-					gr.setFont(AppFont.FIELD_NUMBER.getFont());
+					gr2d.setColor(CrosswordView.Colour.FIELD_NUMBER_TEXT.get());
+					gr2d.setFont(AppFont.FIELD_NUMBER.getFont());
 					int[] offsets = getFieldNumberOffsets(row, column);
-					gr.drawString(Integer.toString(fieldNumber), x + offsets[0],
-								  y + gr.getFontMetrics().getAscent() + offsets[1]);
+					gr2d.drawString(Integer.toString(fieldNumber), x + offsets[0],
+									y + gr2d.getFontMetrics().getAscent() + offsets[1]);
 				}
 			}
 
@@ -1027,19 +459,21 @@ abstract class GridPanel
 			++y;
 			if (grid.isEntryValue(row, column))
 			{
-				gr.setColor(config.getViewColour(CrosswordView.Colour.GRID_ENTRY_TEXT));
-				gr.setFont(AppFont.GRID_ENTRY.getFont());
-				FontMetrics fontMetrics = gr.getFontMetrics();
+				gr2d.setColor(CrosswordView.Colour.GRID_ENTRY_TEXT.get());
+				gr2d.setFont(AppFont.GRID_ENTRY.getFont());
+				FontMetrics fontMetrics = gr2d.getFontMetrics();
 				char ch = grid.getEntryValue(row, column);
-				gr.drawString(Character.toString(ch), x + (cellSize - fontMetrics.charWidth(ch)) / 2,
-							  y + FontUtils.getBaselineOffset(cellSize, fontMetrics));
+				gr2d.drawString(Character.toString(ch), x + (cellSize - fontMetrics.charWidth(ch)) / 2,
+								y + FontUtils.getBaselineOffset(cellSize, fontMetrics));
 			}
 
 			// Draw caret
 			if (caretDrawnPosition != null)
 			{
-				gr.setColor(config.getViewColour(CrosswordView.Colour.CARET));
-				gr.drawRect(x, y, cellSize - 2, cellSize - 2);
+				gr2d.setColor(CrosswordView.Colour.CARET.get());
+// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI monitor with a scale factor of 2
+//				gr2d.drawRect(x, y, cellSize - 2, cellSize - 2);
+				rectDrawer.draw(x, y, cellSize - 1, cellSize - 1, 1);
 			}
 		}
 
@@ -1047,24 +481,24 @@ abstract class GridPanel
 		else
 		{
 			// Fill background
-			gr.setColor(config.getViewColour(CrosswordView.Colour.BACKGROUND));
-			gr.fillRect(rect.x, rect.y, rect.width, rect.height);
+			gr2d.setColor(CrosswordView.Colour.BACKGROUND.get());
+			gr2d.fillRect(rect.x, rect.y, rect.width, rect.height);
 
 			// Fill background of highlighted cells
 			if (isEditing())
 			{
-				gr.setColor(config.getViewColour(CrosswordView.Colour.ISOLATED_CELL_BACKGROUND));
+				gr2d.setColor(CrosswordView.Colour.ISOLATED_CELL_BACKGROUND.get());
 				for (Grid.IndexPair indices : isolatedCells)
-					gr.fillRect(indices.column * cellSize + 1, indices.row * cellSize + 1, cellSize - 1, cellSize - 1);
-				gr.setColor(config.getViewColour(CrosswordView.Colour.FULLY_INTERSECTING_FIELD_BACKGROUND));
+					gr2d.fillRect(indices.column * cellSize + 1, indices.row * cellSize + 1, cellSize - 1, cellSize - 1);
+				gr2d.setColor(CrosswordView.Colour.FULLY_INTERSECTING_FIELD_BACKGROUND.get());
 				for (Grid.IndexPair indices : fullyIntersectingFieldCells)
-					gr.fillRect(indices.column * cellSize + 1, indices.row * cellSize + 1, cellSize - 1, cellSize - 1);
+					gr2d.fillRect(indices.column * cellSize + 1, indices.row * cellSize + 1, cellSize - 1, cellSize - 1);
 			}
 
 			// Fill background of selected fields
-			gr.setColor(config.getViewColour((isFocusOwner() && selectedFields.enabled)
-															? CrosswordView.Colour.FOCUSED_SELECTED_FIELD_BACKGROUND
-															: CrosswordView.Colour.SELECTED_FIELD_BACKGROUND));
+			gr2d.setColor((isFocusOwner() && selectedFields.enabled)
+											? CrosswordView.Colour.FOCUSED_SELECTED_FIELD_BACKGROUND.get()
+											: CrosswordView.Colour.SELECTED_FIELD_BACKGROUND.get());
 			for (Grid.Field field : selectedFields.fields)
 			{
 				int x = field.getColumn() * cellSize;
@@ -1087,31 +521,33 @@ abstract class GridPanel
 						height = field.getLength() * cellSize;
 						break;
 				}
-				gr.fillRect(x, y, width, height);
+				gr2d.fillRect(x, y, width, height);
 			}
 
 			// Fill background of cells with incorrect entries
 			if (grid.isIncorrectEntries())
 			{
-				gr.setColor(config.getViewColour(CrosswordView.Colour.ISOLATED_CELL_BACKGROUND));
+				gr2d.setColor(CrosswordView.Colour.ISOLATED_CELL_BACKGROUND.get());
 				for (row = 0; row < numRows; row++)
 				{
 					for (column = 0; column < numColumns; column++)
 					{
 						if (grid.isIncorrectEntry(row, column))
-							gr.fillRect(column * cellSize + 1, row * cellSize + 1, cellSize - 1, cellSize - 1);
+							gr2d.fillRect(column * cellSize + 1, row * cellSize + 1, cellSize - 1, cellSize - 1);
 					}
 				}
 			}
 
 			// Draw vertical grid lines
-			gr.setColor(config.getViewColour(CrosswordView.Colour.GRID_LINE));
+			gr2d.setColor(CrosswordView.Colour.GRID_LINE.get());
 			int x = 0;
 			int y1 = 0;
 			int y2 = getHeight() - 1;
 			for (column = 0; column <= numColumns; column++)
 			{
-				gr.drawLine(x, y1, x, y2);
+// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI monitor with a scale factor of 2
+//				gr2d.drawLine(x, y1, x, y2);
+				gr2d.fillRect(x, y1, 1, y2 + 1);
 				x += cellSize;
 			}
 
@@ -1121,22 +557,26 @@ abstract class GridPanel
 			int x2 = getWidth() - 1;
 			for (row = 0; row <= numRows; row++)
 			{
-				gr.drawLine(x1, y, x2, y);
+// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI monitor with a scale factor of 2
+//				gr2d.drawLine(x1, y, x2, y);
+				gr2d.fillRect(x1, y, x2 + 1, 1);
 				y += cellSize;
 			}
 
 			// Draw separators
-			drawSeparators(gr);
+			drawSeparators(gr2d);
 
 			// Draw editing box
 			if (isEditing())
 			{
 				x = editPosition.column * cellSize;
 				y = editPosition.row * cellSize;
-				gr.setColor(config.getViewColour(isFocusOwner() ? CrosswordView.Colour.FOCUSED_EDITING_BOX
-																: CrosswordView.Colour.EDITING_BOX));
-				gr.drawRect(x, y, cellSize, cellSize);
-				gr.drawRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
+				gr2d.setColor(isFocusOwner() ? CrosswordView.Colour.FOCUSED_EDITING_BOX.get()
+											 : CrosswordView.Colour.EDITING_BOX.get());
+// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI monitor with a scale factor of 2
+//				gr2d.drawRect(x, y, cellSize, cellSize);
+//				gr2d.drawRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
+				rectDrawer.draw(x, y, cellSize + 1, cellSize + 1, 2);
 			}
 
 			// Draw cell contents
@@ -1145,9 +585,9 @@ abstract class GridPanel
 				// Draw field numbers
 				if (document.isShowFieldNumbers())
 				{
-					gr.setColor(config.getViewColour(CrosswordView.Colour.FIELD_NUMBER_TEXT));
-					gr.setFont(AppFont.FIELD_NUMBER.getFont());
-					FontMetrics fontMetrics = gr.getFontMetrics();
+					gr2d.setColor(CrosswordView.Colour.FIELD_NUMBER_TEXT.get());
+					gr2d.setFont(AppFont.FIELD_NUMBER.getFont());
+					FontMetrics fontMetrics = gr2d.getFontMetrics();
 					int textY = fontMetrics.getAscent();
 					for (row = 0; row < numRows; row++)
 					{
@@ -1157,17 +597,17 @@ abstract class GridPanel
 							if (fieldNumber > 0)
 							{
 								int[] offsets = getFieldNumberOffsets(row, column);
-								gr.drawString(Integer.toString(fieldNumber), column * cellSize + offsets[0],
-											  row * cellSize + textY + offsets[1]);
+								gr2d.drawString(Integer.toString(fieldNumber), column * cellSize + offsets[0],
+												row * cellSize + textY + offsets[1]);
 							}
 						}
 					}
 				}
 
 				// Draw entries
-				gr.setColor(config.getViewColour(CrosswordView.Colour.GRID_ENTRY_TEXT));
-				gr.setFont(AppFont.GRID_ENTRY.getFont());
-				FontMetrics fontMetrics = gr.getFontMetrics();
+				gr2d.setColor(CrosswordView.Colour.GRID_ENTRY_TEXT.get());
+				gr2d.setFont(AppFont.GRID_ENTRY.getFont());
+				FontMetrics fontMetrics = gr2d.getFontMetrics();
 				for (row = 0; row < numRows; row++)
 				{
 					for (column = 0; column < numColumns; column++)
@@ -1178,7 +618,7 @@ abstract class GridPanel
 							int charWidth = fontMetrics.charWidth(ch);
 							x = column * cellSize + 1 + (cellSize - charWidth) / 2;
 							y = row * cellSize + 1 + FontUtils.getBaselineOffset(cellSize, fontMetrics);
-							gr.drawString(Character.toString(ch), x, y);
+							gr2d.drawString(Character.toString(ch), x, y);
 						}
 					}
 				}
@@ -1190,8 +630,10 @@ abstract class GridPanel
 					column = caretDrawnPosition.column;
 					x = column * cellSize + 1;
 					y = row * cellSize + 1;
-					gr.setColor(config.getViewColour(CrosswordView.Colour.CARET));
-					gr.drawRect(x, y, cellSize - 2, cellSize - 2);
+					gr2d.setColor(CrosswordView.Colour.CARET.get());
+// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI monitor with a scale factor of 2
+//					gr2d.drawRect(x, y, cellSize - 2, cellSize - 2);
+					rectDrawer.draw(x, y, cellSize - 1, cellSize - 1, 1);
 				}
 			}
 		}
@@ -1629,14 +1071,14 @@ abstract class GridPanel
 				}
 			}
 		}
-		return ((fields == null) ? null : new Clue.FieldList(fields, field));
+		return (fields == null) ? null : new Clue.FieldList(fields, field);
 	}
 
 	//------------------------------------------------------------------
 
 	private Direction getSelectedFieldDirection()
 	{
-		return (selectedFields.isEmpty() ? Direction.NONE : selectedFields.getField().getDirection());
+		return selectedFields.isEmpty() ? Direction.NONE : selectedFields.getField().getDirection();
 	}
 
 	//------------------------------------------------------------------
@@ -1778,28 +1220,623 @@ abstract class GridPanel
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class variables
+//  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	private static	Caret	caret	= new Caret();
 
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
+	// CLASS: BLOCK GRID PANEL
 
-	protected	CrosswordDocument		document;
-	protected	int						numColumns;
-	protected	int						numRows;
-	protected	int						cellSize;
-	protected	List<Grid.IndexPair>	isolatedCells;
-	protected	boolean					highlightFullyIntersectingFields;
-	protected	List<Grid.IndexPair>	fullyIntersectingFieldCells;
-	protected	Grid.IndexPair			editPosition;
-	private		Grid.IndexPair			caretPosition;
-	private		Grid.IndexPair			caretDrawnPosition;
-	private		Clue.FieldList			selectedFields;
-	private		List<ChangeListener>	changeListeners;
-	private		ChangeEvent				changeEvent;
+
+	public static class Block
+		extends GridPanel
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		// Commands
+		private interface Command
+		{
+			String	TOGGLE_BLOCK	= "toggleBlock";
+		}
+
+		private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS	=
+		{
+			new KeyAction.KeyCommandPair(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), Command.TOGGLE_BLOCK)
+		};
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	BlockGrid	grid;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		public Block(Grid grid)
+		{
+			// Call superclass constructor
+			super(grid);
+
+			// Add commands to action map
+			KeyAction.create(this, JComponent.WHEN_FOCUSED, this, KEY_COMMANDS);
+		}
+
+		//--------------------------------------------------------------
+
+		public Block(CrosswordDocument document)
+		{
+			// Call superclass constructor
+			super(document);
+
+			// Initialise instance variables
+			this.grid = (BlockGrid)document.getGrid();
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void actionPerformed(ActionEvent event)
+		{
+			// Call superclass method
+			super.actionPerformed(event);
+
+			// Execute command
+			String command = event.getActionCommand();
+
+			if (command.equals(Command.TOGGLE_BLOCK))
+				onToggleBlock();
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public Grid getGrid()
+		{
+			return grid;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected void setGrid(Grid grid)
+		{
+			if (grid instanceof BlockGrid blockGrid)
+				this.grid = blockGrid;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected int[] getFieldNumberOffsets(int row,
+											  int column)
+		{
+			return new int[] { 1, 0 };
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected void drawSeparators(Graphics gr)
+		{
+			for (int row = 0; row < numRows; row++)
+			{
+				for (int column = 0; column < numColumns; column++)
+				{
+					if (grid.getCell(row, column).isBlocked())
+						gr.fillRect(column * cellSize + 1, row * cellSize + 1, cellSize - 1, cellSize - 1);
+				}
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected void drawSeparator(Graphics gr,
+									 int      row,
+									 int      column)
+		{
+			if (grid.getCell(row, column).isBlocked())
+				gr.fillRect(column * cellSize + 1, row * cellSize + 1, cellSize - 1, cellSize - 1);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected boolean toggleSeparator(int x,
+										  int y)
+		{
+			return toggleBlock(y / cellSize, x / cellSize);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private boolean toggleBlock(int row,
+									int column)
+		{
+			grid.toggleBlock(row, column);
+			updateHighlightedCells();
+			repaint();
+			fireStateChanged();
+			return true;
+		}
+
+		//--------------------------------------------------------------
+
+		private void onToggleBlock()
+		{
+			toggleBlock(editPosition.row, editPosition.column);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: BAR GRID PANEL
+
+
+	public static class Bar
+		extends GridPanel
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		public static final		int	MIN_BAR_WIDTH		= 2;
+		public static final		int	MAX_BAR_WIDTH		= 20;
+		public static final		int	DEFAULT_BAR_WIDTH	= 4;
+
+		private static final	int	BAR_ZONE_HALF_WIDTH	= 4;
+
+		private static final	Map<BarGrid.Edge, Integer>	EDGE_SELECTORS;
+
+		// Commands
+		private interface Command
+		{
+			String	TOGGLE_BAR_TOP		= "toggleBarTop";
+			String	TOGGLE_BAR_RIGHT	= "toggleBarRight";
+			String	TOGGLE_BAR_BOTTOM	= "toggleBarBottom";
+			String	TOGGLE_BAR_LEFT		= "toggleBarLeft";
+		}
+
+		private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS	=
+		{
+			new KeyAction.KeyCommandPair
+			(
+				KeyStroke.getKeyStroke(KeyEvent.VK_UP, KeyEvent.ALT_DOWN_MASK),
+				Command.TOGGLE_BAR_TOP
+			),
+			new KeyAction.KeyCommandPair
+			(
+				KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK),
+				Command.TOGGLE_BAR_RIGHT
+			),
+			new KeyAction.KeyCommandPair
+			(
+				KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, KeyEvent.ALT_DOWN_MASK),
+				Command.TOGGLE_BAR_BOTTOM
+			),
+			new KeyAction.KeyCommandPair
+			(
+				KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, KeyEvent.ALT_DOWN_MASK),
+				Command.TOGGLE_BAR_LEFT
+			),
+		};
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	BarGrid	grid;
+
+	////////////////////////////////////////////////////////////////////
+	//  Static initialiser
+	////////////////////////////////////////////////////////////////////
+
+		static
+		{
+			EDGE_SELECTORS = new EnumMap<>(BarGrid.Edge.class);
+			EDGE_SELECTORS.put(BarGrid.Edge.TOP,    0x10);
+			EDGE_SELECTORS.put(BarGrid.Edge.RIGHT,  0x21);
+			EDGE_SELECTORS.put(BarGrid.Edge.BOTTOM, 0x12);
+			EDGE_SELECTORS.put(BarGrid.Edge.LEFT,   0x01);
+		}
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		public Bar(Grid grid)
+		{
+			// Call superclass constructor
+			super(grid);
+
+			// Add commands to action map
+			KeyAction.create(this, JComponent.WHEN_FOCUSED, this, KEY_COMMANDS);
+		}
+
+		//--------------------------------------------------------------
+
+		public Bar(CrosswordDocument document)
+		{
+			// Call superclass constructor
+			super(document);
+
+			// Initialise instance variables
+			this.grid = (BarGrid)document.getGrid();
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Class methods
+	////////////////////////////////////////////////////////////////////
+
+		private static BarGrid.Edge getEdgeForSelector(int selector)
+		{
+			for (BarGrid.Edge edge : BarGrid.Edge.values())
+			{
+				if (EDGE_SELECTORS.get(edge) == selector)
+					return edge;
+			}
+			return null;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void actionPerformed(ActionEvent event)
+		{
+			// Call superclass method
+			super.actionPerformed(event);
+
+			// Execute command
+			String command = event.getActionCommand();
+
+			if (command.equals(Command.TOGGLE_BAR_TOP))
+				onToggleBarTop();
+
+			else if (command.equals(Command.TOGGLE_BAR_RIGHT))
+				onToggleBarRight();
+
+			else if (command.equals(Command.TOGGLE_BAR_BOTTOM))
+				onToggleBarBottom();
+
+			else if (command.equals(Command.TOGGLE_BAR_LEFT))
+				onToggleBarLeft();
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public Grid getGrid()
+		{
+			return grid;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected void setGrid(Grid grid)
+		{
+			if (grid instanceof BarGrid barGrid)
+				this.grid = barGrid;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected int[] getFieldNumberOffsets(int row,
+											  int column)
+		{
+			int barWidthIn = (AppConfig.INSTANCE.getBarGridBarWidth() - 1) / 2;
+			return new int[] { cellHasLeftBar(row, column) ? barWidthIn + 1 : 1,
+							   cellHasTopBar(row, column) ? barWidthIn : 0 };
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected void drawSeparators(Graphics gr)
+		{
+			int barWidth = AppConfig.INSTANCE.getBarGridBarWidth();
+			int barWidthIn = (barWidth - 1) / 2;
+			int barWidthOut = barWidth / 2;
+			for (int row = 0; row < numRows; row++)
+			{
+				for (int column = 0; column < numColumns; column++)
+				{
+					// Draw top bar
+					if (cellHasTopBar(row, column))
+					{
+						int x = column * cellSize + 1;
+						int y = row * cellSize - barWidthOut;
+						int width = cellSize - 1;
+						boolean left0 = (row > 0) && cellHasLeftBar(row - 1, column);
+						boolean left1 = cellHasLeftBar(row, column);
+						if ((column > 0) && (left0 || left1) && !(cellHasTopBar(row, column - 1) || (left0 && left1)))
+						{
+							x -= barWidthOut + 1;
+							width += barWidthOut + 1;
+						}
+						if (column < numColumns - 1)
+						{
+							left0 = (row > 0) && cellHasLeftBar(row - 1, column + 1);
+							left1 = cellHasLeftBar(row, column + 1);
+							if ((left0 || left1) && !(cellHasTopBar(row, column + 1) || (left0 && left1)))
+								width += barWidthIn + 1;
+						}
+						gr.fillRect(x, y, width, barWidth);
+					}
+
+					// Draw left bar
+					if (cellHasLeftBar(row, column))
+					{
+						int x = column * cellSize - barWidthOut;
+						int y = row * cellSize + 1;
+						int height = cellSize - 1;
+						boolean top0 = (column > 0) && cellHasTopBar(row, column - 1);
+						boolean top1 = cellHasTopBar(row, column);
+						if ((row > 0) && (top0 || top1) && !(cellHasLeftBar(row - 1, column) || (top0 && top1)))
+						{
+							y -= barWidthOut + 1;
+							height += barWidthOut + 1;
+						}
+						if (row < numRows - 1)
+						{
+							top0 = (column > 0) && cellHasTopBar(row + 1, column - 1);
+							top1 = cellHasTopBar(row + 1, column);
+							if ((top0 || top1) && !(cellHasLeftBar(row + 1, column) || (top0 && top1)))
+								height += barWidthIn + 1;
+						}
+						gr.fillRect(x, y, barWidth, height);
+					}
+				}
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected void drawSeparator(Graphics gr,
+									 int      row,
+									 int      column)
+		{
+			int barWidth = AppConfig.INSTANCE.getBarGridBarWidth();
+			int barWidthIn = (barWidth - 1) / 2;
+			int barWidthOut = barWidth / 2;
+			BarGrid.Cell cell = grid.getCell(row, column);
+			if (cell.hasBar(BarGrid.Edge.TOP))
+				gr.fillRect(column * cellSize + 1, row * cellSize + 1, cellSize - 1, barWidthIn);
+			if (cell.hasBar(BarGrid.Edge.LEFT))
+				gr.fillRect(column * cellSize + 1, row * cellSize + 1, barWidthIn, cellSize - 1);
+			if (cell.hasBar(BarGrid.Edge.BOTTOM))
+				gr.fillRect(column * cellSize + 1, (row + 1) * cellSize - barWidthOut, cellSize - 1, barWidthOut);
+			if (cell.hasBar(BarGrid.Edge.RIGHT))
+				gr.fillRect((column + 1) * cellSize - barWidthOut, row * cellSize + 1, barWidthOut, cellSize - 1);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected boolean toggleSeparator(int x,
+										  int y)
+		{
+			int a = BAR_ZONE_HALF_WIDTH + 1;
+			int b = cellSize - BAR_ZONE_HALF_WIDTH;
+			int dx = x % cellSize;
+			int selectorX = (dx < a) ? 0
+									 : (dx < b) ? 1 : 2;
+			int dy = y % cellSize;
+			int selectorY = (dy < a) ? 0
+									 : (dy < b) ? 1 : 2;
+			BarGrid.Edge edge = getEdgeForSelector((selectorX << 4) | selectorY);
+			return ((edge != null) && toggleBar(y / cellSize, x / cellSize, edge));
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private boolean cellHasTopBar(int row,
+									  int column)
+		{
+			return grid.getCell(row, column).hasBar(BarGrid.Edge.TOP);
+		}
+
+		//--------------------------------------------------------------
+
+		private boolean cellHasLeftBar(int row,
+									   int column)
+		{
+			return grid.getCell(row, column).hasBar(BarGrid.Edge.LEFT);
+		}
+
+		//--------------------------------------------------------------
+
+		private boolean toggleBar(int          row,
+								  int          column,
+								  BarGrid.Edge edge)
+		{
+			switch (edge)
+			{
+				case LEFT:
+					if (column == 0)
+						edge = null;
+					break;
+
+				case TOP:
+					if (row == 0)
+						edge = null;
+					break;
+
+				case BOTTOM:
+					if (row < numRows - 1)
+					{
+						edge = BarGrid.Edge.TOP;
+						++row;
+					}
+					else
+						edge = null;
+					break;
+
+				case RIGHT:
+					if (column < numColumns - 1)
+					{
+						edge = BarGrid.Edge.LEFT;
+						++column;
+					}
+					else
+						edge = null;
+					break;
+			}
+			if (edge == null)
+				return false;
+
+			grid.toggleBar(row, column, edge);
+			updateHighlightedCells();
+			repaint();
+			fireStateChanged();
+			return true;
+		}
+
+		//--------------------------------------------------------------
+
+		private void onToggleBarTop()
+		{
+			toggleBar(editPosition.row, editPosition.column, BarGrid.Edge.TOP);
+		}
+
+		//--------------------------------------------------------------
+
+		private void onToggleBarRight()
+		{
+			toggleBar(editPosition.row, editPosition.column, BarGrid.Edge.RIGHT);
+		}
+
+		//--------------------------------------------------------------
+
+		private void onToggleBarBottom()
+		{
+			toggleBar(editPosition.row, editPosition.column, BarGrid.Edge.BOTTOM);
+		}
+
+		//--------------------------------------------------------------
+
+		private void onToggleBarLeft()
+		{
+			toggleBar(editPosition.row, editPosition.column, BarGrid.Edge.LEFT);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: CARET
+
+
+	private static class Caret
+		implements ActionListener
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	int	BLINK_INTERVAL	= 400;
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	boolean	visible;
+		private	boolean	drawn;
+		private	Timer	timer;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Caret()
+		{
+			timer = new Timer(BLINK_INTERVAL, this);
+			timer.start();
+			drawn = true;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : ActionListener interface
+	////////////////////////////////////////////////////////////////////
+
+		public void actionPerformed(ActionEvent event)
+		{
+			drawn = !drawn;
+			show();
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private void setVisible(boolean visible)
+		{
+			if (this.visible != visible)
+			{
+				this.visible = visible;
+				show();
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		private void show()
+		{
+			CrosswordView view = App.INSTANCE.getView();
+			if (view != null)
+				view.drawCaret(visible && drawn);
+		}
+
+		//--------------------------------------------------------------
+
+		private void reset()
+		{
+			timer.restart();
+			drawn = true;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

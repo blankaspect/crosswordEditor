@@ -2,7 +2,7 @@
 
 PreferencesDialog.java
 
-Preferences dialog box class.
+Preferences dialog class.
 
 \*====================================================================*/
 
@@ -77,48 +77,48 @@ import uk.blankaspect.common.misc.MaxValueMap;
 
 import uk.blankaspect.common.string.StringUtils;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.border.TitledBorder;
+import uk.blankaspect.ui.swing.border.TitledBorder;
 
-import uk.blankaspect.common.swing.button.FButton;
+import uk.blankaspect.ui.swing.button.FButton;
 
-import uk.blankaspect.common.swing.combobox.BooleanComboBox;
-import uk.blankaspect.common.swing.combobox.FComboBox;
+import uk.blankaspect.ui.swing.combobox.BooleanComboBox;
+import uk.blankaspect.ui.swing.combobox.FComboBox;
 
-import uk.blankaspect.common.swing.container.DimensionsSpinnerPanel;
-import uk.blankaspect.common.swing.container.PathnamePanel;
+import uk.blankaspect.ui.swing.container.DimensionsSpinnerPanel;
+import uk.blankaspect.ui.swing.container.PathnamePanel;
 
-import uk.blankaspect.common.swing.font.FontEx;
-import uk.blankaspect.common.swing.font.FontStyle;
-import uk.blankaspect.common.swing.font.FontUtils;
+import uk.blankaspect.ui.swing.font.FontEx;
+import uk.blankaspect.ui.swing.font.FontStyle;
+import uk.blankaspect.ui.swing.font.FontUtils;
 
-import uk.blankaspect.common.swing.icon.ColourSampleIcon;
+import uk.blankaspect.ui.swing.icon.ColourSampleIcon;
 
-import uk.blankaspect.common.swing.label.FixedWidthLabel;
-import uk.blankaspect.common.swing.label.FLabel;
+import uk.blankaspect.ui.swing.label.FixedWidthLabel;
+import uk.blankaspect.ui.swing.label.FLabel;
 
-import uk.blankaspect.common.swing.list.SelectionList;
+import uk.blankaspect.ui.swing.list.SelectionList;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
-import uk.blankaspect.common.swing.spinner.FDoubleSpinner;
-import uk.blankaspect.common.swing.spinner.FIntegerSpinner;
-import uk.blankaspect.common.swing.spinner.IntegerSpinner;
+import uk.blankaspect.ui.swing.spinner.FDoubleSpinner;
+import uk.blankaspect.ui.swing.spinner.FIntegerSpinner;
+import uk.blankaspect.ui.swing.spinner.IntegerSpinner;
 
-import uk.blankaspect.common.swing.tabbedpane.FTabbedPane;
+import uk.blankaspect.ui.swing.tabbedpane.FTabbedPane;
 
-import uk.blankaspect.common.swing.text.TextRendering;
+import uk.blankaspect.ui.swing.text.TextRendering;
 
-import uk.blankaspect.common.swing.textfield.ConstrainedTextField;
-import uk.blankaspect.common.swing.textfield.FTextField;
-import uk.blankaspect.common.swing.textfield.InformationField;
-import uk.blankaspect.common.swing.textfield.IntegerValueField;
+import uk.blankaspect.ui.swing.textfield.ConstrainedTextField;
+import uk.blankaspect.ui.swing.textfield.FTextField;
+import uk.blankaspect.ui.swing.textfield.InformationField;
+import uk.blankaspect.ui.swing.textfield.IntegerValueField;
 
 //----------------------------------------------------------------------
 
 
-// PREFERENCES DIALOG BOX CLASS
+// PREFERENCES DIALOG CLASS
 
 
 class PreferencesDialog
@@ -1666,7 +1666,6 @@ class PreferencesDialog
 
 	private JPanel createPanelGeneral()
 	{
-
 		//----  Control panel
 
 		GridBagLayout gridBag = new GridBagLayout();
@@ -1851,14 +1850,12 @@ class PreferencesDialog
 		outerPanel.add(controlPanel);
 
 		return outerPanel;
-
 	}
 
 	//------------------------------------------------------------------
 
 	private JPanel createPanelAppearance()
 	{
-
 		//----  Control panel
 
 		GridBagLayout gridBag = new GridBagLayout();
@@ -2001,14 +1998,12 @@ class PreferencesDialog
 		outerPanel.add(controlPanel);
 
 		return outerPanel;
-
 	}
 
 	//------------------------------------------------------------------
 
 	private JPanel createPanelView()
 	{
-
 		//----  Control panel
 
 		GridBagLayout gridBag = new GridBagLayout();
@@ -2093,7 +2088,7 @@ class PreferencesDialog
 		// Initialise colours
 		viewColours = new EnumMap<>(CrosswordView.Colour.class);
 		for (CrosswordView.Colour colour : CrosswordView.Colour.values())
-			viewColours.put(colour, config.getViewColour(colour));
+			viewColours.put(colour, colour.get());
 
 		// List: colours
 		viewColoursList = new SelectionList<CrosswordView.Colour>(CrosswordView.Colour.values(), 0,
@@ -2122,7 +2117,7 @@ class PreferencesDialog
 		coloursPanel.add(coloursListScrollPane);
 
 		// Button: colour
-		viewColourButton = new ColourButton(config.getViewColour(CrosswordView.Colour.values()[0]));
+		viewColourButton = new ColourButton(CrosswordView.Colour.values()[0].get());
 		viewColourButton.setActionCommand(Command.CHOOSE_VIEW_COLOUR);
 		viewColourButton.addActionListener(this);
 
@@ -2171,14 +2166,12 @@ class PreferencesDialog
 		outerPanel.add(coloursPanel);
 
 		return outerPanel;
-
 	}
 
 	//------------------------------------------------------------------
 
 	private JPanel createPanelGrid()
 	{
-
 		// Reset fixed-width labels
 		GridPanelLabel.reset();
 
@@ -2394,7 +2387,6 @@ class PreferencesDialog
 		}
 
 		return outerPanel;
-
 	}
 
 	//------------------------------------------------------------------
@@ -2443,7 +2435,6 @@ class PreferencesDialog
 
 	private JPanel createPanelClues()
 	{
-
 		// Reset fixed-width labels
 		CluesPanelLabel.reset();
 
@@ -2664,14 +2655,12 @@ class PreferencesDialog
 		outerPanel.add(controlPanel);
 
 		return outerPanel;
-
 	}
 
 	//------------------------------------------------------------------
 
 	private JPanel createPanelTextSections()
 	{
-
 		//----  Control panel
 
 		GridBagLayout gridBag = new GridBagLayout();
@@ -2733,14 +2722,12 @@ class PreferencesDialog
 		outerPanel.add(controlPanel);
 
 		return outerPanel;
-
 	}
 
 	//------------------------------------------------------------------
 
 	private JPanel createPanelHtml()
 	{
-
 		// Reset fixed-width labels
 		HtmlPanelLabel.reset();
 
@@ -3561,14 +3548,12 @@ class PreferencesDialog
 		outerPanel.add(barPanel);
 
 		return outerPanel;
-
 	}
 
 	//------------------------------------------------------------------
 
 	private JPanel createPanelFiles()
 	{
-
 		//----  Control panel
 
 		GridBagLayout gridBag = new GridBagLayout();
@@ -3792,7 +3777,6 @@ class PreferencesDialog
 		outerPanel.add(controlPanel);
 
 		return outerPanel;
-
 	}
 
 	//------------------------------------------------------------------

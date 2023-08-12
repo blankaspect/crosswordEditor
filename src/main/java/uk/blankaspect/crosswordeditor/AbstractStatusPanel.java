@@ -25,15 +25,15 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 
+import java.util.Objects;
+
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-import uk.blankaspect.common.string.StringUtils;
+import uk.blankaspect.ui.swing.colour.Colours;
 
-import uk.blankaspect.common.swing.colour.Colours;
-
-import uk.blankaspect.common.swing.text.TextRendering;
-import uk.blankaspect.common.swing.text.TextUtils;
+import uk.blankaspect.ui.swing.text.TextRendering;
+import uk.blankaspect.ui.swing.text.TextUtils;
 
 //----------------------------------------------------------------------
 
@@ -51,8 +51,8 @@ abstract class AbstractStatusPanel
 
 	public static final		Color	DEFAULT_TEXT_COLOUR	= new Color(160, 64, 0);
 
-	private static final	int	BORDER_WIDTH	= 1;
-	private static final	int	VERTICAL_MARGIN	= 1;
+	private static final	int		BORDER_WIDTH	= 1;
+	private static final	int		VERTICAL_MARGIN	= 1;
 
 ////////////////////////////////////////////////////////////////////////
 //  Member classes : non-inner classes
@@ -70,13 +70,13 @@ abstract class AbstractStatusPanel
 	//  Constants
 	////////////////////////////////////////////////////////////////////
 
-		private static final	int	VERTICAL_MARGIN		= 1;
-		private static final	int	HORIZONTAL_MARGIN	= 6;
-		private static final	int	SEPARATOR_WIDTH		= 1;
+		private static final	int		VERTICAL_MARGIN		= 1;
+		private static final	int		HORIZONTAL_MARGIN	= 6;
+		private static final	int		SEPARATOR_WIDTH		= 1;
 
 		private static final	Color	LINE_COLOUR	= Color.GRAY;
 
-		private static final	String	PROTOTYPE_STR	= StringUtils.createCharString(' ', 4);
+		private static final	String	PROTOTYPE_STR	= " ".repeat(4);
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
@@ -154,7 +154,7 @@ abstract class AbstractStatusPanel
 
 		protected void setText(String text)
 		{
-			if (!StringUtils.equal(text, this.text))
+			if (!Objects.equals(text, this.text))
 			{
 				this.text = text;
 				int textWidth = getFontMetrics(getFont()).

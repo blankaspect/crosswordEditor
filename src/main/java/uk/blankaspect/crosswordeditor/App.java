@@ -2,7 +2,7 @@
 
 App.java
 
-Application class.
+Class: application.
 
 \*====================================================================*/
 
@@ -23,21 +23,20 @@ import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
 
-import java.time.LocalDateTime;
-
-import java.time.format.DateTimeFormatter;
+import java.lang.invoke.MethodHandles;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
+
+import uk.blankaspect.common.build.BuildUtils;
 
 import uk.blankaspect.common.cls.ClassUtils;
 
@@ -62,18 +61,18 @@ import uk.blankaspect.common.resource.ResourceUtils;
 
 import uk.blankaspect.common.string.StringUtils;
 
-import uk.blankaspect.common.swing.dialog.QuestionDialog;
+import uk.blankaspect.ui.swing.dialog.QuestionDialog;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
-import uk.blankaspect.common.swing.text.TextRendering;
+import uk.blankaspect.ui.swing.text.TextRendering;
 
-import uk.blankaspect.common.swing.textfield.TextFieldUtils;
+import uk.blankaspect.ui.swing.textfield.TextFieldUtils;
 
 //----------------------------------------------------------------------
 
 
-// APPLICATION CLASS
+// CLASS: APPLICATION
 
 
 public class App
@@ -89,15 +88,9 @@ public class App
 	public static final		String	LONG_NAME	= "Crossword editor";
 	public static final		String	NAME_KEY	= "crosswordEditor";
 
-	public static final		int	MAX_NUM_DOCUMENTS	= 64;
+	public static final		int		MAX_NUM_DOCUMENTS	= 64;
 
-	private static final	int	FILE_CHECK_TIMER_INTERVAL	= 500;
-
-	private static final	String	VERSION_PROPERTY_KEY	= "version";
-	private static final	String	BUILD_PROPERTY_KEY		= "build";
-	private static final	String	RELEASE_PROPERTY_KEY	= "release";
-
-	private static final	String	VERSION_DATE_TIME_PATTERN	= "uuuuMMdd-HHmmss";
+	private static final	int		FILE_CHECK_TIMER_INTERVAL	= 500;
 
 	private static final	String	BUILD_PROPERTIES_FILENAME	= "build.properties";
 
@@ -105,7 +98,7 @@ public class App
 	private static final	String	DO_NOT_VIEW_KEY	= "doNotView";
 	private static final	String	OS_NAME_KEY		= "os.name";
 
-	private static final	String	RX_ID	= App.class.getCanonicalName();
+	private static final	String	RX_ID	= MethodHandles.lookup().lookupClass().getCanonicalName();
 
 	private static final	String	ASSOC_FILE_KIND_KEY		= "BlankAspect." + SHORT_NAME + ".document";
 	private static final	String	ASSOC_FILE_KIND_TEXT	= "CrosswordEditor document";
@@ -142,7 +135,7 @@ public class App
 																"browser?";
 	private static final	String	DO_NOT_SHOW_AGAIN_STR	= "Do not show this dialog again";
 	private static final	String	WINDOWS_STR				= "Windows";
-	private static final	String	FILE_ASSOCIATIONS_STR	= "File associations";
+	private static final	String	FILE_ASSOCIATION_STR	= "File association";
 
 	private static final	QuestionDialog.Option[]	VIEW_FILE_OPTIONS	=
 	{
@@ -152,38 +145,22 @@ public class App
 	};
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// DOCUMENT-VIEW CLASS
-
-
-	private static class DocumentView
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private DocumentView(CrosswordDocument document)
-		{
-			this.document = document;
-			view = new CrosswordView(document);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	CrosswordDocument	document;
-		private	CrosswordView		view;
-
-	}
-
-	//==================================================================
+	private	ResourceProperties	buildProperties;
+	private	String				versionStr;
+	private	MainWindow			mainWindow;
+	private	List<DocumentView>	documentsViews;
+	private	JFileChooser		openFileChooser;
+	private	JFileChooser		saveFileChooser;
+	private	JFileChooser		exportHtmlFileChooser;
+	private	int					newFileIndex;
+	private	boolean				showViewHtmlFileMessage;
+	private	boolean				viewHtmlFile;
+	private	boolean				exiting;
+	private	boolean				executingCommand;
+	private	List<File>			pendingFiles;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -209,6 +186,13 @@ public class App
 ////////////////////////////////////////////////////////////////////////
 //  Instance methods
 ////////////////////////////////////////////////////////////////////////
+
+	public String getVersionString()
+	{
+		return versionStr;
+	}
+
+	//------------------------------------------------------------------
 
 	public MainWindow getMainWindow()
 	{
@@ -240,22 +224,21 @@ public class App
 
 	public CrosswordDocument getDocument()
 	{
-		return ((hasDocuments() && (mainWindow != null)) ? getDocument(mainWindow.getTabIndex())
-														 : null);
+		return (hasDocuments() && (mainWindow != null)) ? getDocument(mainWindow.getTabIndex()) : null;
 	}
 
 	//------------------------------------------------------------------
 
 	public CrosswordDocument getDocument(int index)
 	{
-		return (hasDocuments() ? documentsViews.get(index).document : null);
+		return hasDocuments() ? documentsViews.get(index).document : null;
 	}
 
 	//------------------------------------------------------------------
 
 	public CrosswordView getView()
 	{
-		return ((hasDocuments() && (mainWindow != null)) ? getView(mainWindow.getTabIndex()) : null);
+		return (hasDocuments() && (mainWindow != null)) ? getView(mainWindow.getTabIndex()) : null;
 	}
 
 	//------------------------------------------------------------------
@@ -275,51 +258,6 @@ public class App
 				return documentView.view;
 		}
 		return null;
-	}
-
-	//------------------------------------------------------------------
-
-	/**
-	 * Returns a string representation of the version of this application.  If this class was loaded from a JAR, the
-	 * string is created from the values of properties that are defined in a resource named 'build.properties';
-	 * otherwise, the string is created from the date and time when this method is first called.
-	 *
-	 * @return a string representation of the version of this application.
-	 */
-
-	public String getVersionString()
-	{
-		if (versionStr == null)
-		{
-			StringBuilder buffer = new StringBuilder(32);
-			if (ClassUtils.isFromJar(getClass()))
-			{
-				// Append version number
-				String str = buildProperties.get(VERSION_PROPERTY_KEY);
-				if (str != null)
-					buffer.append(str);
-
-				// If this is not a release, append build
-				boolean release = Boolean.parseBoolean(buildProperties.get(RELEASE_PROPERTY_KEY));
-				if (!release)
-				{
-					str = buildProperties.get(BUILD_PROPERTY_KEY);
-					if (str != null)
-					{
-						if (buffer.length() > 0)
-							buffer.append(' ');
-						buffer.append(str);
-					}
-				}
-			}
-			else
-			{
-				buffer.append('b');
-				buffer.append(DateTimeFormatter.ofPattern(VERSION_DATE_TIME_PATTERN).format(LocalDateTime.now()));
-			}
-			versionStr = buffer.toString();
-		}
-		return versionStr;
 	}
 
 	//------------------------------------------------------------------
@@ -396,7 +334,7 @@ public class App
 		AppCommand.TOGGLE_SHOW_FULL_PATHNAMES.setEnabled(true);
 		AppCommand.TOGGLE_SHOW_FULL_PATHNAMES.
 											setSelected(AppConfig.INSTANCE.isShowFullPathnames());
-		AppCommand.MANAGE_FILE_ASSOCIATIONS.setEnabled(isWindows);
+		AppCommand.MANAGE_FILE_ASSOCIATION.setEnabled(isWindows);
 		AppCommand.EDIT_PREFERENCES.setEnabled(true);
 	}
 
@@ -470,8 +408,8 @@ public class App
 						onToggleShowFullPathnames();
 						break;
 
-					case MANAGE_FILE_ASSOCIATIONS:
-						onManageFileAssociations();
+					case MANAGE_FILE_ASSOCIATION:
+						onManageFileAssociation();
 						break;
 
 					case EDIT_PREFERENCES:
@@ -692,10 +630,11 @@ public class App
 		showViewHtmlFileMessage = true;
 		pendingFiles = new ArrayList<>();
 
-		// Read build properties
+		// Read build properties and initialise version string
 		try
 		{
-			buildProperties = new ResourceProperties(ResourceUtils.absoluteName(getClass(), BUILD_PROPERTIES_FILENAME));
+			buildProperties = new ResourceProperties(ResourceUtils.normalisedPathname(getClass(), BUILD_PROPERTIES_FILENAME));
+			versionStr = BuildUtils.versionString(getClass(), buildProperties);
 		}
 		catch (LocationException e)
 		{
@@ -703,9 +642,7 @@ public class App
 		}
 
 		// Create list of files from command-line arguments
-		List<File> files = Arrays.stream(args)
-									.map(arg -> new File(PathnameUtils.parsePathname(arg)))
-									.collect(Collectors.toList());
+		List<File> files = Stream.of(args).map(arg -> new File(PathnameUtils.parsePathname(arg))).toList();
 
 		// Read TX port number from file
 		int txPort = PortNumber.getValue(NAME_KEY);
@@ -715,10 +652,7 @@ public class App
 		{
 			String txId = getClass().getSimpleName() + "." + DataTxChannel.getIdSuffix();
 			DataTxChannel txChannel = new DataTxChannel(txId);
-			if (txChannel.transmit(txPort, RX_ID,
-								   files.stream()
-										.map(file -> file.getAbsolutePath() + "\n")
-										.collect(Collectors.toList())))
+			if (txChannel.transmit(txPort, RX_ID, files.stream().map(file -> file.getAbsolutePath() + "\n").toList()))
 				System.exit(0);
 		}
 
@@ -740,11 +674,11 @@ public class App
 						pendingFiles.addAll(pathnames.stream()
 														.filter(pathname -> !pathname.isEmpty())
 														.map(pathname -> new File(pathname))
-														.collect(Collectors.toList()));
+														.toList());
 				});
 			});
 
-			// On shutdown, write invalid port number to file
+			// On shutdown, invalidate port-number file
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> PortNumber.setValue(NAME_KEY, -1)));
 
 			// Write port number to file
@@ -1236,7 +1170,7 @@ public class App
 
 	//------------------------------------------------------------------
 
-	private void onManageFileAssociations()
+	private void onManageFileAssociation()
 		throws AppException
 	{
 		FileAssociationDialog.Result result = FileAssociationDialog.showDialog(mainWindow);
@@ -1245,11 +1179,11 @@ public class App
 			FileAssociations fileAssoc = new FileAssociations();
 			fileAssoc.addParams(ASSOC_FILE_KIND_KEY, ASSOC_FILE_KIND_TEXT, ASSOC_FILE_OPEN_TEXT,
 								AppConfig.INSTANCE.getFilenameSuffix());
-			TextOutputTaskDialog.showDialog(mainWindow, FILE_ASSOCIATIONS_STR,
-											new Task.SetFileAssociations(fileAssoc, result.javaLauncherPathname,
-																		 result.jarPathname, result.iconPathname,
-																		 ASSOC_SCRIPT_DIR_PREFIX, ASSOC_SCRIPT_FILENAME,
-																		 result.removeEntries, result.scriptLifeCycle));
+			TextOutputTaskDialog.showDialog(mainWindow, FILE_ASSOCIATION_STR,
+											new Task.SetFileAssociation(fileAssoc, result.javaLauncherPathname,
+																		result.jarPathname, result.iconPathname,
+																		ASSOC_SCRIPT_DIR_PREFIX, ASSOC_SCRIPT_FILENAME,
+																		result.removeEntries, result.scriptLifeCycle));
 		}
 	}
 
@@ -1260,30 +1194,50 @@ public class App
 		if (PreferencesDialog.showDialog(mainWindow))
 		{
 			ExceptionUtils.setUnixStyle(AppConfig.INSTANCE.isShowUnixPathnames());
-			for (DocumentView documentView : documentsViews)
-				documentView.view.updateGrid();
+			for (int i = 0; i < documentsViews.size(); i++)
+			{
+				DocumentView documentView = documentsViews.get(i);
+				documentView.view = new CrosswordView(documentView.document);
+				mainWindow.setView(i, documentView.view);
+			}
 		}
 	}
 
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	private	ResourceProperties	buildProperties;
-	private	String				versionStr;
-	private	MainWindow			mainWindow;
-	private	List<DocumentView>	documentsViews;
-	private	JFileChooser		openFileChooser;
-	private	JFileChooser		saveFileChooser;
-	private	JFileChooser		exportHtmlFileChooser;
-	private	int					newFileIndex;
-	private	boolean				showViewHtmlFileMessage;
-	private	boolean				viewHtmlFile;
-	private	boolean				exiting;
-	private	boolean				executingCommand;
-	private	List<File>			pendingFiles;
+
+	// CLASS: DOCUMENT-VIEW
+
+
+	private static class DocumentView
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	CrosswordDocument	document;
+		private	CrosswordView		view;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private DocumentView(CrosswordDocument document)
+		{
+			this.document = document;
+			view = new CrosswordView(document);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

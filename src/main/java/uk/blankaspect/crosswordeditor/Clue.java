@@ -2,7 +2,7 @@
 
 Clue.java
 
-Clue class.
+Class: clue.
 
 \*====================================================================*/
 
@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,7 +38,7 @@ import uk.blankaspect.common.string.StringUtils;
 //----------------------------------------------------------------------
 
 
-// CLUE CLASS
+// CLASS: CLUE
 
 
 class Clue
@@ -51,7 +52,7 @@ class Clue
 
 	public static final		String	DEFAULT_LENGTH_REGEX	= "\\((\\d[^\\(]*?)\\)$";
 
-	public static final		Comparator<Clue>	ID_COMPARATOR;
+	public static final		Comparator<Clue>	COMPARATOR;
 
 	private static final	String	SPACE_REGEX				= " +";
 	private static final	String	WHITESPACE_REGEX		= "[\\p{Zs}\\t]+";
@@ -80,503 +81,44 @@ class Clue
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Enumerated types
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// ERROR IDENTIFIERS
-
-
-	private enum ErrorId
-		implements AppException.IId
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		FIELD_NUMBER_EXPECTED
-		("A field number was expected at the start of the line."),
-
-		INVALID_FIELD_NUMBER
-		("The field number %1 is invalid."),
-
-		CLUE_TEXT_EXPECTED
-		("The text of a clue was expected."),
-
-		ANSWER_LENGTH_EXPECTED
-		("The length of the answer was expected at the end of the line.");
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ErrorId(String message)
-		{
-			this.message = message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : AppException.IId interface
-	////////////////////////////////////////////////////////////////////
-
-		public String getMessage()
-		{
-			return message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	message;
-
-	}
-
-	//==================================================================
+	private	List<Grid.Field.Id>	fieldIds;
+	private	int					index;
+	private	Id					referentId;
+	private	int					answerLength;
+	private	StyledText			text;
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Static initialiser
 ////////////////////////////////////////////////////////////////////////
 
-
-	// CLUE IDENTIFIER CLASS
-
-
-	public static class Id
-		implements Cloneable
+	static
 	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	INDEX_PREFIX	= "#";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		/**
-		 * @throws IllegalArgumentException
-		 */
-
-		public Id(Grid.Field.Id fieldId,
-				  int           index)
-		{
-			if (fieldId == null)
-				throw new IllegalArgumentException();
-
-			this.fieldId = fieldId.clone();
-			this.index = index;
-		}
-
-		//--------------------------------------------------------------
-
-		private Id(String numberStr,
-				   String directionStr,
-				   String indexStr)
-		{
-			fieldId = new Grid.Field.Id(numberStr, directionStr);
-			index = (indexStr == null) ? 0 : Integer.parseInt(indexStr);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public boolean equals(Object obj)
-		{
-			if (obj instanceof Id)
-			{
-				Id other = (Id)obj;
-				return (fieldId.equals(other.fieldId) && (index == other.index));
-			}
-			return false;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public int hashCode()
-		{
-			return (fieldId.hashCode() * 31 + index);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public Id clone()
-		{
-			try
-			{
-				Id copy = (Id)super.clone();
-				copy.fieldId = fieldId.clone();
-				return copy;
-			}
-			catch (CloneNotSupportedException e)
-			{
-				throw new UnexpectedRuntimeException(e);
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public String toString()
-		{
-			return ((index == 0) ? fieldId.toString() : fieldId.toString() + INDEX_PREFIX + index);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		Grid.Field.Id	fieldId;
-		int				index;
-
-	}
-
-	//==================================================================
-
-
-	// FIELD LIST CLASS
-
-
-	public static class FieldList
-		implements Cloneable
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public FieldList()
-		{
-			fields = new ArrayList<>();
-			index = -1;
-		}
-
-		//--------------------------------------------------------------
-
-		public FieldList(Grid.Field field)
-		{
-			this();
-			fields.add(field);
-			index = 0;
-		}
-
-		//--------------------------------------------------------------
-
-		public FieldList(Collection<Grid.Field> fields,
-						 int                    index)
-		{
-			this.fields = new ArrayList<>(fields);
-			this.index = index;
-			enabled = true;
-		}
-
-		//--------------------------------------------------------------
-
-		public FieldList(List<Grid.Field> fields,
-						 Grid.Field       field)
-		{
-			this(fields, fields.indexOf(field));
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public boolean equals(Object obj)
-		{
-			if (obj instanceof FieldList)
-			{
-				FieldList other = (FieldList)obj;
-				return (fields.equals(other.fields) && (index == other.index) && (enabled == other.enabled));
-			}
-			return false;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public int hashCode()
-		{
-			return (fields.hashCode() * 31 + index);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public FieldList clone()
-		{
-			try
-			{
-				FieldList copy = (FieldList)super.clone();
-				copy.fields = new ArrayList<>();
-				for (Grid.Field field : fields)
-					copy.fields.add(field.clone());
-				return copy;
-			}
-			catch (CloneNotSupportedException e)
-			{
-				throw new UnexpectedRuntimeException(e);
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public int getNumFields()
-		{
-			return fields.size();
-		}
-
-		//--------------------------------------------------------------
-
-		public Grid.Field getField()
-		{
-			return ((index < 0) ? null : fields.get(index));
-		}
-
-		//--------------------------------------------------------------
-
-		public Grid.Field getField(int index)
-		{
-			return fields.get(index);
-		}
-
-		//--------------------------------------------------------------
-
-		public boolean isEmpty()
-		{
-			return fields.isEmpty();
-		}
-
-		//--------------------------------------------------------------
-
-		public boolean matches(List<Grid.Field> fields)
-		{
-			return this.fields.equals(fields);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		List<Grid.Field>	fields;
-		int					index;
-		boolean				enabled;
-
-	}
-
-	//==================================================================
-
-
-	// ANSWER-LENGTH PARSER CLASS
-
-
-	public static class AnswerLengthParser
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public AnswerLengthParser(String             regex,
-								  List<Substitution> substitutions)
-		{
-			this.pattern = Pattern.compile(regex);
-			this.substitutions = substitutions;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private int parseLength(String text)
-		{
-			for (Substitution substitution : substitutions)
-				text = substitution.apply(text);
-
-			int length = 0;
-			for (String str : text.split(LENGTH_SEPARATOR_REGEX))
-			{
-				str = str.trim();
-				if (!str.isEmpty())
-					length += Integer.parseInt(str);
-			}
-			return length;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	Pattern				pattern;
-		private	List<Substitution>	substitutions;
-
-	}
-
-	//==================================================================
-
-
-	// CLUE FIELD ID COMPARATOR CLASS
-
-
-	public static class FieldIdComparator
-		implements Comparator<Clue>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		public static final	FieldIdComparator	INSTANCE	= new FieldIdComparator();
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private FieldIdComparator()
-		{
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : Comparator interface
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public int compare(Clue clue1,
-						   Clue clue2)
+		COMPARATOR = (clue1, clue2) ->
 		{
 			Grid.Field.Id id1 = clue1.fieldIds.get(0);
 			Grid.Field.Id id2 = clue2.fieldIds.get(0);
-			int result = Integer.compare(id1.direction.ordinal(), id2.direction.ordinal());
+
+			int result = id1.direction.compareTo(id2.direction);
+
 			if (result == 0)
 				result = Integer.compare(id1.number, id2.number);
+
+			if (result == 0)
+				result = Integer.compare(clue1.index, clue2.index);
+
 			return result;
-		}
-
-		//--------------------------------------------------------------
-
+		};
 	}
-
-	//==================================================================
-
-
-	// PARSE EXCEPTION CLASS
-
-
-	private static class ParseException
-		extends AppException
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	LINE_STR	= "Line ";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ParseException(AppException.IId id,
-							   int              lineNum,
-							   String           text)
-		{
-			super(id);
-			this.lineNum = lineNum;
-			this.text = text;
-		}
-
-		//--------------------------------------------------------------
-
-		private ParseException(AppException.IId id,
-							   int              lineNum,
-							   String           text,
-							   CharSequence...  replacements)
-		{
-			super(id, replacements);
-			this.lineNum = lineNum;
-			this.text = text;
-		}
-
-		//--------------------------------------------------------------
-
-		private ParseException(StyledText.ParseException exception,
-							   int                       lineNum,
-							   String                    text)
-		{
-			super(exception);
-			this.lineNum = lineNum;
-			this.text = text;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		protected String getPrefix()
-		{
-			StringBuilder buffer = new StringBuilder(128);
-			buffer.append(LINE_STR);
-			buffer.append(lineNum);
-			if (text != null)
-			{
-				buffer.append(": ");
-				buffer.append(text);
-			}
-			buffer.append('\n');
-			return buffer.toString();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	int		lineNum;
-		private	String	text;
-
-	}
-
-	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	public Clue(Grid.Field.Id fieldId)
+	public Clue(
+		Grid.Field.Id	fieldId)
 	{
 		fieldIds = new ArrayList<>();
 		fieldIds.add(fieldId);
@@ -584,7 +126,8 @@ class Clue
 
 	//------------------------------------------------------------------
 
-	public Clue(Clue.Id clueId)
+	public Clue(
+		Clue.Id	clueId)
 	{
 		fieldIds = new ArrayList<>();
 		fieldIds.add(clueId.fieldId);
@@ -593,8 +136,9 @@ class Clue
 
 	//------------------------------------------------------------------
 
-	public Clue(Grid.Field.Id fieldId,
-				Id            referentId)
+	public Clue(
+		Grid.Field.Id	fieldId,
+		Id				referentId)
 	{
 		this(fieldId);
 		this.referentId = referentId.clone();
@@ -602,10 +146,11 @@ class Clue
 
 	//------------------------------------------------------------------
 
-	public Clue(List<Grid.Field.Id> fieldIds,
-				String              text,
-				String              referenceKeyword,
-				int                 answerLength)
+	public Clue(
+		List<Grid.Field.Id>	fieldIds,
+		String				text,
+		String				referenceKeyword,
+		int					answerLength)
 		throws StyledText.ParseException
 	{
 		// Initialise field IDs, reference and text
@@ -617,9 +162,10 @@ class Clue
 
 	//------------------------------------------------------------------
 
-	public Clue(List<Grid.Field.Id> fieldIds,
-				StyledText          text,
-				int                 answerLength)
+	public Clue(
+		List<Grid.Field.Id>	fieldIds,
+		StyledText			text,
+		int					answerLength)
 	{
 		this.fieldIds = new ArrayList<>(fieldIds);
 		this.text = text;
@@ -628,10 +174,11 @@ class Clue
 
 	//------------------------------------------------------------------
 
-	public Clue(List<Grid.Field.Id> fieldIds,
-				String              text,
-				String              referenceKeyword,
-				AnswerLengthParser  answerLengthParser)
+	public Clue(
+		List<Grid.Field.Id>	fieldIds,
+		String				text,
+		String				referenceKeyword,
+		AnswerLengthParser	answerLengthParser)
 		throws StyledText.ParseException
 	{
 		// Initialise field IDs, reference and text
@@ -648,16 +195,18 @@ class Clue
 
 	//------------------------------------------------------------------
 
-	private Clue(String numberStr)
+	private Clue(
+		String	numberStr)
 	{
 		this(new Grid.Field.Id(numberStr, null));
 	}
 
 	//------------------------------------------------------------------
 
-	private Clue(List<Grid.Field.Id> fieldIds,
-				 String              text,
-				 String              referenceKeyword)
+	private Clue(
+		List<Grid.Field.Id>	fieldIds,
+		String				text,
+		String				referenceKeyword)
 		throws StyledText.ParseException
 	{
 		// Set field IDs
@@ -687,9 +236,10 @@ class Clue
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static List<Clue> getCluesFromClipboard(String             referenceKeyword,
-												   AnswerLengthParser answerLengthParser,
-												   List<Substitution> substitutions)
+	public static List<Clue> getCluesFromClipboard(
+		String				referenceKeyword,
+		AnswerLengthParser	answerLengthParser,
+		List<Substitution>	substitutions)
 		throws AppException
 	{
 		return parseClues(Utils.getClipboardText(), referenceKeyword, answerLengthParser, substitutions);
@@ -697,18 +247,20 @@ class Clue
 
 	//------------------------------------------------------------------
 
-	private static int getAnswerLength(Matcher            matcher,
-									   AnswerLengthParser lengthParser)
+	private static int getAnswerLength(
+		Matcher				matcher,
+		AnswerLengthParser	lengthParser)
 	{
 		return lengthParser.parseLength(matcher.group(1));
 	}
 
 	//------------------------------------------------------------------
 
-	private static List<Clue> parseClues(String             text,
-										 String             referenceKeyword,
-										 AnswerLengthParser answerLengthParser,
-										 List<Substitution> substitutions)
+	private static List<Clue> parseClues(
+		String				text,
+		String				referenceKeyword,
+		AnswerLengthParser	answerLengthParser,
+		List<Substitution>	substitutions)
 		throws AppException
 	{
 		// Initialise lists of direction keywords
@@ -1015,17 +567,15 @@ class Clue
 ////////////////////////////////////////////////////////////////////////
 
 	@Override
-	public boolean equals(Object obj)
+	public boolean equals(
+		Object	obj)
 	{
-		if (obj instanceof Clue)
-		{
-			Clue other = (Clue)obj;
-			return (fieldIds.equals(other.fieldIds) && (index == other.index) &&
-					((referentId == null) ? (other.referentId == null) : referentId.equals(other.referentId)) &&
-					(answerLength == other.answerLength) &&
-					((text == null) ? (other.text == null) : text.equals(other.text)));
-		}
-		return false;
+		if (this == obj)
+			return true;
+
+		return (obj instanceof Clue other) && fieldIds.equals(other.fieldIds) && (index == other.index)
+				&& Objects.equals(referentId, other.referentId) && (answerLength == other.answerLength)
+				&& Objects.equals(text, other.text);
 	}
 
 	//------------------------------------------------------------------
@@ -1034,9 +584,10 @@ class Clue
 	public int hashCode()
 	{
 		int code = fieldIds.hashCode();
-		code = code * 31 + ((referentId == null) ? 0 : referentId.hashCode());
-		code = code * 31 + answerLength;
-		code = code * 31 + ((text == null) ? 0 : text.hashCode());
+		code = code * 31 + Integer.hashCode(index);
+		code = code * 31 + Objects.hashCode(referentId);
+		code = code * 31 + Integer.hashCode(answerLength);
+		code = code * 31 + Objects.hashCode(text);
 		return code;
 	}
 
@@ -1084,7 +635,8 @@ class Clue
 
 	//------------------------------------------------------------------
 
-	public Grid.Field.Id getFieldId(int index)
+	public Grid.Field.Id getFieldId(
+		int	index)
 	{
 		return fieldIds.get(index);
 	}
@@ -1140,14 +692,16 @@ class Clue
 
 	//------------------------------------------------------------------
 
-	public void setIndex(int index)
+	public void setIndex(
+		int	index)
 	{
 		this.index = index;
 	}
 
 	//------------------------------------------------------------------
 
-	public boolean isSecondaryId(Grid.Field.Id fieldId)
+	public boolean isSecondaryId(
+		Grid.Field.Id	fieldId)
 	{
 		for (int i = 1; i < fieldIds.size(); i++)
 		{
@@ -1160,33 +714,467 @@ class Clue
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Static initialiser
+//  Enumerated types
 ////////////////////////////////////////////////////////////////////////
 
-	static
+
+	// ENUMERATION: ERROR IDENTIFIERS
+
+
+	private enum ErrorId
+		implements AppException.IId
 	{
-		ID_COMPARATOR = (clue1, clue2) ->
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		FIELD_NUMBER_EXPECTED
+		("A field number was expected at the start of the line."),
+
+		INVALID_FIELD_NUMBER
+		("The field number %1 is invalid."),
+
+		CLUE_TEXT_EXPECTED
+		("The text of a clue was expected."),
+
+		ANSWER_LENGTH_EXPECTED
+		("The length of the answer was expected at the end of the line.");
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	message;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ErrorId(
+			String	message)
 		{
-			Grid.Field.Id id1 = clue1.fieldIds.get(0);
-			Grid.Field.Id id2 = clue2.fieldIds.get(0);
-			int result = Integer.compare(id1.direction.ordinal(), id2.direction.ordinal());
-			if (result == 0)
-				result = Integer.compare(id1.number, id2.number);
-			if (result == 0)
-				result = Integer.compare(clue1.index, clue2.index);
-			return result;
-		};
+			this.message = message;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : AppException.IId interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getMessage()
+		{
+			return message;
+		}
+
+		//--------------------------------------------------------------
+
 	}
 
+	//==================================================================
+
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	private	List<Grid.Field.Id>	fieldIds;
-	private	int					index;
-	private	Id					referentId;
-	private	int					answerLength;
-	private	StyledText			text;
+
+	// CLUE IDENTIFIER CLASS
+
+
+	public static class Id
+		implements Cloneable
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	INDEX_PREFIX	= "#";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		Grid.Field.Id	fieldId;
+		int				index;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		/**
+		 * @throws IllegalArgumentException
+		 */
+
+		public Id(
+			Grid.Field.Id	fieldId,
+			int				index)
+		{
+			if (fieldId == null)
+				throw new IllegalArgumentException();
+
+			this.fieldId = fieldId.clone();
+			this.index = index;
+		}
+
+		//--------------------------------------------------------------
+
+		private Id(
+			String	numberStr,
+			String	directionStr,
+			String	indexStr)
+		{
+			fieldId = new Grid.Field.Id(numberStr, directionStr);
+			index = (indexStr == null) ? 0 : Integer.parseInt(indexStr);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public boolean equals(
+			Object	obj)
+		{
+			if (obj instanceof Id)
+			{
+				Id other = (Id)obj;
+				return (fieldId.equals(other.fieldId) && (index == other.index));
+			}
+			return false;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public int hashCode()
+		{
+			return (fieldId.hashCode() * 31 + index);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public Id clone()
+		{
+			try
+			{
+				Id copy = (Id)super.clone();
+				copy.fieldId = fieldId.clone();
+				return copy;
+			}
+			catch (CloneNotSupportedException e)
+			{
+				throw new UnexpectedRuntimeException(e);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public String toString()
+		{
+			return ((index == 0) ? fieldId.toString() : fieldId.toString() + INDEX_PREFIX + index);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// FIELD LIST CLASS
+
+
+	public static class FieldList
+		implements Cloneable
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		List<Grid.Field>	fields;
+		int					index;
+		boolean				enabled;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		public FieldList()
+		{
+			fields = new ArrayList<>();
+			index = -1;
+		}
+
+		//--------------------------------------------------------------
+
+		public FieldList(
+			Grid.Field	field)
+		{
+			this();
+			fields.add(field);
+			index = 0;
+		}
+
+		//--------------------------------------------------------------
+
+		public FieldList(
+			Collection<Grid.Field>	fields,
+			int						index)
+		{
+			this.fields = new ArrayList<>(fields);
+			this.index = index;
+			enabled = true;
+		}
+
+		//--------------------------------------------------------------
+
+		public FieldList(
+			List<Grid.Field>	fields,
+			Grid.Field			field)
+		{
+			this(fields, fields.indexOf(field));
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public boolean equals(
+			Object	obj)
+		{
+			if (obj instanceof FieldList)
+			{
+				FieldList other = (FieldList)obj;
+				return (fields.equals(other.fields) && (index == other.index) && (enabled == other.enabled));
+			}
+			return false;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public int hashCode()
+		{
+			return (fields.hashCode() * 31 + index);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public FieldList clone()
+		{
+			try
+			{
+				FieldList copy = (FieldList)super.clone();
+				copy.fields = new ArrayList<>();
+				for (Grid.Field field : fields)
+					copy.fields.add(field.clone());
+				return copy;
+			}
+			catch (CloneNotSupportedException e)
+			{
+				throw new UnexpectedRuntimeException(e);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public int getNumFields()
+		{
+			return fields.size();
+		}
+
+		//--------------------------------------------------------------
+
+		public Grid.Field getField()
+		{
+			return ((index < 0) ? null : fields.get(index));
+		}
+
+		//--------------------------------------------------------------
+
+		public Grid.Field getField(
+			int	index)
+		{
+			return fields.get(index);
+		}
+
+		//--------------------------------------------------------------
+
+		public boolean isEmpty()
+		{
+			return fields.isEmpty();
+		}
+
+		//--------------------------------------------------------------
+
+		public boolean matches(
+			List<Grid.Field>	fields)
+		{
+			return this.fields.equals(fields);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// ANSWER-LENGTH PARSER CLASS
+
+
+	public static class AnswerLengthParser
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	Pattern				pattern;
+		private	List<Substitution>	substitutions;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		public AnswerLengthParser(
+			String				regex,
+			List<Substitution>	substitutions)
+		{
+			this.pattern = Pattern.compile(regex);
+			this.substitutions = substitutions;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private int parseLength(
+			String	text)
+		{
+			for (Substitution substitution : substitutions)
+				text = substitution.apply(text);
+
+			int length = 0;
+			for (String str : text.split(LENGTH_SEPARATOR_REGEX))
+			{
+				str = str.trim();
+				if (!str.isEmpty())
+					length += Integer.parseInt(str);
+			}
+			return length;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// PARSE EXCEPTION CLASS
+
+
+	private static class ParseException
+		extends AppException
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	LINE_STR	= "Line ";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	int		lineNum;
+		private	String	text;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ParseException(
+			AppException.IId	id,
+			int					lineNum,
+			String				text)
+		{
+			super(id);
+			this.lineNum = lineNum;
+			this.text = text;
+		}
+
+		//--------------------------------------------------------------
+
+		private ParseException(
+			AppException.IId	id,
+			int					lineNum,
+			String				text,
+			CharSequence...		replacements)
+		{
+			super(id, replacements);
+			this.lineNum = lineNum;
+			this.text = text;
+		}
+
+		//--------------------------------------------------------------
+
+		private ParseException(
+			StyledText.ParseException	exception,
+			int							lineNum,
+			String						text)
+		{
+			super(exception);
+			this.lineNum = lineNum;
+			this.text = text;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		protected String getPrefix()
+		{
+			StringBuilder buffer = new StringBuilder(128);
+			buffer.append(LINE_STR);
+			buffer.append(lineNum);
+			if (text != null)
+			{
+				buffer.append(": ");
+				buffer.append(text);
+			}
+			buffer.append('\n');
+			return buffer.toString();
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

@@ -2,7 +2,7 @@
 
 TextSectionsDialog.java
 
-Text sections dialog box class.
+Text sections dialog class.
 
 \*====================================================================*/
 
@@ -47,20 +47,20 @@ import javax.swing.KeyStroke;
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.UnexpectedRuntimeException;
 
-import uk.blankaspect.common.swing.action.KeyAction;
+import uk.blankaspect.ui.swing.action.KeyAction;
 
-import uk.blankaspect.common.swing.button.FButton;
+import uk.blankaspect.ui.swing.button.FButton;
 
-import uk.blankaspect.common.swing.label.FLabel;
+import uk.blankaspect.ui.swing.label.FLabel;
 
-import uk.blankaspect.common.swing.misc.GuiUtils;
+import uk.blankaspect.ui.swing.misc.GuiUtils;
 
-import uk.blankaspect.common.swing.textfield.FTextField;
+import uk.blankaspect.ui.swing.textfield.FTextField;
 
 //----------------------------------------------------------------------
 
 
-// TEXT SECTIONS DIALOG BOX CLASS
+// TEXT SECTIONS DIALOG CLASS
 
 
 class TextSectionsDialog
