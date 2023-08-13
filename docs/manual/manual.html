@@ -182,7 +182,7 @@
         CrosswordEditor.
       </p>
       <p class="wrap">
-        The <code>src</code> directory of the distribution contains all the source code and
+        The <code>src</code> directory of the repository contains all the source code and
         resources that constitute the application; there are no external dependencies.  The
         directory conforms to the Maven standard directory layout: the source code is in
         <code>src/main/java</code> and the resources are in <code>src/main/resources</code>.
@@ -1689,34 +1689,47 @@
       <h3 id="section6-2">6.2&nbsp; Example capture parameters</h3>
 
       <p class="wrap">
-        The file <code>captureParams.xml</code> in the <code>examples</code> directory of the
-        CrosswordEditor distribution contains <a href="#section6-1-8">sets of parameters</a> for
-        capturing four free cryptic crosswords published by British newspapers on their
-        websites:
+        <a
+        href="https://github.com/blankaspect/crosswordEditor/blob/master/docs/examples/captureParams.xml">A
+        file</a> in the CrosswordEditor repository contains <a href="#section6-1-8">sets of
+        parameters</a> for capturing the following free cryptic crosswords published by British
+        newspapers on their websites:
       </p>
       <ul class="list">
         <li class="spaced">
-          <div><a class="external" href="https://www.theguardian.com/crosswords">The <i>Guardian</i> cryptic crossword</a></div>
+          <div class="wrap">
+            <a class="external" href="https://www.theguardian.com/crosswords/series/cryptic">The
+            <i>Guardian</i> cryptic crossword</a>
+          </div>
           <div class="wrap">
             Published daily except for Sundays.  The capture parameters are for the web page of
             the crossword.
           </div>
         </li>
         <li class="spaced">
-          <div><a class="external" href="https://www.ft.com/crossword">The <i>Financial Times</i> crossword</a></div>
+          <div class="wrap">
+            <a class="external" href="https://www.ft.com/crossword">The <i>Financial Times</i>
+            crossword</a>
+          </div>
           <div class="wrap">
             Published daily except for Sundays.  The capture parameters are for the PDF file.
           </div>
         </li>
         <li class="spaced">
-          <div><a class="external" href="https://www.theguardian.com/crosswords">The Azed crossword</a></div>
+          <div class="wrap">
+            <a class="external" href="https://www.theguardian.com/crosswords/series/azed">The
+            Azed crossword</a>
+          </div>
           <div class="wrap">
             Published in the <i>Observer</i> each Sunday.  The capture parameters are for the
             PDF version of the crossword.
           </div>
         </li>
         <li class="spaced">
-          <div><a class="external" href="https://www.theguardian.com/crosswords">The <i>Guardian</i>&apos;s Genius crossword</a></div>
+          <div class="wrap">
+            <a class="external" href="https://www.theguardian.com/crosswords/series/genius">The
+            <i>Guardian</i>&apos;s Genius crossword</a>
+          </div>
           <div class="wrap">
             Published on the first Monday of each month.  The capture parameters are for the PDF
             version of the crossword.
@@ -1725,11 +1738,12 @@
       </ul>
       <p class="wrap">
         The parameter sets for the four crosswords provide examples of the automatic
-        grid-detection parameters for various crosswords, and they illustrate the use of a
-        placeholder for a crossword number.
+        grid-detection parameters for various crosswords.  They may become out of date if the
+        publishers change the appearance of the crosswords.
       </p>
       <p class="wrap">
-        In all four examples, the number placeholder, <code>%n</code>, appears in the <span
+        The examples illustrate the use of a placeholder for a crossword number.  In all four
+        examples, the number placeholder, <code>%n</code>, appears in the <span
         class="component">Title</span> field of the <a class="component"
         href="#section6-1-5">Text</a> tab and the <span class="component">Filename stem</span>
         field of the <a class="component" href="#section6-1-6">File</a> tab of the <span
@@ -4577,7 +4591,7 @@
     <div id="lastModified">
       <div>
         <div>
-          Last modified: 2023-08-12
+          Last modified: 2023-08-13
         </div>
         <div class="image">
           <a class="hideHover" href="http://validator.w3.org/check?uri=referer">
