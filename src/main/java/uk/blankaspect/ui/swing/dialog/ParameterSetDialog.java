@@ -19,7 +19,6 @@ package uk.blankaspect.ui.swing.dialog;
 
 
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -96,41 +95,39 @@ public class ParameterSetDialog<E extends ParameterSet>
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	protected static final	int	SELECTION_LIST_NUM_ROWS		= 16;
-	protected static final	int	SELECTION_LIST_NUM_COLUMNS	= 40;
+	protected static final	int		SELECTION_LIST_NUM_ROWS		= 16;
+	protected static final	int		SELECTION_LIST_NUM_COLUMNS	= 40;
 
-	private static final	int	NAME_FIELD_NUM_COLUMNS	= 20;
+	private static final	int		NAME_FIELD_NUM_COLUMNS	= 20;
 
-	private static final	String	NAME_STR	= "Name";
-	private static final	String	ADD_STR		= "Add";
-	private static final	String	DELETE_STR	= "Delete";
-	private static final	String	LOAD_STR	= "Load";
-	private static final	String	UPDATE_STR	= "Update";
-	private static final	String	RESET_STR	= "Reset";
-	private static final	String	ERROR_STR	= "Error";
-	private static final	String	CANCEL_STR	= "Cancel";
-
-	private static final	String	READ_TITLE_STR		= "Read parameter set";
-	private static final	String	WRITE_TITLE_STR		= "Write parameter set";
-	private static final	String	ADD_TITLE_STR		= "Add parameter set";
-	private static final	String	DELETE_TITLE_STR	= "Delete parameter set";
-	private static final	String	UPDATE_TITLE_STR	= "Update parameter set";
-	private static final	String	RESET_TITLE_STR		= "Reset parameters";
-
+	private static final	String	NAME_STR					= "Name";
+	private static final	String	ADD_STR						= "Add";
+	private static final	String	DELETE_STR					= "Delete";
+	private static final	String	LOAD_STR					= "Load";
+	private static final	String	UPDATE_STR					= "Update";
+	private static final	String	RESET_STR					= "Reset";
+	private static final	String	ERROR_STR					= "Error";
+	private static final	String	CANCEL_STR					= "Cancel";
+	private static final	String	READ_TITLE_STR				= "Read parameter set";
+	private static final	String	WRITE_TITLE_STR				= "Write parameter set";
+	private static final	String	ADD_TITLE_STR				= "Add parameter set";
+	private static final	String	DELETE_TITLE_STR			= "Delete parameter set";
+	private static final	String	UPDATE_TITLE_STR			= "Update parameter set";
+	private static final	String	RESET_TITLE_STR				= "Reset parameters";
 	private static final	String	PARAMETER_SET_STR			= "Parameter set: ";
 	private static final	String	DELETE_MESSAGE_STR			= "Do you want to delete the parameter set?";
-	private static final	String	ADD_REPLACE_MESSAGE_STR		= "A parameter set with this name already exists.\n"
-																	+ "Do you want to replace it?";
-	private static final	String	UPDATE_REPLACE_MESSAGE_STR	= "Do you want to update the parameter set with the current "
-																	+ "parameters?";
-	private static final	String	RESET_MESSAGE_STR			= "Do you want to reset all parameters to their default "
-																	+ "values?";
-
-	private static final	String	ADD_TOOLTIP_STR		= "Add the current set of parameters to the list";
-	private static final	String	DELETE_TOOLTIP_STR	= "Delete the selected parameter set from the list";
-	private static final	String	LOAD_TOOLTIP_STR	= "Load the selected parameter set";
-	private static final	String	UPDATE_TOOLTIP_STR	= "Update the selected parameter set with the current parameters";
-	private static final	String	RESET_TOOLTIP_STR	= "Reset all parameters to their default values";
+	private static final	String	ADD_REPLACE_MESSAGE_STR		=
+			"A parameter set with this name already exists.\nDo you want to replace it?";
+	private static final	String	UPDATE_REPLACE_MESSAGE_STR	=
+			"Do you want to update the parameter set with the current parameters?";
+	private static final	String	RESET_MESSAGE_STR			=
+			"Do you want to reset all parameters to their default values?";
+	private static final	String	ADD_TOOLTIP_STR				= "Add the current set of parameters to the list";
+	private static final	String	DELETE_TOOLTIP_STR			= "Delete the selected parameter set from the list";
+	private static final	String	LOAD_TOOLTIP_STR			= "Load the selected parameter set";
+	private static final	String	UPDATE_TOOLTIP_STR			=
+			"Update the selected parameter set with the current parameters";
+	private static final	String	RESET_TOOLTIP_STR			= "Reset all parameters to their default values";
 
 	private static final	String[]	DC_OPTION_STRS	= { DELETE_STR, CANCEL_STR };
 	private static final	String[]	RC_OPTION_STRS	= { "Replace", CANCEL_STR };
@@ -155,33 +152,76 @@ public class ParameterSetDialog<E extends ParameterSet>
 	private static final	Map<String, String>	COMMAND_MAP;
 
 ////////////////////////////////////////////////////////////////////////
+//  Class variables
+////////////////////////////////////////////////////////////////////////
+
+	private static	Map<String, Point>	locations	= new Hashtable<>();
+
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	boolean					accepted;
+	private	boolean					listChanged;
+	private	E						params;
+	private	E						defaultParams;
+	private	ParameterSetList<E>		paramSetList;
+	private	File					file;
+	private	File					dtdDirectory;
+	private	boolean					writeDtd;
+	private	SingleSelectionList<E>	selectionList;
+	private	JScrollPane				selectionListScrollPane;
+	private	JTextField				nameField;
+	private	JButton					addButton;
+	private	JButton					deleteButton;
+	private	JButton					loadButton;
+	private	JButton					updateButton;
+
+////////////////////////////////////////////////////////////////////////
+//  Static initialiser
+////////////////////////////////////////////////////////////////////////
+
+	static
+	{
+		COMMAND_MAP = new HashMap<>();
+		COMMAND_MAP.put(SingleSelectionList.Command.EDIT_ELEMENT,      Command.LOAD_ACCEPT);
+		COMMAND_MAP.put(SingleSelectionList.Command.DELETE_ELEMENT,    Command.DELETE);
+		COMMAND_MAP.put(SingleSelectionList.Command.DELETE_EX_ELEMENT, Command.DELETE);
+		COMMAND_MAP.put(SingleSelectionList.Command.MOVE_ELEMENT_UP,   Command.MOVE_PARAMETER_SET_UP);
+		COMMAND_MAP.put(SingleSelectionList.Command.MOVE_ELEMENT_DOWN, Command.MOVE_PARAMETER_SET_DOWN);
+		COMMAND_MAP.put(SingleSelectionList.Command.DRAG_ELEMENT,      Command.MOVE_PARAMETER_SET);
+	}
+
+////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	protected ParameterSetDialog(Window              owner,
-								 String              titleStr,
-								 E                   params,
-								 E                   defaultParams,
-								 ParameterSetList<E> paramSetList,
-								 File                file)
+	protected ParameterSetDialog(
+		Window				owner,
+		String				title,
+		E					params,
+		E					defaultParams,
+		ParameterSetList<E>	paramSetList,
+		File				file)
 	{
 		// Call alternative constructor
-		this(owner, titleStr, params, defaultParams, paramSetList, file, null, false);
+		this(owner, title, params, defaultParams, paramSetList, file, null, false);
 	}
 
 	//------------------------------------------------------------------
 
-	protected ParameterSetDialog(Window              owner,
-								 String              titleStr,
-								 E                   params,
-								 E                   defaultParams,
-								 ParameterSetList<E> paramSetList,
-								 File                file,
-								 File                dtdDirectory,
-								 boolean             writeDtd)
+	protected ParameterSetDialog(
+		Window				owner,
+		String				title,
+		E					params,
+		E					defaultParams,
+		ParameterSetList<E>	paramSetList,
+		File				file,
+		File				dtdDirectory,
+		boolean				writeDtd)
 	{
 		// Call superclass constructor
-		super(owner, titleStr, Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, title, ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		if (owner != null)
@@ -447,7 +487,8 @@ public class ParameterSetDialog<E extends ParameterSet>
 		addWindowListener(new WindowAdapter()
 		{
 			@Override
-			public void windowOpened(WindowEvent event)
+			public void windowOpened(
+				WindowEvent	event)
 			{
 				// Set focus
 				nameField.requestFocusInWindow();
@@ -461,7 +502,8 @@ public class ParameterSetDialog<E extends ParameterSet>
 			}
 
 			@Override
-			public void windowClosing(WindowEvent event)
+			public void windowClosing(
+				WindowEvent	event)
 			{
 				onClose();
 			}
@@ -473,7 +515,7 @@ public class ParameterSetDialog<E extends ParameterSet>
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		Point location = locations.get(paramSetList.getApplicationKey());
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
@@ -492,36 +534,40 @@ public class ParameterSetDialog<E extends ParameterSet>
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static <E extends ParameterSet> E showDialog(Component           parent,
-														String              titleStr,
-														E                   params,
-														E                   defaultParams,
-														ParameterSetList<E> paramSetList,
-														File                file)
+	public static <E extends ParameterSet> E showDialog(
+		Component			parent,
+		String				title,
+		E					params,
+		E					defaultParams,
+		ParameterSetList<E>	paramSetList,
+		File				file)
 	{
-		return new ParameterSetDialog<>(GuiUtils.getWindow(parent), titleStr, params, defaultParams, paramSetList,
-										file).getParameterSet();
+		return new ParameterSetDialog<>(GuiUtils.getWindow(parent), title, params, defaultParams, paramSetList, file)
+				.getParameterSet();
 	}
 
 	//------------------------------------------------------------------
 
-	public static <E extends ParameterSet> E showDialog(Component           parent,
-														String              titleStr,
-														E                   params,
-														E                   defaultParams,
-														ParameterSetList<E> paramSetList,
-														File                file,
-														File                dtdDirectory,
-														boolean             writeDtd)
+	public static <E extends ParameterSet> E showDialog(
+		Component			parent,
+		String				title,
+		E					params,
+		E					defaultParams,
+		ParameterSetList<E>	paramSetList,
+		File				file,
+		File                dtdDirectory,
+		boolean				writeDtd)
 	{
-		return new ParameterSetDialog<>(GuiUtils.getWindow(parent), titleStr, params, defaultParams, paramSetList, file,
-										dtdDirectory, writeDtd).getParameterSet();
+		return new ParameterSetDialog<>(GuiUtils.getWindow(parent), title, params, defaultParams, paramSetList, file,
+										dtdDirectory, writeDtd)
+				.getParameterSet();
 	}
 
 	//------------------------------------------------------------------
 
 	@SuppressWarnings("unchecked")
-	private static <E extends ParameterSet> E createCopy(E paramSet)
+	private static <E extends ParameterSet> E createCopy(
+		E	paramSet)
 		throws AppException
 	{
 		return (E)paramSet.create();
@@ -534,7 +580,8 @@ public class ParameterSetDialog<E extends ParameterSet>
 ////////////////////////////////////////////////////////////////////////
 
 	@Override
-	public void actionPerformed(ActionEvent event)
+	public void actionPerformed(
+		ActionEvent	event)
 	{
 		try
 		{
@@ -590,7 +637,8 @@ public class ParameterSetDialog<E extends ParameterSet>
 ////////////////////////////////////////////////////////////////////////
 
 	@Override
-	public void stateChanged(ChangeEvent event)
+	public void stateChanged(
+		ChangeEvent	event)
 	{
 		if (!selectionListScrollPane.getVerticalScrollBar().getValueIsAdjusting() && !selectionList.isDragging())
 			selectionList.snapViewPosition();
@@ -603,7 +651,8 @@ public class ParameterSetDialog<E extends ParameterSet>
 ////////////////////////////////////////////////////////////////////////
 
 	@Override
-	public void changedUpdate(DocumentEvent event)
+	public void changedUpdate(
+		DocumentEvent	event)
 	{
 		// do nothing
 	}
@@ -611,7 +660,8 @@ public class ParameterSetDialog<E extends ParameterSet>
 	//------------------------------------------------------------------
 
 	@Override
-	public void insertUpdate(DocumentEvent event)
+	public void insertUpdate(
+		DocumentEvent	event)
 	{
 		updateComponents();
 	}
@@ -619,7 +669,8 @@ public class ParameterSetDialog<E extends ParameterSet>
 	//------------------------------------------------------------------
 
 	@Override
-	public void removeUpdate(DocumentEvent event)
+	public void removeUpdate(
+		DocumentEvent	event)
 	{
 		updateComponents();
 	}
@@ -631,7 +682,8 @@ public class ParameterSetDialog<E extends ParameterSet>
 ////////////////////////////////////////////////////////////////////////
 
 	@Override
-	public void valueChanged(ListSelectionEvent event)
+	public void valueChanged(
+		ListSelectionEvent	event)
 	{
 		if (!event.getValueIsAdjusting())
 			updateComponents();
@@ -644,7 +696,8 @@ public class ParameterSetDialog<E extends ParameterSet>
 ////////////////////////////////////////////////////////////////////////
 
 	@Override
-	public void modelChanged(SingleSelectionList.ModelEvent event)
+	public void modelChanged(
+		SingleSelectionList.ModelEvent	event)
 	{
 		listChanged = true;
 	}
@@ -662,12 +715,12 @@ public class ParameterSetDialog<E extends ParameterSet>
 
 	//------------------------------------------------------------------
 
-	protected SingleSelectionList<E> createSelectionList(ParameterSetList<E> paramSetList)
+	protected SingleSelectionList<E> createSelectionList(
+		ParameterSetList<E>	paramSetList)
 	{
-		SingleSelectionList<E> selectionList = new SingleSelectionList<>(SELECTION_LIST_NUM_COLUMNS,
-																		 SELECTION_LIST_NUM_ROWS,
-																		 FontUtils.getAppFont(FontKey.MAIN),
-																		 paramSetList);
+		SingleSelectionList<E> selectionList =
+				new SingleSelectionList<>(SELECTION_LIST_NUM_COLUMNS, SELECTION_LIST_NUM_ROWS,
+										  FontUtils.getAppFont(FontKey.MAIN), paramSetList);
 		selectionList.setRowHeight(selectionList.getRowHeight() + 2);
 		return selectionList;
 	}
@@ -723,8 +776,9 @@ public class ParameterSetDialog<E extends ParameterSet>
 
 	//------------------------------------------------------------------
 
-	private String getMessage(String name,
-							  String str)
+	private String getMessage(
+		String	name,
+		String	str)
 	{
 		StringBuilder buffer = new StringBuilder(128);
 		buffer.append(PARAMETER_SET_STR);
@@ -840,7 +894,7 @@ public class ParameterSetDialog<E extends ParameterSet>
 	{
 		if (JOptionPane.showOptionDialog(this, RESET_MESSAGE_STR, RESET_TITLE_STR, JOptionPane.OK_CANCEL_OPTION,
 										 JOptionPane.QUESTION_MESSAGE, null, XC_OPTION_STRS, XC_OPTION_STRS[1])
-																							== JOptionPane.OK_OPTION)
+				== JOptionPane.OK_OPTION)
 			params = createCopy(defaultParams);
 	}
 
@@ -891,47 +945,6 @@ public class ParameterSetDialog<E extends ParameterSet>
 	}
 
 	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Class variables
-////////////////////////////////////////////////////////////////////////
-
-	private static	Map<String, Point>	locations	= new Hashtable<>();
-
-////////////////////////////////////////////////////////////////////////
-//  Static initialiser
-////////////////////////////////////////////////////////////////////////
-
-	static
-	{
-		COMMAND_MAP = new HashMap<>();
-		COMMAND_MAP.put(SingleSelectionList.Command.EDIT_ELEMENT,      Command.LOAD_ACCEPT);
-		COMMAND_MAP.put(SingleSelectionList.Command.DELETE_ELEMENT,    Command.DELETE);
-		COMMAND_MAP.put(SingleSelectionList.Command.DELETE_EX_ELEMENT, Command.DELETE);
-		COMMAND_MAP.put(SingleSelectionList.Command.MOVE_ELEMENT_UP,   Command.MOVE_PARAMETER_SET_UP);
-		COMMAND_MAP.put(SingleSelectionList.Command.MOVE_ELEMENT_DOWN, Command.MOVE_PARAMETER_SET_DOWN);
-		COMMAND_MAP.put(SingleSelectionList.Command.DRAG_ELEMENT,      Command.MOVE_PARAMETER_SET);
-	}
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	boolean					accepted;
-	private	boolean					listChanged;
-	private	E						params;
-	private	E						defaultParams;
-	private	ParameterSetList<E>		paramSetList;
-	private	File					file;
-	private	File					dtdDirectory;
-	private	boolean					writeDtd;
-	private	SingleSelectionList<E>	selectionList;
-	private	JScrollPane				selectionListScrollPane;
-	private	JTextField				nameField;
-	private	JButton					addButton;
-	private	JButton					deleteButton;
-	private	JButton					loadButton;
-	private	JButton					updateButton;
 
 }
 

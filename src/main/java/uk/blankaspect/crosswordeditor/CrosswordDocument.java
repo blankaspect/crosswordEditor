@@ -68,8 +68,9 @@ import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.FileException;
 import uk.blankaspect.common.exception.TaskCancelledException;
 import uk.blankaspect.common.exception.TempFileException;
-import uk.blankaspect.common.exception.UnexpectedRuntimeException;
 import uk.blankaspect.common.exception.UrlException;
+
+import uk.blankaspect.common.exception2.UnexpectedRuntimeException;
 
 import uk.blankaspect.common.filesystem.FilenameUtils;
 
@@ -113,6 +114,8 @@ class CrosswordDocument
 	public static final		String	LINE_BREAK_REGEX	= "(?<%s%s)\\n";
 
 	public static final		String	DEFAULT_FILENAME_SUFFIX	= ".xword";
+
+	public static final		String	DEFAULT_MULTIPLE_FIELD_CLUE_ID_SEPARATOR	= ",";
 
 	public static final		String	DEFAULT_CLUE_REFERENCE_KEYWORD	= "See";
 
@@ -343,1442 +346,31 @@ class CrosswordDocument
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Enumerated types
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// COMMANDS
-
-
-	enum Command
-		implements Action
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		// Commands
-
-		UNDO
-		(
-			"undo",
-			UNDO_STR,
-			KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK)
-		),
-
-		REDO
-		(
-			"redo",
-			REDO_STR,
-			KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK)
-		),
-
-		CLEAR_EDIT_LIST
-		(
-			"clearEditList",
-			"Clear edit history" + AppConstants.ELLIPSIS_STR
-		),
-
-		EDIT_CLUE
-		(
-			"editClue",
-			"Edit clue" + AppConstants.ELLIPSIS_STR,
-			KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0)
-		),
-
-		EDIT_GRID
-		(
-			"editGrid",
-			"Edit grid" + AppConstants.ELLIPSIS_STR
-		),
-
-		EDIT_TEXT_SECTIONS
-		(
-			"editTextSections",
-			"Edit text sections" + AppConstants.ELLIPSIS_STR,
-			KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK)
-		),
-
-		EDIT_INDICATIONS
-		(
-			"editIndications",
-			"Edit indications" + AppConstants.ELLIPSIS_STR
-		),
-
-		SET_ENTRY_CHARACTER
-		(
-			"setEntryCharacter"
-		),
-
-		COPY_CLUES_TO_CLIPBOARD
-		(
-			"copyCluesToClipboard",
-			"Copy clues to clipboard"
-		),
-
-		IMPORT_CLUES_FROM_CLIPBOARD
-		(
-			"importCluesFromClipboard",
-			"Import clues from clipboard" + AppConstants.ELLIPSIS_STR
-		),
-
-		CLEAR_CLUES
-		(
-			"clearClues",
-			"Clear all clues" + AppConstants.ELLIPSIS_STR
-		),
-
-		COPY_ENTRIES_TO_CLIPBOARD
-		(
-			"copyEntriesToClipboard",
-			"Copy grid entries to clipboard"
-		),
-
-		IMPORT_ENTRIES_FROM_CLIPBOARD
-		(
-			"importEntriesFromClipboard",
-			"Import grid entries from clipboard" + AppConstants.ELLIPSIS_STR
-		),
-
-		CLEAR_ENTRIES
-		(
-			"clearEntries",
-			"Clear all grid entries" + AppConstants.ELLIPSIS_STR
-		),
-
-		COPY_FIELD_NUMBERS_TO_CLIPBOARD
-		(
-			"copyFieldNumberToClipboard",
-			"Copy field numbers to clipboard"
-		),
-
-		COPY_FIELD_IDS_TO_CLIPBOARD
-		(
-			"copyFieldIdsToClipboard",
-			"Copy field IDs to clipboard"
-		),
-
-		HIGHLIGHT_INCORRECT_ENTRIES
-		(
-			"highlightIncorrectEntries",
-			"Highlight incorrect grid entries",
-			KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0)
-		),
-
-		SHOW_SOLUTION
-		(
-			"showSolution",
-			"Show solution" + AppConstants.ELLIPSIS_STR
-		),
-
-		SET_SOLUTION
-		(
-			"setSolution",
-			"Set solution to current entries" + AppConstants.ELLIPSIS_STR
-		),
-
-		IMPORT_SOLUTION_FROM_CLIPBOARD
-		(
-			"importSolutionFromClipboard",
-			"Import solution from clipboard" + AppConstants.ELLIPSIS_STR
-		),
-
-		LOAD_SOLUTION
-		(
-			"loadSolution",
-			"Load solution" + AppConstants.ELLIPSIS_STR
-		),
-
-		CLEAR_SOLUTION
-		(
-			"clearSolution",
-			"Clear solution" + AppConstants.ELLIPSIS_STR
-		),
-
-		COPY_SOLUTION_TO_CLIPBOARD
-		(
-			"copySolutionToClipboard",
-			"Copy solution to clipboard"
-		),
-
-		EDIT_SOLUTION_PROPERTIES
-		(
-			"editSolutionProperties",
-			"Edit solution properties" + AppConstants.ELLIPSIS_STR
-		),
-
-		TOGGLE_FIELD_NUMBERS
-		(
-			"toggleFieldNumbers",
-			"Show field numbers"
-		),
-
-		TOGGLE_CLUES
-		(
-			"toggleClues",
-			"Show clues"
-		),
-
-		RESIZE_WINDOW_TO_VIEW
-		(
-			"resizeWindowToView",
-			"Resize window to view",
-			KeyStroke.getKeyStroke(KeyEvent.VK_F12, 0)
-		);
-
-		//--------------------------------------------------------------
-
-		// Property keys
-		interface Property
-		{
-			String	GRID_ENTRY_VALUE	= "gridEntryValue";
-			String	DIRECTION			= "direction";
-		}
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Command(String key)
-		{
-			command = new uk.blankaspect.ui.swing.action.Command(this);
-			putValue(Action.ACTION_COMMAND_KEY, key);
-		}
-
-		//--------------------------------------------------------------
-
-		private Command(String key,
-						String name)
-		{
-			this(key);
-			putValue(Action.NAME, name);
-		}
-
-		//--------------------------------------------------------------
-
-		private Command(String    key,
-						String    name,
-						KeyStroke acceleratorKey)
-		{
-			this(key, name);
-			putValue(Action.ACCELERATOR_KEY, acceleratorKey);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		public static void setAllEnabled(boolean enabled)
-		{
-			for (Command command : values())
-				command.setEnabled(enabled);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : Action interface
-	////////////////////////////////////////////////////////////////////
-
-		public void addPropertyChangeListener(PropertyChangeListener listener)
-		{
-			command.addPropertyChangeListener(listener);
-		}
-
-		//--------------------------------------------------------------
-
-		public Object getValue(String key)
-		{
-			return command.getValue(key);
-		}
-
-		//--------------------------------------------------------------
-
-		public boolean isEnabled()
-		{
-			return command.isEnabled();
-		}
-
-		//--------------------------------------------------------------
-
-		public void putValue(String key,
-							 Object value)
-		{
-			command.putValue(key, value);
-		}
-
-		//--------------------------------------------------------------
-
-		public void removePropertyChangeListener(PropertyChangeListener listener)
-		{
-			command.removePropertyChangeListener(listener);
-		}
-
-		//--------------------------------------------------------------
-
-		public void setEnabled(boolean enabled)
-		{
-			command.setEnabled(enabled);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : ActionListener interface
-	////////////////////////////////////////////////////////////////////
-
-		public void actionPerformed(ActionEvent event)
-		{
-			CrosswordDocument document = App.INSTANCE.getDocument();
-			if (document != null)
-				document.executeCommand(this);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public void setSelected(boolean selected)
-		{
-			putValue(Action.SELECTED_KEY, selected);
-		}
-
-		//--------------------------------------------------------------
-
-		public void execute()
-		{
-			actionPerformed(null);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	uk.blankaspect.ui.swing.action.Command	command;
-
-	}
-
-	//==================================================================
-
-
-	// ERROR IDENTIFIERS
-
-
-	private enum ErrorId
-		implements AppException.IId
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		FAILED_TO_OPEN_FILE
-		("Failed to open the file."),
-
-		FAILED_TO_CLOSE_FILE
-		("Failed to close the file."),
-
-		FAILED_TO_LOCK_FILE
-		("Failed to lock the file."),
-
-		ERROR_WRITING_FILE
-		("An error occurred when writing the file."),
-
-		FILE_ACCESS_NOT_PERMITTED
-		("Access to the file was not permitted."),
-
-		FAILED_TO_CREATE_TEMPORARY_FILE
-		("Failed to create a temporary file."),
-
-		FAILED_TO_DELETE_FILE
-		("Failed to delete the existing file."),
-
-		FAILED_TO_RENAME_FILE
-		("Failed to rename the temporary file to the specified filename."),
-
-		FILE_DOES_NOT_EXIST
-		("The file does not exist."),
-
-		NOT_A_FILE
-		("The pathname does not denote a normal file."),
-
-		FAILED_TO_CREATE_DIRECTORY
-		("Failed to create the directory."),
-
-		UNEXPECTED_DOCUMENT_FORMAT
-		("The document does not have the expected format."),
-
-		NO_VERSION_NUMBER
-		("The document does not have a version number."),
-
-		INVALID_VERSION_NUMBER
-		("The version number of the document is invalid."),
-
-		UNSUPPORTED_DOCUMENT_VERSION
-		("The version of the document (%1) is not supported by this version of " + App.SHORT_NAME + "."),
-
-		NO_ATTRIBUTE
-		("The required attribute is missing."),
-
-		INVALID_ATTRIBUTE
-		("The attribute is invalid."),
-
-		NO_GRID_ELEMENT
-		("The document does not have a <grid> element."),
-
-		MULTIPLE_GRID_ELEMENTS
-		("The document has more than one <grid> element."),
-
-		MULTIPLE_CLUES_ELEMENTS
-		("The document has more than one <clues> element for the %1 direction."),
-
-		INVALID_FIELD_ID
-		("The ID does not refer to a field in the grid."),
-
-		MALFORMED_PATTERN
-		("The pattern is not a well-formed regular expression.\n(%1)"),
-
-		MALFORMED_SUBSTITUTION
-		("The substitution is malformed."),
-
-		FAILED_TO_CONNECT
-		("Failed to connect to the remote document."),
-
-		REMOTE_SOLUTION_HAS_INCORRECT_HASH
-		("The solution in the remote document is not a solution for this crossword."),
-
-		NO_SOLUTION_IN_REMOTE_DOCUMENT
-		("The remote document does not contain a solution."),
-
-		NOT_ENOUGH_MEMORY_TO_PERFORM_COMMAND
-		("There was not enough memory to perform the command.\n" +
-			"Clearing the list of undo/redo actions may make more memory available.");
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ErrorId(String message)
-		{
-			this.message = message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : AppException.IId interface
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String getMessage()
-		{
-			return message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	message;
-
-	}
-
-	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
-////////////////////////////////////////////////////////////////////////
-
-
-	// SOLUTION PROPERTIES CLASS
-
-
-	public static class SolutionProperties
-		implements Cloneable
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public SolutionProperties()
-		{
-			passphrase = "";
-		}
-
-		//--------------------------------------------------------------
-
-		public SolutionProperties(URL    location,
-								  String passphrase,
-								  byte[] hashValue)
-		{
-			this.location = location;
-			this.passphrase = passphrase;
-			this.hashValue = hashValue;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public SolutionProperties clone()
-		{
-			try
-			{
-				return (SolutionProperties)super.clone();
-			}
-			catch (CloneNotSupportedException e)
-			{
-				throw new UnexpectedRuntimeException(e);
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public URL getLocation()
-		{
-			return location;
-		}
-
-		//--------------------------------------------------------------
-
-		public String getPassphrase()
-		{
-			return passphrase;
-		}
-
-		//--------------------------------------------------------------
-
-		public byte[] getHashValue()
-		{
-			return hashValue;
-		}
-
-		//--------------------------------------------------------------
-
-		private boolean canLoad()
-		{
-			return ((location != null) && (hashValue != null));
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	URL					location;
-		private	String				passphrase;
-		private	byte[]				hashValue;
-		private	CrosswordDocument	remoteDocument;
-
-	}
-
-	//==================================================================
-
-
-	// STYLE PROPERTIES CLASS
-
-
-	public static class StyleProperties
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public StyleProperties(StringList fontNames,
-							   int        fontSize,
-							   int        cellSize,
-							   Color      gridColour,
-							   Color      entryColour,
-							   double     fieldNumberFontSizeFactor)
-		{
-			this.fontNames = fontNames;
-			this.fontSize = fontSize;
-			this.cellSize = cellSize;
-			this.gridColour = gridColour;
-			this.entryColour = entryColour;
-			this.fieldNumberFontSizeFactor = fieldNumberFontSizeFactor;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		StringList	fontNames;
-		int			fontSize;
-		int			cellSize;
-		Color		gridColour;
-		Color		entryColour;
-		double		fieldNumberFontSizeFactor;
-
-	}
-
-	//==================================================================
-
-
-	// XML PARSE EXCEPTION EXTENDER CLASS
-
-
-	private static class XmlParseExceptionExtender
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private XmlParseExceptionExtender(File file)
-		{
-			this.file = file;
-		}
-
-		//--------------------------------------------------------------
-
-		private XmlParseExceptionExtender(URL url)
-		{
-			this.url = url;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private XmlParseException extend(XmlParseException exception)
-		{
-			return ((url == null) ? new XmlParseException(exception, file) : new XmlParseException(exception, url));
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		File	file;
-		URL		url;
-
-	}
-
-	//==================================================================
-
-
-	// GRID EDIT CLASS
-
-
-	private static class GridEdit
-		extends EditList.Element<CrosswordDocument>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	TEXT	= "grid";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private GridEdit(Grid.Separator separator,
-						 int            numColumns,
-						 int            numRows,
-						 Grid.Symmetry  oldSymmetry,
-						 String         oldDefinition,
-						 Grid.Symmetry  newSymmetry,
-						 String         newDefinition)
-		{
-			this.separator = separator;
-			this.numColumns = numColumns;
-			this.numRows = numRows;
-			this.oldSymmetry = oldSymmetry;
-			this.oldDefinition = oldDefinition;
-			this.newSymmetry = newSymmetry;
-			this.newDefinition = newDefinition;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String getText()
-		{
-			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			setGrid(document, oldSymmetry, oldDefinition);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			setGrid(document, newSymmetry, newDefinition);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private void setGrid(CrosswordDocument document,
-							 Grid.Symmetry     symmetry,
-							 String            definition)
-		{
-			try
-			{
-				document.setGrid(separator.createGrid(numColumns, numRows, symmetry, definition));
-				document.getView().updateGrid();
-			}
-			catch (AppException e)
-			{
-				throw new UnexpectedRuntimeException();
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	Grid.Separator	separator;
-		private	int				numColumns;
-		private	int				numRows;
-		private	Grid.Symmetry	oldSymmetry;
-		private	String			oldDefinition;
-		private	Grid.Symmetry	newSymmetry;
-		private	String			newDefinition;
-
-	}
-
-	//==================================================================
-
-
-	// GRID ENTRY CHARACTER EDIT CLASS
-
-
-	private static class GridEntryCharEdit
-		extends EditList.Element<CrosswordDocument>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	TEXT	= "grid entry";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private GridEntryCharEdit(int       row,
-								  int       column,
-								  Direction direction,
-								  char      oldValue,
-								  char      newValue)
-		{
-			this.row = row;
-			this.column = column;
-			this.direction = direction;
-			this.oldValue = oldValue;
-			this.newValue = newValue;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String getText()
-		{
-			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			document.grid.setEntryValue(row, column, oldValue);
-			document.getView().setGridCaretPosition(row, column, direction);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			document.grid.setEntryValue(row, column, newValue);
-			document.getView().setGridCaretPosition(row, column, direction);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	int			row;
-		private	int			column;
-		private	Direction	direction;
-		private	char		oldValue;
-		private	char		newValue;
-
-	}
-
-	//==================================================================
-
-
-	// GRID ENTRIES EDIT CLASS
-
-
-	private static class GridEntriesEdit
-		extends EditList.Element<CrosswordDocument>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	TEXT	= "grid entries";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private GridEntriesEdit(Grid.Entries oldEntries,
-								Grid.Entries newEntries)
-		{
-			this.oldEntries = oldEntries.clone();
-			this.newEntries = newEntries.clone();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String getText()
-		{
-			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			document.grid.setEntries(oldEntries);
-			document.getView().redrawGrid();
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			document.grid.setEntries(newEntries);
-			document.getView().redrawGrid();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	Grid.Entries	oldEntries;
-		private	Grid.Entries	newEntries;
-
-	}
-
-	//==================================================================
-
-
-	// SOLUTION EDIT CLASS
-
-
-	private static class SolutionEdit
-		extends EditList.Element<CrosswordDocument>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	TEXT	= "solution";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private SolutionEdit(Grid.Entries oldSolution,
-							 Grid.Entries newSolution)
-		{
-			if (oldSolution != null)
-				this.oldSolution = oldSolution.clone();
-			if (newSolution != null)
-				this.newSolution = newSolution.clone();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String getText()
-		{
-			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			document.grid.setSolution(oldSolution);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			document.grid.setSolution(newSolution);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	Grid.Entries	oldSolution;
-		private	Grid.Entries	newSolution;
-
-	}
-
-	//==================================================================
-
-
-	// SOLUTION PROPERTIES EDIT CLASS
-
-
-	private static class SolutionPropertiesEdit
-		extends EditList.Element<CrosswordDocument>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	TEXT	= "solution properties";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private SolutionPropertiesEdit(SolutionProperties oldProperties,
-									   SolutionProperties newProperties)
-		{
-			this.oldProperties = oldProperties;
-			this.newProperties = newProperties;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String getText()
-		{
-			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			document.solutionProperties = oldProperties;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			document.solutionProperties = newProperties;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	SolutionProperties	oldProperties;
-		private	SolutionProperties	newProperties;
-
-	}
-
-	//==================================================================
-
-
-	// CLUES EDIT CLASS
-
-
-	private static class CluesEdit
-		extends EditList.Element<CrosswordDocument>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	TEXT	= "clues";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private CluesEdit(List<Clue> oldClues,
-						  List<Clue> newClues)
-		{
-			this.oldClues = oldClues;
-			this.newClues = newClues;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String getText()
-		{
-			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			document.setClues(oldClues);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			document.setClues(newClues);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	List<Clue>	oldClues;
-		private	List<Clue>	newClues;
-
-	}
-
-	//==================================================================
-
-
-	// CLUE LISTS EDIT CLASS
-
-
-	private static class ClueListsEdit
-		extends EditList.Element<CrosswordDocument>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	TEXT	= "clue lists";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ClueListsEdit(Map<Direction, List<Clue>> oldClueLists,
-							  Map<Direction, List<Clue>> newClueLists)
-		{
-			this.oldClueLists = oldClueLists;
-			this.newClueLists = newClueLists;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String getText()
-		{
-			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			document.clueLists.clear();
-			for (Direction direction : oldClueLists.keySet())
-				document.clueLists.put(direction, new ArrayList<>(oldClueLists.get(direction)));
-			for (Direction direction : Direction.DEFINED_DIRECTIONS)
-				document.getView().updateClues(direction);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			document.clueLists.clear();
-			for (Direction direction : newClueLists.keySet())
-				document.clueLists.put(direction, new ArrayList<>(newClueLists.get(direction)));
-			for (Direction direction : Direction.DEFINED_DIRECTIONS)
-				document.getView().updateClues(direction);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	Map<Direction, List<Clue>>	oldClueLists;
-		private	Map<Direction, List<Clue>>	newClueLists;
-
-	}
-
-	//==================================================================
-
-
-	// TEXT SECTIONS EDIT CLASS
-
-
-	private static class TextSectionsEdit
-		extends EditList.Element<CrosswordDocument>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	TEXT	= "text sections";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private TextSectionsEdit(String       oldTitle,
-								 List<String> oldPrologue,
-								 List<String> oldEpilogue,
-								 String       newTitle,
-								 List<String> newPrologue,
-								 List<String> newEpilogue)
-		{
-			sections = EnumSet.noneOf(TextSection.class);
-			this.oldTitle = oldTitle;
-			this.oldPrologue = oldPrologue;
-			this.oldEpilogue = oldEpilogue;
-			this.newTitle = newTitle;
-			this.newPrologue = newPrologue;
-			this.newEpilogue = newEpilogue;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String getText()
-		{
-			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			setTextSections(document, oldTitle, oldPrologue, oldEpilogue);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			setTextSections(document, newTitle, newPrologue, newEpilogue);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private void setTextSections(CrosswordDocument document,
-									 String            title,
-									 List<String>      prologue,
-									 List<String>      epilogue)
-		{
-			document.setTitle(title);
-			document.setPrologue(prologue);
-			document.setEpilogue(epilogue);
-			document.getView().updateTextSections(sections);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	EnumSet<TextSection>	sections;
-		private	String					oldTitle;
-		private	List<String>			oldPrologue;
-		private	List<String>			oldEpilogue;
-		private	String					newTitle;
-		private	List<String>			newPrologue;
-		private	List<String>			newEpilogue;
-
-	}
-
-	//==================================================================
-
-
-	// INDICATIONS EDIT CLASS
-
-
-	private static class IndicationsEdit
-		extends EditList.Element<CrosswordDocument>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	TEXT	= "indications";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private IndicationsEdit(String             oldClueReferenceKeyword,
-								String             oldAnswerLengthPattern,
-								List<Substitution> oldAnswerLengthSubstitutions,
-								String             oldLineBreak,
-								String             newClueReferenceKeyword,
-								String             newAnswerLengthPattern,
-								List<Substitution> newAnswerLengthSubstitutions,
-								String             newLineBreak)
-		{
-			this.oldClueReferenceKeyword = oldClueReferenceKeyword;
-			this.oldAnswerLengthPattern = oldAnswerLengthPattern;
-			this.oldAnswerLengthSubstitutions = new ArrayList<>();
-			for (Substitution substitution : oldAnswerLengthSubstitutions)
-				this.oldAnswerLengthSubstitutions.add(substitution.clone());
-			this.oldLineBreak = oldLineBreak;
-			this.newClueReferenceKeyword = newClueReferenceKeyword;
-			this.newAnswerLengthPattern = newAnswerLengthPattern;
-			this.newAnswerLengthSubstitutions = new ArrayList<>();
-			for (Substitution substitution : newAnswerLengthSubstitutions)
-				this.newAnswerLengthSubstitutions.add(substitution.clone());
-			this.newLineBreak = newLineBreak;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String getText()
-		{
-			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			setIndications(document, oldClueReferenceKeyword, oldAnswerLengthPattern,
-						   oldAnswerLengthSubstitutions, oldLineBreak);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			setIndications(document, newClueReferenceKeyword, newAnswerLengthPattern,
-						   newAnswerLengthSubstitutions, newLineBreak);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private void setIndications(CrosswordDocument  document,
-									String             clueReferenceKeyword,
-									String             answerLengthPattern,
-									List<Substitution> answerLengthSubstitutions,
-									String             lineBreak)
-		{
-			document.clueReferenceKeyword = clueReferenceKeyword;
-			document.answerLengthPattern = answerLengthPattern;
-			document.answerLengthSubstitutions = answerLengthSubstitutions;
-			document.lineBreak = lineBreak;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String				oldClueReferenceKeyword;
-		private	String				oldAnswerLengthPattern;
-		private	List<Substitution>	oldAnswerLengthSubstitutions;
-		private	String				oldLineBreak;
-		private	String				newClueReferenceKeyword;
-		private	String				newAnswerLengthPattern;
-		private	List<Substitution>	newAnswerLengthSubstitutions;
-		private	String				newLineBreak;
-
-	}
-
-	//==================================================================
-
-
-	// COMPOUND EDIT CLASS
-
-
-	private static class CompoundEdit
-		extends EditList.Element<CrosswordDocument>
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private CompoundEdit(String text)
-		{
-			this.text = text;
-			edits = new ArrayList<>();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String getText()
-		{
-			return text;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			for (int i = edits.size() - 1; i >= 0; i--)
-				edits.get(i).undo(document);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			for (EditList.Element<CrosswordDocument> edit : edits)
-				edit.redo(document);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public void addEdit(EditList.Element<CrosswordDocument> edit)
-		{
-			edits.add(edit);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String										text;
-		private	List<EditList.Element<CrosswordDocument>>	edits;
-
-	}
-
-	//==================================================================
+	private	File						file;
+	private	File						exportHtmlFile;
+	private	long						timestamp;
+	private	int							unnamedIndex;
+	private	boolean						executingCommand;
+	private	String						clueReferenceKeyword;
+	private	String						answerLengthPattern;
+	private	List<Substitution>			answerLengthSubstitutions;
+	private	String						lineBreak;
+	private	List<Substitution>			clueSubstitutions;
+	private	String						title;
+	private	List<String>				prologueParagraphs;
+	private	List<String>				epilogueParagraphs;
+	private	String						filenameStem;
+	private	File						documentDirectory;
+	private	File						htmlDirectory;
+	private	boolean						showFieldNumbers;
+	private	boolean						showClues;
+	private	Grid						grid;
+	private	Map<Direction, List<Clue>>	clueLists;
+	private	SolutionProperties			solutionProperties;
+	private	EditList<CrosswordDocument>	editList;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -1817,7 +409,7 @@ class CrosswordDocument
 
 	private static MainWindow getWindow()
 	{
-		return App.INSTANCE.getMainWindow();
+		return CrosswordEditorApp.INSTANCE.getMainWindow();
 	}
 
 	//------------------------------------------------------------------
@@ -2383,7 +975,7 @@ class CrosswordDocument
 		}
 		catch (AppException e)
 		{
-			App.INSTANCE.showErrorMessage(App.SHORT_NAME, e);
+			CrosswordEditorApp.INSTANCE.showErrorMessage(CrosswordEditorApp.SHORT_NAME, e);
 		}
 
 		// Add edit to undo list
@@ -2391,7 +983,7 @@ class CrosswordDocument
 			editList.add(edit);
 
 		// Update title, menus and status in main window
-		App.INSTANCE.updateTabText(this);
+		CrosswordEditorApp.INSTANCE.updateTabText(this);
 		getWindow().updateAll();
 
 		// Clear command execution flag
@@ -2601,8 +1193,9 @@ class CrosswordDocument
 		// If there are errors, display them in a dialog
 		if (idLists.isEmpty())
 			return true;
-		boolean proceed = ErrorListDialog.showDialog(App.INSTANCE.getMainWindow(), CLUE_LIST_ERRORS_STR, closeStr,
-													 idLists);
+		boolean proceed =
+				ErrorListDialog.showDialog(CrosswordEditorApp.INSTANCE.getMainWindow(), CLUE_LIST_ERRORS_STR, closeStr,
+										   idLists);
 		if (proceed)
 		{
 			// Remove clues that do not have a corresponding field or clues that refer to a non-existent
@@ -2809,8 +1402,7 @@ class CrosswordDocument
 				boolean isClueReferences = !findClues(clue -> clue.isReference()).isEmpty();
 				boolean isLineBreak = hasLineBreak(prologueParagraphs) || hasLineBreak(epilogueParagraphs);
 				if (((clueReferenceKeyword != null) && isClueReferences)
-					|| (answerLengthPattern != null)
-					|| ((lineBreak != null) && isLineBreak))
+						|| (answerLengthPattern != null) || ((lineBreak != null) && isLineBreak))
 				{
 					writer.writeElementStart(ElementName.INDICATIONS, indent, true);
 
@@ -2829,8 +1421,10 @@ class CrosswordDocument
 
 							indent += INDENT_INCREMENT;
 							for (Substitution substitution : answerLengthSubstitutions)
+							{
 								writer.writeEscapedTextElement(ElementName.SUBSTITUTION, indent,
 															   substitution.toString());
+							}
 							indent -= INDENT_INCREMENT;
 
 							writer.writeElementEnd(ElementName.ANSWER_LENGTH, indent);
@@ -3306,7 +1900,7 @@ class CrosswordDocument
 			String locationStr = XmlUtils.getElementPath(element);
 			if (element.hasAttribute(AttrName.INDEX))
 				locationStr += " #" + element.getAttribute(AttrName.INDEX);
-			throw new XmlParseException(() -> e.getMessageString(), locationStr);
+			throw new XmlParseException(e::getMessageString, locationStr);
 		}
 	}
 
@@ -3314,15 +1908,14 @@ class CrosswordDocument
 
 	private CrosswordView getView()
 	{
-		return App.INSTANCE.getView(this);
+		return CrosswordEditorApp.INSTANCE.getView(this);
 	}
 
 	//------------------------------------------------------------------
 
 	private String getStylesheetPathname(int cellSize)
 	{
-		return (STYLESHEET_PATHNAME_PREFIX + grid.getSeparator().getKey() + "-" + cellSize
-																						+ STYLESHEET_PATHNAME_SUFFIX);
+		return STYLESHEET_PATHNAME_PREFIX + grid.getSeparator().getKey() + "-" + cellSize + STYLESHEET_PATHNAME_SUFFIX;
 	}
 
 	//------------------------------------------------------------------
@@ -3537,7 +2130,7 @@ class CrosswordDocument
 					e = xmlParseExceptionExtender.extend((XmlParseException)e);
 				if (solutionRequired)
 				{
-					App.INSTANCE.showErrorMessage(READ_SOLUTION_STR, e);
+					CrosswordEditorApp.INSTANCE.showErrorMessage(READ_SOLUTION_STR, e);
 					throw new TaskCancelledException();
 				}
 				else
@@ -3687,7 +2280,7 @@ class CrosswordDocument
 			catch (final StyledText.ParseException e)
 			{
 				String locationStr = elementPath + " (" + attrValue + direction.getSuffix() + ")";
-				throw new XmlParseException(() -> e.getMessageString(), locationStr);
+				throw new XmlParseException(e::getMessageString, locationStr);
 			}
 		}
 		setClues(direction, clues);
@@ -3823,7 +2416,7 @@ class CrosswordDocument
 											 MAX_TEXT_LINE_LENGTH - indent, false))
 				{
 					writer.writeSpaces(indent);
-					writer.write(line.trim());
+					writer.write(line.strip());
 					writer.writeEol();
 				}
 				indent -= INDENT_INCREMENT;
@@ -3936,7 +2529,7 @@ class CrosswordDocument
 											 false))
 				{
 					writer.writeSpaces(indent);
-					writer.write(line.trim());
+					writer.write(line.strip());
 					writer.writeEol();
 				}
 				indent -= INDENT_INCREMENT;
@@ -3982,8 +2575,8 @@ class CrosswordDocument
 	private EditList.Element<CrosswordDocument> onClearEditList()
 	{
 		String[] optionStrs = Utils.getOptionStrings(AppConstants.CLEAR_STR);
-		if (JOptionPane.showOptionDialog(getWindow(), CLEAR_EDIT_LIST_STR, App.SHORT_NAME, JOptionPane.OK_CANCEL_OPTION,
-										 JOptionPane.QUESTION_MESSAGE, null, optionStrs,
+		if (JOptionPane.showOptionDialog(getWindow(), CLEAR_EDIT_LIST_STR, CrosswordEditorApp.SHORT_NAME,
+										 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, optionStrs,
 										 optionStrs[1]) == JOptionPane.OK_OPTION)
 		{
 			editList.clear();
@@ -4211,13 +2804,13 @@ class CrosswordDocument
 		throws AppException
 	{
 		EditList.Element<CrosswordDocument> edit = null;
-		Clue.AnswerLengthParser answerLengthParser = (answerLengthPattern == null)
-															? null
-															: new Clue.AnswerLengthParser(answerLengthPattern,
-																						  answerLengthSubstitutions);
-		ImportCluesDialog.Result result = ImportCluesDialog.showDialog(getWindow(), Direction.DEFINED_DIRECTIONS,
-																	   clueReferenceKeyword, answerLengthParser,
-																	   clueSubstitutions);
+		Clue.AnswerLengthParser answerLengthParser =
+				(answerLengthPattern == null)
+						? null
+						: new Clue.AnswerLengthParser(answerLengthPattern, answerLengthSubstitutions);
+		ImportCluesDialog.Result result =
+				ImportCluesDialog.showDialog(getWindow(), Direction.DEFINED_DIRECTIONS, clueReferenceKeyword,
+											 answerLengthParser, clueSubstitutions);
 		if (result != null)
 		{
 			// Create map of old clues
@@ -4226,11 +2819,11 @@ class CrosswordDocument
 				oldClueLists.put(direction, new ArrayList<>(clueLists.get(direction)));
 
 			// Set clue substitutions
-			clueSubstitutions = result.substitutions;
+			clueSubstitutions = result.substitutions();
 
 			// Set clues
-			for (Direction direction : result.clues.keySet())
-				setClues(direction, result.clues.get(direction));
+			for (Direction direction : result.clues().keySet())
+				setClues(direction, result.clues().get(direction));
 
 			// Update the directions of clue IDs and reference IDs
 			updateClueDirections();
@@ -4310,12 +2903,12 @@ class CrosswordDocument
 	{
 		EditList.Element<CrosswordDocument> edit = null;
 		String[] optionStrs = Utils.getOptionStrings(IMPORT_STR);
-		if (JOptionPane.showOptionDialog(getWindow(), IMPORT_ENTRIES_STR, App.SHORT_NAME, JOptionPane.OK_CANCEL_OPTION,
-										 JOptionPane.QUESTION_MESSAGE, null, optionStrs,
+		if (JOptionPane.showOptionDialog(getWindow(), IMPORT_ENTRIES_STR, CrosswordEditorApp.SHORT_NAME,
+										 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, optionStrs,
 										 optionStrs[1]) == JOptionPane.OK_OPTION)
 		{
 			Grid.Entries oldEntries = grid.getEntries();
-			grid.setEntries(Arrays.asList(Utils.getClipboardText().trim().toUpperCase().split("\\s+")));
+			grid.setEntries(List.of(Utils.getClipboardText().strip().toUpperCase().split("\\s+")));
 			getView().redrawGrid();
 			edit = new GridEntriesEdit(oldEntries, grid.getEntries());
 		}
@@ -4328,8 +2921,8 @@ class CrosswordDocument
 	{
 		EditList.Element<CrosswordDocument> edit = null;
 		String[] optionStrs = Utils.getOptionStrings(AppConstants.CLEAR_STR);
-		if (JOptionPane.showOptionDialog(getWindow(), CLEAR_ENTRIES_STR, App.SHORT_NAME, JOptionPane.OK_CANCEL_OPTION,
-										 JOptionPane.QUESTION_MESSAGE, null, optionStrs,
+		if (JOptionPane.showOptionDialog(getWindow(), CLEAR_ENTRIES_STR, CrosswordEditorApp.SHORT_NAME,
+										 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, optionStrs,
 										 optionStrs[1]) == JOptionPane.OK_OPTION)
 		{
 			Grid.Entries oldEntries = grid.getEntries();
@@ -4398,8 +2991,8 @@ class CrosswordDocument
 		EditList.Element<CrosswordDocument> edit = null;
 		String messageStr = grid.isEntriesEmpty() ? SHOW_SOLUTION1_STR : SHOW_SOLUTION2_STR;
 		String[] optionStrs = Utils.getOptionStrings(SHOW_STR);
-		if (JOptionPane.showOptionDialog(getWindow(), messageStr, App.SHORT_NAME, JOptionPane.OK_CANCEL_OPTION,
-										 JOptionPane.QUESTION_MESSAGE, null, optionStrs,
+		if (JOptionPane.showOptionDialog(getWindow(), messageStr, CrosswordEditorApp.SHORT_NAME,
+										 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, optionStrs,
 										 optionStrs[1]) == JOptionPane.OK_OPTION)
 		{
 			Grid.Entries oldEntries = grid.getEntries();
@@ -4417,8 +3010,8 @@ class CrosswordDocument
 	{
 		EditList.Element<CrosswordDocument> edit = null;
 		String[] optionStrs = Utils.getOptionStrings(SET_STR);
-		if (JOptionPane.showOptionDialog(getWindow(), SET_SOLUTION_STR, App.SHORT_NAME, JOptionPane.OK_CANCEL_OPTION,
-										 JOptionPane.QUESTION_MESSAGE, null, optionStrs,
+		if (JOptionPane.showOptionDialog(getWindow(), SET_SOLUTION_STR, CrosswordEditorApp.SHORT_NAME,
+										 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, optionStrs,
 										 optionStrs[1]) == JOptionPane.OK_OPTION)
 		{
 			edit = onEditSolutionProperties();
@@ -4442,12 +3035,12 @@ class CrosswordDocument
 	{
 		EditList.Element<CrosswordDocument> edit = null;
 		String[] optionStrs = Utils.getOptionStrings(IMPORT_STR);
-		if (JOptionPane.showOptionDialog(getWindow(), IMPORT_SOLUTION_STR, App.SHORT_NAME, JOptionPane.OK_CANCEL_OPTION,
-										 JOptionPane.QUESTION_MESSAGE, null, optionStrs,
+		if (JOptionPane.showOptionDialog(getWindow(), IMPORT_SOLUTION_STR, CrosswordEditorApp.SHORT_NAME,
+										 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, optionStrs,
 										 optionStrs[1]) == JOptionPane.OK_OPTION)
 		{
 			Grid.Entries oldSolution = grid.getSolution();
-			grid.setSolution(Arrays.asList(Utils.getClipboardText().trim().toUpperCase().split("\\s+")));
+			grid.setSolution(List.of(Utils.getClipboardText().strip().toUpperCase().split("\\s+")));
 			edit = new SolutionEdit(oldSolution, grid.getSolution());
 		}
 		return edit;
@@ -4461,8 +3054,8 @@ class CrosswordDocument
 		EditList.Element<CrosswordDocument> edit = null;
 		String[] optionStrs = Utils.getOptionStrings(LOAD_STR);
 		String messageStr = LOCATION_STR + solutionProperties.location + "\n" + LOAD_SOLUTION2_STR;
-		if (JOptionPane.showOptionDialog(getWindow(), messageStr, App.SHORT_NAME, JOptionPane.OK_CANCEL_OPTION,
-										 JOptionPane.QUESTION_MESSAGE, null, optionStrs,
+		if (JOptionPane.showOptionDialog(getWindow(), messageStr, CrosswordEditorApp.SHORT_NAME,
+										 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, optionStrs,
 										 optionStrs[1]) == JOptionPane.OK_OPTION)
 		{
 			try
@@ -4501,8 +3094,8 @@ class CrosswordDocument
 	{
 		EditList.Element<CrosswordDocument> edit = null;
 		String[] optionStrs = Utils.getOptionStrings(AppConstants.CLEAR_STR);
-		if (JOptionPane.showOptionDialog(getWindow(), CLEAR_SOLUTION_STR, App.SHORT_NAME, JOptionPane.OK_CANCEL_OPTION,
-										 JOptionPane.QUESTION_MESSAGE, null, optionStrs,
+		if (JOptionPane.showOptionDialog(getWindow(), CLEAR_SOLUTION_STR, CrosswordEditorApp.SHORT_NAME,
+										 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, optionStrs,
 										 optionStrs[1]) == JOptionPane.OK_OPTION)
 		{
 			Grid.Entries oldSolution = grid.getSolution();
@@ -4574,31 +3167,1449 @@ class CrosswordDocument
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Enumerated types
 ////////////////////////////////////////////////////////////////////////
 
-	private	File						file;
-	private	File						exportHtmlFile;
-	private	long						timestamp;
-	private	int							unnamedIndex;
-	private	boolean						executingCommand;
-	private	String						clueReferenceKeyword;
-	private	String						answerLengthPattern;
-	private	List<Substitution>			answerLengthSubstitutions;
-	private	String						lineBreak;
-	private	List<Substitution>			clueSubstitutions;
-	private	String						title;
-	private	List<String>				prologueParagraphs;
-	private	List<String>				epilogueParagraphs;
-	private	String						filenameStem;
-	private	File						documentDirectory;
-	private	File						htmlDirectory;
-	private	boolean						showFieldNumbers;
-	private	boolean						showClues;
-	private	Grid						grid;
-	private	Map<Direction, List<Clue>>	clueLists;
-	private	SolutionProperties			solutionProperties;
-	private	EditList<CrosswordDocument>	editList;
+
+	// COMMANDS
+
+
+	enum Command
+		implements Action
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		// Commands
+
+		UNDO
+		(
+			"undo",
+			UNDO_STR,
+			KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK)
+		),
+
+		REDO
+		(
+			"redo",
+			REDO_STR,
+			KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK)
+		),
+
+		CLEAR_EDIT_LIST
+		(
+			"clearEditList",
+			"Clear edit history" + AppConstants.ELLIPSIS_STR
+		),
+
+		EDIT_CLUE
+		(
+			"editClue",
+			"Edit clue" + AppConstants.ELLIPSIS_STR,
+			KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0)
+		),
+
+		EDIT_GRID
+		(
+			"editGrid",
+			"Edit grid" + AppConstants.ELLIPSIS_STR
+		),
+
+		EDIT_TEXT_SECTIONS
+		(
+			"editTextSections",
+			"Edit text sections" + AppConstants.ELLIPSIS_STR,
+			KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK)
+		),
+
+		EDIT_INDICATIONS
+		(
+			"editIndications",
+			"Edit indications" + AppConstants.ELLIPSIS_STR
+		),
+
+		SET_ENTRY_CHARACTER
+		(
+			"setEntryCharacter"
+		),
+
+		COPY_CLUES_TO_CLIPBOARD
+		(
+			"copyCluesToClipboard",
+			"Copy clues to clipboard"
+		),
+
+		IMPORT_CLUES_FROM_CLIPBOARD
+		(
+			"importCluesFromClipboard",
+			"Import clues from clipboard" + AppConstants.ELLIPSIS_STR
+		),
+
+		CLEAR_CLUES
+		(
+			"clearClues",
+			"Clear all clues" + AppConstants.ELLIPSIS_STR
+		),
+
+		COPY_ENTRIES_TO_CLIPBOARD
+		(
+			"copyEntriesToClipboard",
+			"Copy grid entries to clipboard"
+		),
+
+		IMPORT_ENTRIES_FROM_CLIPBOARD
+		(
+			"importEntriesFromClipboard",
+			"Import grid entries from clipboard" + AppConstants.ELLIPSIS_STR
+		),
+
+		CLEAR_ENTRIES
+		(
+			"clearEntries",
+			"Clear all grid entries" + AppConstants.ELLIPSIS_STR
+		),
+
+		COPY_FIELD_NUMBERS_TO_CLIPBOARD
+		(
+			"copyFieldNumberToClipboard",
+			"Copy field numbers to clipboard"
+		),
+
+		COPY_FIELD_IDS_TO_CLIPBOARD
+		(
+			"copyFieldIdsToClipboard",
+			"Copy field IDs to clipboard"
+		),
+
+		HIGHLIGHT_INCORRECT_ENTRIES
+		(
+			"highlightIncorrectEntries",
+			"Highlight incorrect grid entries",
+			KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0)
+		),
+
+		SHOW_SOLUTION
+		(
+			"showSolution",
+			"Show solution" + AppConstants.ELLIPSIS_STR
+		),
+
+		SET_SOLUTION
+		(
+			"setSolution",
+			"Set solution to current entries" + AppConstants.ELLIPSIS_STR
+		),
+
+		IMPORT_SOLUTION_FROM_CLIPBOARD
+		(
+			"importSolutionFromClipboard",
+			"Import solution from clipboard" + AppConstants.ELLIPSIS_STR
+		),
+
+		LOAD_SOLUTION
+		(
+			"loadSolution",
+			"Load solution" + AppConstants.ELLIPSIS_STR
+		),
+
+		CLEAR_SOLUTION
+		(
+			"clearSolution",
+			"Clear solution" + AppConstants.ELLIPSIS_STR
+		),
+
+		COPY_SOLUTION_TO_CLIPBOARD
+		(
+			"copySolutionToClipboard",
+			"Copy solution to clipboard"
+		),
+
+		EDIT_SOLUTION_PROPERTIES
+		(
+			"editSolutionProperties",
+			"Edit solution properties" + AppConstants.ELLIPSIS_STR
+		),
+
+		TOGGLE_FIELD_NUMBERS
+		(
+			"toggleFieldNumbers",
+			"Show field numbers"
+		),
+
+		TOGGLE_CLUES
+		(
+			"toggleClues",
+			"Show clues"
+		),
+
+		RESIZE_WINDOW_TO_VIEW
+		(
+			"resizeWindowToView",
+			"Resize window to view",
+			KeyStroke.getKeyStroke(KeyEvent.VK_F12, 0)
+		);
+
+		//--------------------------------------------------------------
+
+		// Property keys
+		interface Property
+		{
+			String	GRID_ENTRY_VALUE	= "gridEntryValue";
+			String	DIRECTION			= "direction";
+		}
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	uk.blankaspect.ui.swing.action.Command	command;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Command(String key)
+		{
+			command = new uk.blankaspect.ui.swing.action.Command(this);
+			putValue(Action.ACTION_COMMAND_KEY, key);
+		}
+
+		//--------------------------------------------------------------
+
+		private Command(String key,
+						String name)
+		{
+			this(key);
+			putValue(Action.NAME, name);
+		}
+
+		//--------------------------------------------------------------
+
+		private Command(String    key,
+						String    name,
+						KeyStroke acceleratorKey)
+		{
+			this(key, name);
+			putValue(Action.ACCELERATOR_KEY, acceleratorKey);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Class methods
+	////////////////////////////////////////////////////////////////////
+
+		public static void setAllEnabled(boolean enabled)
+		{
+			for (Command command : values())
+				command.setEnabled(enabled);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : Action interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void addPropertyChangeListener(PropertyChangeListener listener)
+		{
+			command.addPropertyChangeListener(listener);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public Object getValue(String key)
+		{
+			return command.getValue(key);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public boolean isEnabled()
+		{
+			return command.isEnabled();
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void putValue(String key,
+							 Object value)
+		{
+			command.putValue(key, value);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void removePropertyChangeListener(PropertyChangeListener listener)
+		{
+			command.removePropertyChangeListener(listener);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void setEnabled(boolean enabled)
+		{
+			command.setEnabled(enabled);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : ActionListener interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void actionPerformed(ActionEvent event)
+		{
+			CrosswordDocument document = CrosswordEditorApp.INSTANCE.getDocument();
+			if (document != null)
+				document.executeCommand(this);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public void setSelected(boolean selected)
+		{
+			putValue(Action.SELECTED_KEY, selected);
+		}
+
+		//--------------------------------------------------------------
+
+		public void execute()
+		{
+			actionPerformed(null);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// ERROR IDENTIFIERS
+
+
+	private enum ErrorId
+		implements AppException.IId
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		FAILED_TO_OPEN_FILE
+		("Failed to open the file."),
+
+		FAILED_TO_CLOSE_FILE
+		("Failed to close the file."),
+
+		FAILED_TO_LOCK_FILE
+		("Failed to lock the file."),
+
+		ERROR_WRITING_FILE
+		("An error occurred when writing the file."),
+
+		FILE_ACCESS_NOT_PERMITTED
+		("Access to the file was not permitted."),
+
+		FAILED_TO_CREATE_TEMPORARY_FILE
+		("Failed to create a temporary file."),
+
+		FAILED_TO_DELETE_FILE
+		("Failed to delete the existing file."),
+
+		FAILED_TO_RENAME_FILE
+		("Failed to rename the temporary file to the specified filename."),
+
+		FILE_DOES_NOT_EXIST
+		("The file does not exist."),
+
+		NOT_A_FILE
+		("The pathname does not denote a normal file."),
+
+		FAILED_TO_CREATE_DIRECTORY
+		("Failed to create the directory."),
+
+		UNEXPECTED_DOCUMENT_FORMAT
+		("The document does not have the expected format."),
+
+		NO_VERSION_NUMBER
+		("The document does not have a version number."),
+
+		INVALID_VERSION_NUMBER
+		("The version number of the document is invalid."),
+
+		UNSUPPORTED_DOCUMENT_VERSION
+		("The version of the document (%1) is not supported by this version of " + CrosswordEditorApp.SHORT_NAME + "."),
+
+		NO_ATTRIBUTE
+		("The required attribute is missing."),
+
+		INVALID_ATTRIBUTE
+		("The attribute is invalid."),
+
+		NO_GRID_ELEMENT
+		("The document does not have a <grid> element."),
+
+		MULTIPLE_GRID_ELEMENTS
+		("The document has more than one <grid> element."),
+
+		MULTIPLE_CLUES_ELEMENTS
+		("The document has more than one <clues> element for the %1 direction."),
+
+		INVALID_FIELD_ID
+		("The ID does not refer to a field in the grid."),
+
+		MALFORMED_PATTERN
+		("The pattern is not a well-formed regular expression.\n(%1)"),
+
+		MALFORMED_SUBSTITUTION
+		("The substitution is malformed."),
+
+		FAILED_TO_CONNECT
+		("Failed to connect to the remote document."),
+
+		REMOTE_SOLUTION_HAS_INCORRECT_HASH
+		("The solution in the remote document is not a solution for this crossword."),
+
+		NO_SOLUTION_IN_REMOTE_DOCUMENT
+		("The remote document does not contain a solution."),
+
+		NOT_ENOUGH_MEMORY_TO_PERFORM_COMMAND
+		("There was not enough memory to perform the command.\n" +
+			"Clearing the list of undo/redo actions may make more memory available.");
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	message;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ErrorId(String message)
+		{
+			this.message = message;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : AppException.IId interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getMessage()
+		{
+			return message;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+////////////////////////////////////////////////////////////////////////
+//  Member classes : non-inner classes
+////////////////////////////////////////////////////////////////////////
+
+
+	// SOLUTION PROPERTIES CLASS
+
+
+	public static class SolutionProperties
+		implements Cloneable
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	URL					location;
+		private	String				passphrase;
+		private	byte[]				hashValue;
+		private	CrosswordDocument	remoteDocument;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		public SolutionProperties()
+		{
+			passphrase = "";
+		}
+
+		//--------------------------------------------------------------
+
+		public SolutionProperties(URL    location,
+								  String passphrase,
+								  byte[] hashValue)
+		{
+			this.location = location;
+			this.passphrase = passphrase;
+			this.hashValue = hashValue;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public SolutionProperties clone()
+		{
+			try
+			{
+				return (SolutionProperties)super.clone();
+			}
+			catch (CloneNotSupportedException e)
+			{
+				throw new UnexpectedRuntimeException(e);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public URL getLocation()
+		{
+			return location;
+		}
+
+		//--------------------------------------------------------------
+
+		public String getPassphrase()
+		{
+			return passphrase;
+		}
+
+		//--------------------------------------------------------------
+
+		public byte[] getHashValue()
+		{
+			return hashValue;
+		}
+
+		//--------------------------------------------------------------
+
+		private boolean canLoad()
+		{
+			return ((location != null) && (hashValue != null));
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// STYLE PROPERTIES CLASS
+
+
+	public static class StyleProperties
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		StringList	fontNames;
+		int			fontSize;
+		int			cellSize;
+		Color		gridColour;
+		Color		entryColour;
+		double		fieldNumberFontSizeFactor;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		public StyleProperties(StringList fontNames,
+							   int        fontSize,
+							   int        cellSize,
+							   Color      gridColour,
+							   Color      entryColour,
+							   double     fieldNumberFontSizeFactor)
+		{
+			this.fontNames = fontNames;
+			this.fontSize = fontSize;
+			this.cellSize = cellSize;
+			this.gridColour = gridColour;
+			this.entryColour = entryColour;
+			this.fieldNumberFontSizeFactor = fieldNumberFontSizeFactor;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// XML PARSE EXCEPTION EXTENDER CLASS
+
+
+	private static class XmlParseExceptionExtender
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		File	file;
+		URL		url;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private XmlParseExceptionExtender(File file)
+		{
+			this.file = file;
+		}
+
+		//--------------------------------------------------------------
+
+		private XmlParseExceptionExtender(URL url)
+		{
+			this.url = url;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private XmlParseException extend(XmlParseException exception)
+		{
+			return ((url == null) ? new XmlParseException(exception, file) : new XmlParseException(exception, url));
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// GRID EDIT CLASS
+
+
+	private static class GridEdit
+		extends EditList.Element<CrosswordDocument>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	TEXT	= "grid";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	Grid.Separator	separator;
+		private	int				numColumns;
+		private	int				numRows;
+		private	Grid.Symmetry	oldSymmetry;
+		private	String			oldDefinition;
+		private	Grid.Symmetry	newSymmetry;
+		private	String			newDefinition;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private GridEdit(Grid.Separator separator,
+						 int            numColumns,
+						 int            numRows,
+						 Grid.Symmetry  oldSymmetry,
+						 String         oldDefinition,
+						 Grid.Symmetry  newSymmetry,
+						 String         newDefinition)
+		{
+			this.separator = separator;
+			this.numColumns = numColumns;
+			this.numRows = numRows;
+			this.oldSymmetry = oldSymmetry;
+			this.oldDefinition = oldDefinition;
+			this.newSymmetry = newSymmetry;
+			this.newDefinition = newDefinition;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getText()
+		{
+			return TEXT;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void undo(CrosswordDocument document)
+		{
+			setGrid(document, oldSymmetry, oldDefinition);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo(CrosswordDocument document)
+		{
+			setGrid(document, newSymmetry, newDefinition);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private void setGrid(CrosswordDocument document,
+							 Grid.Symmetry     symmetry,
+							 String            definition)
+		{
+			try
+			{
+				document.setGrid(separator.createGrid(numColumns, numRows, symmetry, definition));
+				document.getView().updateGrid();
+			}
+			catch (AppException e)
+			{
+				throw new UnexpectedRuntimeException(e);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// GRID ENTRY CHARACTER EDIT CLASS
+
+
+	private static class GridEntryCharEdit
+		extends EditList.Element<CrosswordDocument>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	TEXT	= "grid entry";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	int			row;
+		private	int			column;
+		private	Direction	direction;
+		private	char		oldValue;
+		private	char		newValue;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private GridEntryCharEdit(int       row,
+								  int       column,
+								  Direction direction,
+								  char      oldValue,
+								  char      newValue)
+		{
+			this.row = row;
+			this.column = column;
+			this.direction = direction;
+			this.oldValue = oldValue;
+			this.newValue = newValue;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getText()
+		{
+			return TEXT;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void undo(CrosswordDocument document)
+		{
+			document.grid.setEntryValue(row, column, oldValue);
+			document.getView().setGridCaretPosition(row, column, direction);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo(CrosswordDocument document)
+		{
+			document.grid.setEntryValue(row, column, newValue);
+			document.getView().setGridCaretPosition(row, column, direction);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// GRID ENTRIES EDIT CLASS
+
+
+	private static class GridEntriesEdit
+		extends EditList.Element<CrosswordDocument>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	TEXT	= "grid entries";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	Grid.Entries	oldEntries;
+		private	Grid.Entries	newEntries;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private GridEntriesEdit(Grid.Entries oldEntries,
+								Grid.Entries newEntries)
+		{
+			this.oldEntries = oldEntries.clone();
+			this.newEntries = newEntries.clone();
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getText()
+		{
+			return TEXT;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void undo(CrosswordDocument document)
+		{
+			document.grid.setEntries(oldEntries);
+			document.getView().redrawGrid();
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo(CrosswordDocument document)
+		{
+			document.grid.setEntries(newEntries);
+			document.getView().redrawGrid();
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// SOLUTION EDIT CLASS
+
+
+	private static class SolutionEdit
+		extends EditList.Element<CrosswordDocument>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	TEXT	= "solution";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	Grid.Entries	oldSolution;
+		private	Grid.Entries	newSolution;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private SolutionEdit(Grid.Entries oldSolution,
+							 Grid.Entries newSolution)
+		{
+			if (oldSolution != null)
+				this.oldSolution = oldSolution.clone();
+			if (newSolution != null)
+				this.newSolution = newSolution.clone();
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getText()
+		{
+			return TEXT;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void undo(CrosswordDocument document)
+		{
+			document.grid.setSolution(oldSolution);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo(CrosswordDocument document)
+		{
+			document.grid.setSolution(newSolution);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// SOLUTION PROPERTIES EDIT CLASS
+
+
+	private static class SolutionPropertiesEdit
+		extends EditList.Element<CrosswordDocument>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	TEXT	= "solution properties";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	SolutionProperties	oldProperties;
+		private	SolutionProperties	newProperties;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private SolutionPropertiesEdit(SolutionProperties oldProperties,
+									   SolutionProperties newProperties)
+		{
+			this.oldProperties = oldProperties;
+			this.newProperties = newProperties;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getText()
+		{
+			return TEXT;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void undo(CrosswordDocument document)
+		{
+			document.solutionProperties = oldProperties;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo(CrosswordDocument document)
+		{
+			document.solutionProperties = newProperties;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLUES EDIT CLASS
+
+
+	private static class CluesEdit
+		extends EditList.Element<CrosswordDocument>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	TEXT	= "clues";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	List<Clue>	oldClues;
+		private	List<Clue>	newClues;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private CluesEdit(List<Clue> oldClues,
+						  List<Clue> newClues)
+		{
+			this.oldClues = oldClues;
+			this.newClues = newClues;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getText()
+		{
+			return TEXT;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void undo(CrosswordDocument document)
+		{
+			document.setClues(oldClues);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo(CrosswordDocument document)
+		{
+			document.setClues(newClues);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLUE LISTS EDIT CLASS
+
+
+	private static class ClueListsEdit
+		extends EditList.Element<CrosswordDocument>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	TEXT	= "clue lists";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	Map<Direction, List<Clue>>	oldClueLists;
+		private	Map<Direction, List<Clue>>	newClueLists;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ClueListsEdit(Map<Direction, List<Clue>> oldClueLists,
+							  Map<Direction, List<Clue>> newClueLists)
+		{
+			this.oldClueLists = oldClueLists;
+			this.newClueLists = newClueLists;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getText()
+		{
+			return TEXT;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void undo(CrosswordDocument document)
+		{
+			document.clueLists.clear();
+			for (Direction direction : oldClueLists.keySet())
+				document.clueLists.put(direction, new ArrayList<>(oldClueLists.get(direction)));
+			for (Direction direction : Direction.DEFINED_DIRECTIONS)
+				document.getView().updateClues(direction);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo(CrosswordDocument document)
+		{
+			document.clueLists.clear();
+			for (Direction direction : newClueLists.keySet())
+				document.clueLists.put(direction, new ArrayList<>(newClueLists.get(direction)));
+			for (Direction direction : Direction.DEFINED_DIRECTIONS)
+				document.getView().updateClues(direction);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// TEXT SECTIONS EDIT CLASS
+
+
+	private static class TextSectionsEdit
+		extends EditList.Element<CrosswordDocument>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	TEXT	= "text sections";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	EnumSet<TextSection>	sections;
+		private	String					oldTitle;
+		private	List<String>			oldPrologue;
+		private	List<String>			oldEpilogue;
+		private	String					newTitle;
+		private	List<String>			newPrologue;
+		private	List<String>			newEpilogue;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private TextSectionsEdit(String       oldTitle,
+								 List<String> oldPrologue,
+								 List<String> oldEpilogue,
+								 String       newTitle,
+								 List<String> newPrologue,
+								 List<String> newEpilogue)
+		{
+			sections = EnumSet.noneOf(TextSection.class);
+			this.oldTitle = oldTitle;
+			this.oldPrologue = oldPrologue;
+			this.oldEpilogue = oldEpilogue;
+			this.newTitle = newTitle;
+			this.newPrologue = newPrologue;
+			this.newEpilogue = newEpilogue;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getText()
+		{
+			return TEXT;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void undo(CrosswordDocument document)
+		{
+			setTextSections(document, oldTitle, oldPrologue, oldEpilogue);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo(CrosswordDocument document)
+		{
+			setTextSections(document, newTitle, newPrologue, newEpilogue);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private void setTextSections(CrosswordDocument document,
+									 String            title,
+									 List<String>      prologue,
+									 List<String>      epilogue)
+		{
+			document.setTitle(title);
+			document.setPrologue(prologue);
+			document.setEpilogue(epilogue);
+			document.getView().updateTextSections(sections);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// INDICATIONS EDIT CLASS
+
+
+	private static class IndicationsEdit
+		extends EditList.Element<CrosswordDocument>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	TEXT	= "indications";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String				oldClueReferenceKeyword;
+		private	String				oldAnswerLengthPattern;
+		private	List<Substitution>	oldAnswerLengthSubstitutions;
+		private	String				oldLineBreak;
+		private	String				newClueReferenceKeyword;
+		private	String				newAnswerLengthPattern;
+		private	List<Substitution>	newAnswerLengthSubstitutions;
+		private	String				newLineBreak;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private IndicationsEdit(String             oldClueReferenceKeyword,
+								String             oldAnswerLengthPattern,
+								List<Substitution> oldAnswerLengthSubstitutions,
+								String             oldLineBreak,
+								String             newClueReferenceKeyword,
+								String             newAnswerLengthPattern,
+								List<Substitution> newAnswerLengthSubstitutions,
+								String             newLineBreak)
+		{
+			this.oldClueReferenceKeyword = oldClueReferenceKeyword;
+			this.oldAnswerLengthPattern = oldAnswerLengthPattern;
+			this.oldAnswerLengthSubstitutions = new ArrayList<>();
+			for (Substitution substitution : oldAnswerLengthSubstitutions)
+				this.oldAnswerLengthSubstitutions.add(substitution.clone());
+			this.oldLineBreak = oldLineBreak;
+			this.newClueReferenceKeyword = newClueReferenceKeyword;
+			this.newAnswerLengthPattern = newAnswerLengthPattern;
+			this.newAnswerLengthSubstitutions = new ArrayList<>();
+			for (Substitution substitution : newAnswerLengthSubstitutions)
+				this.newAnswerLengthSubstitutions.add(substitution.clone());
+			this.newLineBreak = newLineBreak;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getText()
+		{
+			return TEXT;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void undo(CrosswordDocument document)
+		{
+			setIndications(document, oldClueReferenceKeyword, oldAnswerLengthPattern,
+						   oldAnswerLengthSubstitutions, oldLineBreak);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo(CrosswordDocument document)
+		{
+			setIndications(document, newClueReferenceKeyword, newAnswerLengthPattern,
+						   newAnswerLengthSubstitutions, newLineBreak);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private void setIndications(CrosswordDocument  document,
+									String             clueReferenceKeyword,
+									String             answerLengthPattern,
+									List<Substitution> answerLengthSubstitutions,
+									String             lineBreak)
+		{
+			document.clueReferenceKeyword = clueReferenceKeyword;
+			document.answerLengthPattern = answerLengthPattern;
+			document.answerLengthSubstitutions = answerLengthSubstitutions;
+			document.lineBreak = lineBreak;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// COMPOUND EDIT CLASS
+
+
+	private static class CompoundEdit
+		extends EditList.Element<CrosswordDocument>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private CompoundEdit(String text)
+		{
+			this.text = text;
+			edits = new ArrayList<>();
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getText()
+		{
+			return text;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void undo(CrosswordDocument document)
+		{
+			for (int i = edits.size() - 1; i >= 0; i--)
+				edits.get(i).undo(document);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo(CrosswordDocument document)
+		{
+			for (EditList.Element<CrosswordDocument> edit : edits)
+				edit.redo(document);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public void addEdit(EditList.Element<CrosswordDocument> edit)
+		{
+			edits.add(edit);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String										text;
+		private	List<EditList.Element<CrosswordDocument>>	edits;
+
+	}
+
+	//==================================================================
 
 }
 

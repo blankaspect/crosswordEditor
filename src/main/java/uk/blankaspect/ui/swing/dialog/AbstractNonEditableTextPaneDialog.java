@@ -19,7 +19,6 @@ package uk.blankaspect.ui.swing.dialog;
 
 
 import java.awt.BorderLayout;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.GridBagConstraints;
@@ -56,7 +55,7 @@ import javax.swing.text.Style;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 
-import uk.blankaspect.common.exception.UnexpectedRuntimeException;
+import uk.blankaspect.common.exception2.UnexpectedRuntimeException;
 
 import uk.blankaspect.ui.swing.button.FButton;
 
@@ -196,16 +195,15 @@ public abstract class AbstractNonEditableTextPaneDialog
 ////////////////////////////////////////////////////////////////////////
 
 	protected AbstractNonEditableTextPaneDialog(Window       owner,
-												String       titleStr,
+												String       title,
 												String       key,
 												int          numColumns,
 												int          numRows,
 												List<Action> commands,
 												String       defaultButtonKey)
 	{
-
 		// Call superclass constructor
-		super(owner, titleStr, Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, title, ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		if (owner != null)
@@ -324,7 +322,7 @@ public abstract class AbstractNonEditableTextPaneDialog
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		Point location = locations.get(key);
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);

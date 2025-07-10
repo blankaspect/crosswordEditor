@@ -161,7 +161,7 @@ public class SelectionIndicatorList<E>
 		if (this.currentIndex >= 0)
 			columnWidth += MARKER_LEADING_MARGIN + MARKER_WIDTH;
 
-		// Set attributes
+		// Set properties
 		setOpaque(true);
 		setFocusable(false);
 	}

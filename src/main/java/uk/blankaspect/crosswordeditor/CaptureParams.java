@@ -92,30 +92,185 @@ class CaptureParams
 
 	private interface Key
 	{
-		String	ANSWER_LENGTH_PATTERN		= "answerLengthPattern";
-		String	ANSWER_LENGTH_SUBSTITUTION	= "answerLengthSubstitution";
-		String	AUTOMATIC_GRID_DETECTION	= "automaticGridDetection";
-		String	BAR_BRIGHTNESS_THRESHOLD	= "barBrightnessThreshold";
-		String	BAR_WIDTH_THRESHOLD			= "barWidthThreshold";
-		String	BLOCK_BRIGHTNESS_THRESHOLD	= "blockBrightnessThreshold";
-		String	BRIGHTNESS_THRESHOLD		= "brightnessThreshold";
-		String	CLUE_REFERENCE_KEYWORD		= "clueReferenceKeyword";
-		String	CLUE_SUBSTITUTION			= "clueSubstitution";
-		String	DOCUMENT_DIRECTORY			= "documentDirectory";
-		String	ENDPOINT_TOLERANCE			= "endpointTolerance";
-		String	FILENAME					= "filename";
-		String	GRID_LINE					= "gridLine";
-		String	GRID_SEPARATOR				= "gridSeparator";
-		String	HTML_DIRECTORY				= "htmlDirectory";
-		String	MIN_LENGTH					= "minLength";
-		String	MIN_SEPARATION				= "minSeparation";
-		String	NUM_COLUMNS					= "numColumns";
-		String	NUM_ROWS					= "numRows";
-		String	SAMPLE_SIZE					= "sampleSize";
-		String	TITLE						= "title";
-		String	X_OFFSET					= "xOffset";
-		String	Y_OFFSET					= "yOffset";
+		String	ANSWER_LENGTH_PATTERN				= "answerLengthPattern";
+		String	ANSWER_LENGTH_SUBSTITUTION			= "answerLengthSubstitution";
+		String	AUTOMATIC_GRID_DETECTION			= "automaticGridDetection";
+		String	BAR_BRIGHTNESS_THRESHOLD			= "barBrightnessThreshold";
+		String	BAR_WIDTH_THRESHOLD					= "barWidthThreshold";
+		String	BLOCK_BRIGHTNESS_THRESHOLD			= "blockBrightnessThreshold";
+		String	BRIGHTNESS_THRESHOLD				= "brightnessThreshold";
+		String	CLUE_REFERENCE_KEYWORD				= "clueReferenceKeyword";
+		String	CLUE_SUBSTITUTION					= "clueSubstitution";
+		String	DOCUMENT_DIRECTORY					= "documentDirectory";
+		String	ENDPOINT_TOLERANCE					= "endpointTolerance";
+		String	FILENAME							= "filename";
+		String	GRID_LINE							= "gridLine";
+		String	GRID_SEPARATOR						= "gridSeparator";
+		String	HTML_DIRECTORY						= "htmlDirectory";
+		String	MIN_LENGTH							= "minLength";
+		String	MIN_SEPARATION						= "minSeparation";
+		String	MULTIPLE_FIELD_CLUE_ID_SEPARATOR	= "multipleFieldClueIdSeparator";
+		String	NUM_COLUMNS							= "numColumns";
+		String	NUM_ROWS							= "numRows";
+		String	SAMPLE_SIZE							= "sampleSize";
+		String	TITLE								= "title";
+		String	X_OFFSET							= "xOffset";
+		String	Y_OFFSET							= "yOffset";
 	}
+
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	List<Property>	properties;
+
+////////////////////////////////////////////////////////////////////////
+//  Constructors
+////////////////////////////////////////////////////////////////////////
+
+	public CaptureParams()
+	{
+	}
+
+	//------------------------------------------------------------------
+
+	public CaptureParams(
+		Grid.Separator		gridSeparator,
+		int					numColumns,
+		int					numRows,
+		boolean				autoGridDetection,
+		int					xOffset,
+		int					yOffset,
+		int					sampleSize,
+		int					blockBrightnessThreshold,
+		int					barWidthThreshold,
+		int					barBrightnessThreshold,
+		int					gridLineBrightnessThreshold,
+		int					gridLineMinLength,
+		int					gridLineMinSeparation,
+		int					gridLineEndpointTolerance,
+		String				multipleFieldClueIdSeparator,
+		String				clueReferenceKeyword,
+		String				answerLengthPattern,
+		List<Substitution>	answerLengthSubstitutions,
+		List<Substitution>	clueSubstitutions,
+		String				title,
+		String				filename,
+		String				documentDirectory,
+		String				htmlDirectory)
+	{
+		setGridSeparator(gridSeparator);
+		setNumColumns(numColumns);
+		setNumRows(numRows);
+		setAutomaticGridDetection(autoGridDetection);
+		setXOffset(xOffset);
+		setYOffset(yOffset);
+		setSampleSize(sampleSize);
+		setBlockBrightnessThreshold(blockBrightnessThreshold);
+		setBarWidthThreshold(barWidthThreshold);
+		setBarBrightnessThreshold(barBrightnessThreshold);
+		setGridLineBrightnessThreshold(gridLineBrightnessThreshold);
+		setGridLineMinLength(gridLineMinLength);
+		setGridLineMinSeparation(gridLineMinSeparation);
+		setGridLineEndpointTolerance(gridLineEndpointTolerance);
+		setMultipleFieldClueIdSeparator(multipleFieldClueIdSeparator);
+		setClueReferenceKeyword(clueReferenceKeyword);
+		setAnswerLengthPattern(answerLengthPattern);
+		setAnswerLengthSubstitutions(answerLengthSubstitutions);
+		setClueSubstitutions(clueSubstitutions);
+		setTitle(title);
+		setFilename(filename);
+		setDocumentDirectory(documentDirectory);
+		setHtmlDirectory(htmlDirectory);
+
+		resetChanged();
+	}
+
+	//------------------------------------------------------------------
+
+	public CaptureParams(Element element)
+		throws XmlParseException
+	{
+		super(element);
+		getProperties(this);
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods : overriding methods
+////////////////////////////////////////////////////////////////////////
+
+	@Override
+	public CaptureParams create()
+		throws AppException
+	{
+		return new CaptureParams(createElement());
+	}
+
+	//------------------------------------------------------------------
+
+	@Override
+	protected void getProperties(Property.ISource... propertySources)
+	{
+		for (Property property : getProperties())
+		{
+			try
+			{
+				property.get(propertySources);
+			}
+			catch (AppException e)
+			{
+				CrosswordEditorApp.INSTANCE.showWarningMessage(CrosswordEditorApp.SHORT_NAME, e);
+			}
+		}
+	}
+
+	//------------------------------------------------------------------
+
+	@Override
+	protected void putProperties(Property.ITarget propertyTarget)
+	{
+		for (Property property : getProperties())
+			property.put(propertyTarget);
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods
+////////////////////////////////////////////////////////////////////////
+
+	private void resetChanged()
+	{
+		for (Property property : getProperties())
+			property.setChanged(false);
+	}
+
+	//------------------------------------------------------------------
+
+	private List<Property> getProperties()
+	{
+		if (properties == null)
+		{
+			properties = new ArrayList<>();
+			for (Field field : getClass().getDeclaredFields())
+			{
+				try
+				{
+					if (field.getName().startsWith(Property.FIELD_PREFIX))
+						properties.add((Property)field.get(this));
+				}
+				catch (IllegalAccessException e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+		return properties;
+	}
+
+	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
 //  Enumerated types
@@ -878,6 +1033,56 @@ class CaptureParams
 	//==================================================================
 
 
+	// PROPERTY CLASS: MULTIPLE-FIELD CLUE ID SEPARATOR
+
+
+	private class CPMultipleFieldClueIdSeparator
+		extends Property.StringProperty
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private CPMultipleFieldClueIdSeparator()
+		{
+			super(concatenateKeys(Key.MULTIPLE_FIELD_CLUE_ID_SEPARATOR));
+			value = CrosswordDocument.DEFAULT_MULTIPLE_FIELD_CLUE_ID_SEPARATOR;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//------------------------------------------------------------------
+
+//--////////////////////////////////////////////////////////////////////
+//--//  Instance methods : associated methods in enclosing class
+//--////////////////////////////////////////////////////////////////////
+
+	public String getMultipleFieldClueIdSeparator()
+	{
+		return cpMultipleFieldClueIdSeparator.getValue();
+	}
+
+	//------------------------------------------------------------------
+
+	public void setMultipleFieldClueIdSeparator(String value)
+	{
+		cpMultipleFieldClueIdSeparator.setValue(value);
+	}
+
+	//------------------------------------------------------------------
+
+//--////////////////////////////////////////////////////////////////////
+//--//  Instance variables : associated variables in enclosing class
+//--////////////////////////////////////////////////////////////////////
+
+	private	CPMultipleFieldClueIdSeparator	cpMultipleFieldClueIdSeparator	= new CPMultipleFieldClueIdSeparator();
+
+	//==================================================================
+
+
 	// PROPERTY CLASS: CLUE-REFERENCE KEYWORD
 
 
@@ -1378,157 +1583,6 @@ class CaptureParams
 	private	CPHtmlDirectory	cpHtmlDirectory	= new CPHtmlDirectory();
 
 	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
-//  Constructors
-////////////////////////////////////////////////////////////////////////
-
-	public CaptureParams()
-	{
-	}
-
-	//------------------------------------------------------------------
-
-	public CaptureParams(Grid.Separator     gridSeparator,
-						 int                numColumns,
-						 int                numRows,
-						 boolean            autoGridDetection,
-						 int                xOffset,
-						 int                yOffset,
-						 int                sampleSize,
-						 int                blockBrightnessThreshold,
-						 int                barWidthThreshold,
-						 int                barBrightnessThreshold,
-						 int                gridLineBrightnessThreshold,
-						 int                gridLineMinLength,
-						 int                gridLineMinSeparation,
-						 int                gridLineEndpointTolerance,
-						 String             clueReferenceKeyword,
-						 String             answerLengthPattern,
-						 List<Substitution> answerLengthSubstitutions,
-						 List<Substitution> clueSubstitutions,
-						 String             title,
-						 String             filename,
-						 String             documentDirectory,
-						 String             htmlDirectory)
-	{
-		setGridSeparator(gridSeparator);
-		setNumColumns(numColumns);
-		setNumRows(numRows);
-		setAutomaticGridDetection(autoGridDetection);
-		setXOffset(xOffset);
-		setYOffset(yOffset);
-		setSampleSize(sampleSize);
-		setBlockBrightnessThreshold(blockBrightnessThreshold);
-		setBarWidthThreshold(barWidthThreshold);
-		setBarBrightnessThreshold(barBrightnessThreshold);
-		setGridLineBrightnessThreshold(gridLineBrightnessThreshold);
-		setGridLineMinLength(gridLineMinLength);
-		setGridLineMinSeparation(gridLineMinSeparation);
-		setGridLineEndpointTolerance(gridLineEndpointTolerance);
-		setClueReferenceKeyword(clueReferenceKeyword);
-		setAnswerLengthPattern(answerLengthPattern);
-		setAnswerLengthSubstitutions(answerLengthSubstitutions);
-		setClueSubstitutions(clueSubstitutions);
-		setTitle(title);
-		setFilename(filename);
-		setDocumentDirectory(documentDirectory);
-		setHtmlDirectory(htmlDirectory);
-
-		resetChanged();
-	}
-
-	//------------------------------------------------------------------
-
-	public CaptureParams(Element element)
-		throws XmlParseException
-	{
-		super(element);
-		getProperties(this);
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods : overriding methods
-////////////////////////////////////////////////////////////////////////
-
-	@Override
-	public CaptureParams create()
-		throws AppException
-	{
-		return new CaptureParams(createElement());
-	}
-
-	//------------------------------------------------------------------
-
-	@Override
-	protected void getProperties(Property.ISource... propertySources)
-	{
-		for (Property property : getProperties())
-		{
-			try
-			{
-				property.get(propertySources);
-			}
-			catch (AppException e)
-			{
-				App.INSTANCE.showWarningMessage(App.SHORT_NAME, e);
-			}
-		}
-	}
-
-	//------------------------------------------------------------------
-
-	@Override
-	protected void putProperties(Property.ITarget propertyTarget)
-	{
-		for (Property property : getProperties())
-			property.put(propertyTarget);
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods
-////////////////////////////////////////////////////////////////////////
-
-	private void resetChanged()
-	{
-		for (Property property : getProperties())
-			property.setChanged(false);
-	}
-
-	//------------------------------------------------------------------
-
-	private List<Property> getProperties()
-	{
-		if (properties == null)
-		{
-			properties = new ArrayList<>();
-			for (Field field : getClass().getDeclaredFields())
-			{
-				try
-				{
-					if (field.getName().startsWith(Property.FIELD_PREFIX))
-						properties.add((Property)field.get(this));
-				}
-				catch (IllegalAccessException e)
-				{
-					e.printStackTrace();
-				}
-			}
-		}
-		return properties;
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	List<Property>	properties;
 
 }
 

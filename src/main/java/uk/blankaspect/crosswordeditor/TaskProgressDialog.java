@@ -48,12 +48,12 @@ class TaskProgressDialog
 ////////////////////////////////////////////////////////////////////////
 
 	private TaskProgressDialog(Window owner,
-							   String titleStr,
+							   String title,
 							   Task   task,
 							   int    delay)
 		throws AppException
 	{
-		super(owner, titleStr, task, delay, 1, -1, true);
+		super(owner, title, task, delay, 1, -1, true);
 	}
 
 	//------------------------------------------------------------------
@@ -63,11 +63,11 @@ class TaskProgressDialog
 ////////////////////////////////////////////////////////////////////////
 
 	public static void showDialog(Component parent,
-								  String    titleStr,
+								  String    title,
 								  Task      task)
 		throws AppException
 	{
-		new TaskProgressDialog(GuiUtils.getWindow(parent), titleStr, task, DEFAULT_DELAY);
+		new TaskProgressDialog(GuiUtils.getWindow(parent), title, task, DEFAULT_DELAY);
 	}
 
 	//------------------------------------------------------------------

@@ -93,7 +93,7 @@ abstract class AbstractStatusPanel
 																fontMetrics.stringWidth(PROTOTYPE_STR);
 			preferredHeight = 2 * VERTICAL_MARGIN + fontMetrics.getAscent() + fontMetrics.getDescent();
 
-			// Set component attributes
+			// Set properties
 			setOpaque(true);
 			setFocusable(false);
 		}

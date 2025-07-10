@@ -97,10 +97,10 @@ class SubstitutionSelectionPanel
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	private static final	int	MAX_NUM_SUBSTITUTIONS	= 32;
+	private static final	int		MAX_NUM_SUBSTITUTIONS	= 32;
 
-	private static final	int	MODIFIERS_MASK	= ActionEvent.ALT_MASK | ActionEvent.META_MASK |
-															ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK;
+	private static final	int		MODIFIERS_MASK	=
+			ActionEvent.ALT_MASK | ActionEvent.META_MASK | ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK;
 
 	private static final	String	ADD_STR							= "Add";
 	private static final	String	EDIT_STR						= "Edit";
@@ -108,8 +108,8 @@ class SubstitutionSelectionPanel
 	private static final	String	ADD_SUBSTITUTION_STR			= "Add substitution";
 	private static final	String	EDIT_SUBSTITUTION_STR			= "Edit substitution";
 	private static final	String	DELETE_SUBSTITUTION_STR			= "Delete substitution";
-	private static final	String	DELETE_SUBSTITUTION_MESSAGE_STR	= "Do you want to delete the " +
-																		"selected substitution?";
+	private static final	String	DELETE_SUBSTITUTION_MESSAGE_STR
+			= "Do you want to delete the selected substitution?";
 
 	// Commands
 	private interface Command
@@ -221,6 +221,7 @@ class SubstitutionSelectionPanel
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void actionPerformed(ActionEvent event)
 	{
 		String command = event.getActionCommand();
@@ -261,6 +262,7 @@ class SubstitutionSelectionPanel
 //  Instance methods : ChangeListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void stateChanged(ChangeEvent event)
 	{
 		if (!substitutionListScrollPane.getVerticalScrollBar().getValueIsAdjusting() &&
@@ -274,6 +276,7 @@ class SubstitutionSelectionPanel
 //  Instance methods : ListSelectionListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void valueChanged(ListSelectionEvent event)
 	{
 		if (!event.getValueIsAdjusting())
@@ -408,10 +411,10 @@ class SubstitutionSelectionPanel
 	//  Constants
 	////////////////////////////////////////////////////////////////////
 
-		private static final	int	TARGET_FIELD_NUM_COLUMNS		= 32;
-		private static final	int	REPLACEMENT_FIELD_NUM_COLUMNS	= 24;
+		private static final	int		TARGET_FIELD_NUM_COLUMNS		= 32;
+		private static final	int		REPLACEMENT_FIELD_NUM_COLUMNS	= 24;
 
-		private static final	int	SEPARATOR_WIDTH	= 1;
+		private static final	int		SEPARATOR_WIDTH	= 1;
 
 		private static final	String	REGEX_STR	= "RE";
 
@@ -522,8 +525,8 @@ class SubstitutionSelectionPanel
 	//  Constants
 	////////////////////////////////////////////////////////////////////
 
-		private static final	int	TARGET_FIELD_NUM_COLUMNS		= 40;
-		private static final	int	REPLACEMENT_FIELD_NUM_COLUMNS	= 40;
+		private static final	int		TARGET_FIELD_NUM_COLUMNS		= 40;
+		private static final	int		REPLACEMENT_FIELD_NUM_COLUMNS	= 40;
 
 		private static final	String	REGEX_STR		= "Regular expression";
 		private static final	String	TARGET_STR		= "Target";
@@ -557,11 +560,11 @@ class SubstitutionSelectionPanel
 	////////////////////////////////////////////////////////////////////
 
 		private SubstitutionDialog(Window       owner,
-								   String       titleStr,
+								   String       title,
 								   Substitution substitution)
 		{
 			// Call superclass constructor
-			super(owner, titleStr, Dialog.ModalityType.APPLICATION_MODAL);
+			super(owner, title, Dialog.ModalityType.APPLICATION_MODAL);
 
 			// Set icons
 			setIconImages(owner.getIconImages());
@@ -738,7 +741,7 @@ class SubstitutionSelectionPanel
 			// Resize dialog to its preferred size
 			pack();
 
-			// Set location of dialog box
+			// Set location of dialog
 			if (location == null)
 				location = GuiUtils.getComponentLocation(this, owner);
 			setLocation(location);
@@ -757,10 +760,10 @@ class SubstitutionSelectionPanel
 	////////////////////////////////////////////////////////////////////
 
 		private static Substitution showDialog(Component    parent,
-											   String       titleStr,
+											   String       title,
 											   Substitution substitution)
 		{
-			return new SubstitutionDialog(GuiUtils.getWindow(parent), titleStr, substitution).getSubstitution();
+			return new SubstitutionDialog(GuiUtils.getWindow(parent), title, substitution).getSubstitution();
 		}
 
 		//--------------------------------------------------------------
@@ -858,7 +861,7 @@ class SubstitutionSelectionPanel
 			}
 			catch (AppException e)
 			{
-				JOptionPane.showMessageDialog(this, e, App.SHORT_NAME, JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(this, e, CrosswordEditorApp.SHORT_NAME, JOptionPane.ERROR_MESSAGE);
 			}
 		}
 

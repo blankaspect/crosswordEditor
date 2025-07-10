@@ -2,7 +2,7 @@
 
 CaptureParameterSetList.java
 
-Crossword capture parameter set list class.
+Class: parameter-set list for crossword capture.
 
 \*====================================================================*/
 
@@ -31,7 +31,7 @@ import uk.blankaspect.common.xml.XmlParseException;
 //----------------------------------------------------------------------
 
 
-// CROSSWORD CAPTURE PARAMETER SET LIST CLASS
+// CLASS: PARAMETER-SET LIST FOR CROSSWORD CAPTURE
 
 
 class CaptureParameterSetList
@@ -42,11 +42,11 @@ class CaptureParameterSetList
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	private static final	int	VERSION					= 0;
-	private static final	int	MIN_SUPPORTED_VERSION	= 0;
-	private static final	int	MAX_SUPPORTED_VERSION	= 0;
+	private static final	int		VERSION					= 0;
+	private static final	int		MIN_SUPPORTED_VERSION	= 0;
+	private static final	int		MAX_SUPPORTED_VERSION	= 0;
 
-	private static final	String	APPLICATION_KEY	= App.NAME_KEY;
+	private static final	String	APPLICATION_KEY	= CrosswordEditorApp.NAME_KEY;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -63,7 +63,8 @@ class CaptureParameterSetList
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static void createFile(File file)
+	public static void createFile(
+		File	file)
 		throws AppException
 	{
 		new CaptureParameterSetList().write(file, false);
@@ -84,15 +85,17 @@ class CaptureParameterSetList
 	//------------------------------------------------------------------
 
 	@Override
-	protected boolean isSupportedVersion(int version)
+	protected boolean isSupportedVersion(
+		int	version)
 	{
-		return ((version >= MIN_SUPPORTED_VERSION) && (version <= MAX_SUPPORTED_VERSION));
+		return (version >= MIN_SUPPORTED_VERSION) && (version <= MAX_SUPPORTED_VERSION);
 	}
 
 	//------------------------------------------------------------------
 
 	@Override
-	protected CaptureParams createElement(Element element)
+	protected CaptureParams createElement(
+		Element	element)
 		throws XmlParseException
 	{
 		return new CaptureParams(element);

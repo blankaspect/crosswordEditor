@@ -28,7 +28,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import uk.blankaspect.common.exception.AppException;
-import uk.blankaspect.common.exception.UnexpectedRuntimeException;
+
+import uk.blankaspect.common.exception2.UnexpectedRuntimeException;
 
 import uk.blankaspect.common.regex.RegexUtils;
 import uk.blankaspect.common.regex.Substitution;
@@ -59,12 +60,9 @@ class Clue
 	private static final	String	LENGTH_SEPARATOR_REGEX	= "[^\\d]+";
 	private static final	String	CLUE_INDEX_REGEX		= "(?: *" + RegexUtils.escape(Id.INDEX_PREFIX) + "(\\d+))?";
 
-	private static final	String	FIELD_ID_REGEX_FRAG1	= "(\\d+)(?:(";
-	private static final	String	FIELD_ID_REGEX_FRAG2	= ")|(?: *)(";
-	private static final	String	FIELD_ID_REGEX_FRAG3	= "))?";
+	private static final	String	FIELD_ID_REGEX	= "(\\d+)(?:(%s)|(?: *)(%s))?";
 
-	private static final	String	SEC_FIELD_ID_REGEX_FRAG1	= " *, *";
-	private static final	String	SEC_FIELD_ID_REGEX_FRAG2	= "(?= |,|$)";
+	private static final	String	SEC_FIELD_ID_REGEX	= " *%s *%s(?= |%s|$)";
 
 	private static final	Pattern	NUMBER_PATTERN	= Pattern.compile("^(\\d+)");
 
@@ -213,13 +211,13 @@ class Clue
 		this.fieldIds = new ArrayList<>(fieldIds);
 
 		// Replace sequences of tabs and non-standard spaces with single space characters
-		text = text.replace(WHITESPACE_REGEX, " ").trim();
+		text = text.replace(WHITESPACE_REGEX, " ").strip();
 
 		// Set referent ID
 		if (referenceKeyword != null)
 		{
 			String regex = RegexUtils.escape(referenceKeyword) + SPACE_REGEX + Grid.Field.Id.PATTERN.pattern()
-																									+ CLUE_INDEX_REGEX;
+								+ CLUE_INDEX_REGEX;
 			Matcher matcher = Pattern.compile(regex).matcher(text);
 			if (matcher.matches())
 				referentId = new Id(matcher.group(1), matcher.group(2), matcher.group(3));
@@ -237,12 +235,14 @@ class Clue
 ////////////////////////////////////////////////////////////////////////
 
 	public static List<Clue> getCluesFromClipboard(
+		String				multipleFieldClueIdSeparator,
 		String				referenceKeyword,
 		AnswerLengthParser	answerLengthParser,
 		List<Substitution>	substitutions)
 		throws AppException
 	{
-		return parseClues(Utils.getClipboardText(), referenceKeyword, answerLengthParser, substitutions);
+		return parseClues(Utils.getClipboardText(), multipleFieldClueIdSeparator, referenceKeyword, answerLengthParser,
+						  substitutions);
 	}
 
 	//------------------------------------------------------------------
@@ -258,6 +258,7 @@ class Clue
 
 	private static List<Clue> parseClues(
 		String				text,
+		String				multipleFieldClueIdSeparator,
 		String				referenceKeyword,
 		AnswerLengthParser	answerLengthParser,
 		List<Substitution>	substitutions)
@@ -290,12 +291,13 @@ class Clue
 		}
 
 		// Initialise the regular expression for a field ID
-		String fieldIdRegex = FIELD_ID_REGEX_FRAG1 + StringUtils.join(REGEX_ALTERNATION_CHAR, noSpaceKeywords)
-										+ FIELD_ID_REGEX_FRAG2 + StringUtils.join(REGEX_ALTERNATION_CHAR, spaceKeywords)
-										+ FIELD_ID_REGEX_FRAG3;
+		String fieldIdRegex = String.format(FIELD_ID_REGEX, StringUtils.join(REGEX_ALTERNATION_CHAR, noSpaceKeywords),
+											StringUtils.join(REGEX_ALTERNATION_CHAR, spaceKeywords));
 
 		// Create regular-expression patterns
-		Pattern secFieldIdPattern = Pattern.compile(SEC_FIELD_ID_REGEX_FRAG1 + fieldIdRegex + SEC_FIELD_ID_REGEX_FRAG2);
+		String separator = RegexUtils.escape(multipleFieldClueIdSeparator);
+		Pattern secFieldIdPattern =
+				Pattern.compile(String.format(SEC_FIELD_ID_REGEX, separator, fieldIdRegex, separator));
 		Pattern referencePattern = (referenceKeyword == null)
 											? null
 											: Pattern.compile(WHITESPACE_REGEX + RegexUtils.escape(referenceKeyword)
@@ -325,7 +327,7 @@ class Clue
 					// If there is more input text, get the next line ...
 					if (lineIndex < lines.size())
 					{
-						line = lines.get(lineIndex++).replaceAll(WHITESPACE_REGEX, " ").trim();
+						line = lines.get(lineIndex++).replaceAll(WHITESPACE_REGEX, " ").strip();
 						if (!line.isEmpty())
 						{
 							// Set the numbers of the last non-empty line and the first line of the clue for
@@ -361,7 +363,7 @@ class Clue
 					{
 						// Get the next line of input text
 						if (lineIndex < lines.size())
-							line = lines.get(lineIndex++).replaceAll(WHITESPACE_REGEX, " ").trim();
+							line = lines.get(lineIndex++).replaceAll(WHITESPACE_REGEX, " ").strip();
 						if (StringUtils.isNullOrEmpty(line))
 							throw new ParseException(ErrorId.CLUE_TEXT_EXPECTED, lastNonEmptyLineNum,
 													 lines.get(lastNonEmptyLineNum - 1));
@@ -403,7 +405,7 @@ class Clue
 					{
 						// Get the next line of input text
 						if (lineIndex < lines.size())
-							line = lines.get(lineIndex++).replaceAll(WHITESPACE_REGEX, " ").trim();
+							line = lines.get(lineIndex++).replaceAll(WHITESPACE_REGEX, " ").strip();
 						if (StringUtils.isNullOrEmpty(line))
 							throw new ParseException(ErrorId.CLUE_TEXT_EXPECTED, lastNonEmptyLineNum,
 													 lines.get(lastNonEmptyLineNum - 1));
@@ -433,7 +435,7 @@ class Clue
 					}
 
 					// Replace the contents of buffer with the remainder of the line
-					String str = buffer.substring(offset).trim();
+					String str = buffer.substring(offset).strip();
 					buffer.setLength(0);
 					buffer.append(str);
 					offset = 0;
@@ -475,7 +477,7 @@ class Clue
 					{
 						// Get the next line of input text
 						if (lineIndex < lines.size())
-							line = lines.get(lineIndex++).replaceAll(WHITESPACE_REGEX, " ").trim();
+							line = lines.get(lineIndex++).replaceAll(WHITESPACE_REGEX, " ").strip();
 						if (StringUtils.isNullOrEmpty(line))
 						{
 							AppException.IId id = (answerLengthParser == null) ? ErrorId.CLUE_TEXT_EXPECTED
@@ -584,10 +586,10 @@ class Clue
 	public int hashCode()
 	{
 		int code = fieldIds.hashCode();
-		code = code * 31 + Integer.hashCode(index);
-		code = code * 31 + Objects.hashCode(referentId);
-		code = code * 31 + Integer.hashCode(answerLength);
-		code = code * 31 + Objects.hashCode(text);
+		code = 31 * code + Integer.hashCode(index);
+		code = 31 * code + Objects.hashCode(referentId);
+		code = 31 * code + Integer.hashCode(answerLength);
+		code = 31 * code + Objects.hashCode(text);
 		return code;
 	}
 
@@ -608,9 +610,10 @@ class Clue
 			buffer.append(text);
 		else
 		{
-			buffer.append(AppConfig.INSTANCE.getClueReferenceKeyword());
-			buffer.append(' ');
-			buffer.append(referentId);
+			String clueRef = AppConfig.INSTANCE.getClueReferenceKeyword();
+			if (clueRef == null)
+				clueRef = "->";
+			buffer.append(clueRef).append(' ').append(referentId);
 		}
 		return buffer.toString();
 	}
@@ -840,12 +843,10 @@ class Clue
 		public boolean equals(
 			Object	obj)
 		{
-			if (obj instanceof Id)
-			{
-				Id other = (Id)obj;
-				return (fieldId.equals(other.fieldId) && (index == other.index));
-			}
-			return false;
+			if (this == obj)
+				return true;
+
+			return (obj instanceof Id other) && fieldId.equals(other.fieldId) && (index == other.index);
 		}
 
 		//--------------------------------------------------------------
@@ -853,7 +854,7 @@ class Clue
 		@Override
 		public int hashCode()
 		{
-			return (fieldId.hashCode() * 31 + index);
+			return 31 * fieldId.hashCode() + index;
 		}
 
 		//--------------------------------------------------------------
@@ -953,12 +954,11 @@ class Clue
 		public boolean equals(
 			Object	obj)
 		{
-			if (obj instanceof FieldList)
-			{
-				FieldList other = (FieldList)obj;
-				return (fields.equals(other.fields) && (index == other.index) && (enabled == other.enabled));
-			}
-			return false;
+			if (this == obj)
+				return true;
+
+			return (obj instanceof FieldList other) && fields.equals(other.fields) && (index == other.index)
+					&& (enabled == other.enabled);
 		}
 
 		//--------------------------------------------------------------
@@ -966,7 +966,7 @@ class Clue
 		@Override
 		public int hashCode()
 		{
-			return (fields.hashCode() * 31 + index);
+			return 31 * fields.hashCode() + index;
 		}
 
 		//--------------------------------------------------------------
@@ -1076,7 +1076,7 @@ class Clue
 			int length = 0;
 			for (String str : text.split(LENGTH_SEPARATOR_REGEX))
 			{
-				str = str.trim();
+				str = str.strip();
 				if (!str.isEmpty())
 					length += Integer.parseInt(str);
 			}

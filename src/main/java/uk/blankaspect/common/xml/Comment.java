@@ -182,7 +182,7 @@ public class Comment
 			++index;
 		}
 
-		text = buffer.toString().trim();
+		text = buffer.toString().strip();
 	}
 
 	//------------------------------------------------------------------
@@ -211,7 +211,7 @@ public class Comment
 
 	public void setText(String text)
 	{
-		this.text = text.trim();
+		this.text = text.strip();
 	}
 
 	//------------------------------------------------------------------

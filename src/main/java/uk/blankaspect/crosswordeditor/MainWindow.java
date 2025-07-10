@@ -321,9 +321,8 @@ class MainWindow
 	@Override
 	public void flavorsChanged(FlavorEvent event)
 	{
-		CrosswordDocument.Command.IMPORT_SOLUTION_FROM_CLIPBOARD.
-															setEnabled(App.INSTANCE.hasDocuments() &&
-																	   Utils.clipboardHasText());
+		CrosswordDocument.Command.IMPORT_SOLUTION_FROM_CLIPBOARD
+				.setEnabled(CrosswordEditorApp.INSTANCE.hasDocuments() && Utils.clipboardHasText());
 	}
 
 	//------------------------------------------------------------------
@@ -486,10 +485,11 @@ class MainWindow
 
 	private void updateTitle()
 	{
-		CrosswordDocument document = App.INSTANCE.getDocument();
+		CrosswordDocument document = CrosswordEditorApp.INSTANCE.getDocument();
 		boolean fullPathname = AppConfig.INSTANCE.isShowFullPathnames();
-		setTitle((document == null) ? App.LONG_NAME + " " + App.INSTANCE.getVersionString()
-									: App.SHORT_NAME + " - " + document.getTitleString(fullPathname));
+		setTitle((document == null)
+							? CrosswordEditorApp.LONG_NAME + " " + CrosswordEditorApp.INSTANCE.getVersionString()
+							: CrosswordEditorApp.SHORT_NAME + " - " + document.getTitleString(fullPathname));
 	}
 
 	//------------------------------------------------------------------
@@ -504,7 +504,7 @@ class MainWindow
 
 	private void updateStatus()
 	{
-		CrosswordDocument document = App.INSTANCE.getDocument();
+		CrosswordDocument document = CrosswordEditorApp.INSTANCE.getDocument();
 		statusPanel.setSolution((document != null) && document.getGrid().hasSolution());
 		statusPanel.setComplete((document != null) && document.getGrid().isEntriesComplete());
 	}
@@ -529,7 +529,7 @@ class MainWindow
 			}
 
 			// Update commands for menu items
-			App.INSTANCE.updateCommands();
+			CrosswordEditorApp.INSTANCE.updateCommands();
 
 			// Display menu
 			contextMenu.show(event.getComponent(), event.getX(), event.getY());
@@ -575,7 +575,7 @@ class MainWindow
 			@Override
 			protected void update()
 			{
-				getMenu().setEnabled(App.INSTANCE.hasDocuments());
+				getMenu().setEnabled(CrosswordEditorApp.INSTANCE.hasDocuments());
 				updateDocumentCommands();
 			}
 		},
@@ -602,7 +602,7 @@ class MainWindow
 			@Override
 			protected void update()
 			{
-				getMenu().setEnabled(App.INSTANCE.hasDocuments());
+				getMenu().setEnabled(CrosswordEditorApp.INSTANCE.hasDocuments());
 				updateAppCommands();
 				updateDocumentCommands();
 			}
@@ -617,7 +617,7 @@ class MainWindow
 			@Override
 			protected void update()
 			{
-				getMenu().setEnabled(App.INSTANCE.hasDocuments());
+				getMenu().setEnabled(CrosswordEditorApp.INSTANCE.hasDocuments());
 				updateDocumentCommands();
 			}
 		},
@@ -659,14 +659,14 @@ class MainWindow
 
 		private static void updateAppCommands()
 		{
-			App.INSTANCE.updateCommands();
+			CrosswordEditorApp.INSTANCE.updateCommands();
 		}
 
 		//--------------------------------------------------------------
 
 		private static void updateDocumentCommands()
 		{
-			CrosswordDocument document = App.INSTANCE.getDocument();
+			CrosswordDocument document = CrosswordEditorApp.INSTANCE.getDocument();
 			if (document == null)
 				CrosswordDocument.Command.setAllEnabled(false);
 			else
@@ -843,7 +843,7 @@ class MainWindow
 		@Override
 		public void actionPerformed(ActionEvent event)
 		{
-			App.INSTANCE.closeDocument(Integer.parseInt(event.getActionCommand()));
+			CrosswordEditorApp.INSTANCE.closeDocument(Integer.parseInt(event.getActionCommand()));
 		}
 
 		//--------------------------------------------------------------
@@ -985,7 +985,7 @@ class MainWindow
 						{
 							toFront();
 							AppCommand.IMPORT_FILES.putValue(AppCommand.Property.FILES, files);
-							SwingUtilities.invokeLater(() -> AppCommand.IMPORT_FILES.execute());
+							SwingUtilities.invokeLater(AppCommand.IMPORT_FILES::execute);
 							return true;
 						}
 					}
@@ -1000,7 +1000,7 @@ class MainWindow
 				}
 				catch (AppException e)
 				{
-					App.INSTANCE.showErrorMessage(App.SHORT_NAME, e);
+					CrosswordEditorApp.INSTANCE.showErrorMessage(CrosswordEditorApp.SHORT_NAME, e);
 				}
 			}
 			return false;

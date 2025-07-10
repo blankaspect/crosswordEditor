@@ -19,7 +19,6 @@ package uk.blankaspect.crosswordeditor;
 
 
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -74,7 +73,8 @@ class PassphraseDialog
 	private static final	int	PASSPHRASE_MAX_LENGTH			= 1024;
 	private static final	int	PASSPHRASE_FIELD_NUM_COLUMNS	= 40;
 
-	private static final	String	TITLE_STR		= "Passphrase";
+	private static final	String	DEFAULT_TITLE	= "Passphrase";
+
 	private static final	String	PASSPHRASE_STR	= "Passphrase";
 	private static final	String	SKIP_STR		= "Skip";
 
@@ -96,17 +96,30 @@ class PassphraseDialog
 	};
 
 ////////////////////////////////////////////////////////////////////////
+//  Class variables
+////////////////////////////////////////////////////////////////////////
+
+	private static	Point	location;
+
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	boolean			accepted;
+	private	PassphrasePanel	passphrasePanel;
+	private	JButton			okButton;
+
+////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
 	private PassphraseDialog(Window  owner,
-							 String  titleStr,
+							 String  title,
 							 boolean canSkip)
 	{
-
 		// Call superclass constructor
-		super(owner, (titleStr == null) ? TITLE_STR : TITLE_STR + " : " + titleStr,
-			  Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, (title == null) ? DEFAULT_TITLE : DEFAULT_TITLE + " : " + title,
+			  ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		setIconImages(owner.getIconImages());
@@ -245,7 +258,7 @@ class PassphraseDialog
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
@@ -255,7 +268,6 @@ class PassphraseDialog
 
 		// Show dialog
 		setVisible(true);
-
 	}
 
 	//------------------------------------------------------------------
@@ -265,10 +277,10 @@ class PassphraseDialog
 ////////////////////////////////////////////////////////////////////////
 
 	public static String showDialog(Component parent,
-									String    titleStr,
+									String    title,
 									boolean   canSkip)
 	{
-		return new PassphraseDialog(GuiUtils.getWindow(parent), titleStr, canSkip).getPassphrase();
+		return new PassphraseDialog(GuiUtils.getWindow(parent), title, canSkip).getPassphrase();
 	}
 
 	//------------------------------------------------------------------
@@ -420,20 +432,6 @@ class PassphraseDialog
 	}
 
 	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Class variables
-////////////////////////////////////////////////////////////////////////
-
-	private static	Point	location;
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	boolean			accepted;
-	private	PassphrasePanel	passphrasePanel;
-	private	JButton			okButton;
 
 }
 

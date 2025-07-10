@@ -87,9 +87,9 @@ public enum Apostrophe
 	public static Apostrophe forKey(String key)
 	{
 		return Stream.of(values())
-						.filter(value -> value.key.equals(key))
-						.findFirst()
-						.orElse(null);
+				.filter(value -> value.key.equals(key))
+				.findFirst()
+				.orElse(null);
 	}
 
 	//------------------------------------------------------------------

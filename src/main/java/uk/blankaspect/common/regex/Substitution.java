@@ -23,7 +23,7 @@ import java.util.List;
 
 import java.util.regex.Pattern;
 
-import uk.blankaspect.common.exception.UnexpectedRuntimeException;
+import uk.blankaspect.common.exception2.UnexpectedRuntimeException;
 
 //----------------------------------------------------------------------
 
@@ -168,8 +168,8 @@ public class Substitution
 	public int hashCode()
 	{
 		int code = target.hashCode();
-		code = code * 31 + replacement.hashCode();
-		code = code * 31 + (literal ? 1 : 0);
+		code = 31 * code + replacement.hashCode();
+		code = 31 * code + (literal ? 1 : 0);
 		return code;
 	}
 

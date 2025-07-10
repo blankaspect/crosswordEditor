@@ -1063,9 +1063,9 @@
       <h4 id="section5-1-3">5.1.3&nbsp; Drag-and-drop support</h4>
       <p class="wrap">
         If your system supports the dragging and dropping of files (for example, from a file
-        manager such as GNOME Nautilus or Windows Explorer), you can open multiple files by
-        dragging and dropping them onto the main window.  A file is opened only if its filename
-        has the suffix specified by the <a class="configProperty"
+        manager such as GNOME Files (aka Nautilus) on Linux or File Explorer on Windows), you
+        can open multiple files by dragging and dropping them onto the main window.  A file is
+        opened only if its filename has the suffix specified by the <a class="configProperty"
         href="#cp-file-filenameSuffix">file.filenameSuffix</a> configuration property.
       </p>
 
@@ -1232,13 +1232,16 @@
       <div class="example monospace wrap">
         Here, the separator is a {@u&nbsp;space}; here, it is a {@u:colon}.
       </div>
+      <div class="spacer"></div>
       <div class="example monospace wrap">
         This example includes {@b&nbsp;bold text} and {@bi&nbsp;text that is both bold and
         italic}.
       </div>
+      <div class="spacer"></div>
       <div class="example monospace wrap">
         In this example, some {@b&nbsp;bold text has {@i&nbsp;italic text} within it}.
       </div>
+      <div class="spacer"></div>
       <div class="example monospace wrap">
         To get a literal \{ or \}, prefix a \\ to it.
       </div>
@@ -1271,19 +1274,22 @@
       </p>
       <p class="wrap">
         The grid of a crossword is captured by processing an image that contains the grid.  The
-        grid may be detected within the image automatically, or it may be selected manually if
-        the automatic detection algorithm cannot be made to work with a particular grid.
-        CrosswordEditor gets the image from the system clipboard; the way in which you can copy
-        an image containing the grid to the clipboard will depend on the source and on the tools
-        available on your system.  For example, if the grid is an image in a web page, the image
-        could be copied to the clipboard with the Copy Image command from the context menu of
-        the Firefox web browser, or it could be saved as a separate file, loaded into an image
-        viewer and copied to the clipboard.  Alternatively, your system might have a means of
-        taking a <a class="external"
-        href="https://en.wikipedia.org/wiki/Screenshot">screenshot</a> of the window of an
-        application (eg, a web browser or PDF viewer) in which the grid is displayed.  (In
-        Windows and in the GNOME desktop environment for Linux, this can be done by pressing
-        Alt+PrtSc.)
+        image processor assumes that the grid is composed of dark lines &mdash; and, in the case
+        of a blocked grid, dark blocks &mdash; on a light background.  The grid may be detected
+        within the image automatically, or it may be selected manually if the automatic
+        grid-detection algorithm cannot be made to work with a particular grid.  CrosswordEditor
+        gets the image from the system clipboard; the way in which you can copy an image
+        containing the grid to the clipboard will depend on the source and on the tools
+        available on your system.  For example, if the grid is an image in a web page, your web
+        browser may have a command that copies an image to the clipboard or a command that saves
+        an image as a separate file, which can be loaded into an image viewer and copied to the
+        clipboard.  Alternatively, your system might have a means of taking a <a
+        class="external" href="https://en.wikipedia.org/wiki/Screenshot">screenshot</a> of the
+        window of an application (eg, a web browser or PDF viewer) in which the grid is
+        displayed.  (In Windows and in the GNOME desktop environment for Linux, this can be done
+        by pressing Alt+PrtSc.)  If CrosswordEditor is unable to process an image of a grid, you
+        could try changing the scale of the image by using the zoom facility of your image
+        viewer before you take a screenshot.
       </p>
       <p class="wrap">
         The clues of a crossword are captured by processing separate lists of across clues and
@@ -1307,8 +1313,9 @@
         applied when you next want to capture a similar crossword.
       </p>
       <p class="wrap">
-        At the bottom of the dialog is a status panel comprising three fields, which may be
-        empty.  The fields have the following contents:
+        At the bottom of the <span class="component">Capture crossword</span> dialog is a status
+        panel comprising three fields, which may be empty.  The fields have the following
+        contents:
       </p>
       <ol class="list">
         <li class="spaced wrap">
@@ -1331,11 +1338,12 @@
         The <span class="component">Auto grid detection</span> tab controls the parameters that
         apply to the automatic detection of a grid in an image that is imported from the system
         clipboard with the dialog&apos;s <span class="command">Get grid</span> command.  The
-        grid-detection algorithm is crude: it looks for sets of horizontal and vertical lines
-        that occupy the same area of the image.  You are expected to tune its parameters so that
-        it can distinguish a grid from other sets of horizontal and vertical lines in the image.
-        Some trial and error may be required to set the parameters for crosswords from a
-        particular source.
+        simple grid-detection algorithm looks for sets of four or more horizontal and vertical
+        lines that occupy the same region of the image, and it chooses the largest such region
+        by area.  You are expected to tune the parameters of the algorithm so that it can
+        distinguish a grid from other sets of horizontal and vertical lines in the image.  Some
+        trial and error may be required to set the parameters for crosswords from a particular
+        source.
       </p>
       <p class="wrap">
         The algorithm detects a grid line (more properly, a line segment) when it encounters a
@@ -1374,14 +1382,14 @@
       <ul class="list">
         <li class="spaced wrap">
           In a <strong>blocked grid</strong>, one or more pixels are sampled for each cell of
-          the grid, and the cell is deemed to be a block if the mean brightness of the samples
-          is below a threshold.
+          the grid.  The cell is deemed to be a block if the mean brightness of the samples is
+          below a threshold.
         </li>
         <li class="spaced wrap">
           In a <strong>barred grid</strong>, the pixels on a line between an equivalent point in
-          two contiguous cells are sampled, and there is deemed to be a bar on the border
-          between the cells if the brightness of a number of contiguous pixels on the line is
-          below a threshold.
+          two contiguous cells are sampled.  There is deemed to be a bar on the border between
+          the cells if the brightness of a number of contiguous pixels on the line is below a
+          threshold.
         </li>
       </ul>
       <p class="wrap">
@@ -1410,9 +1418,9 @@
         The <span class="component">X offset</span> and <span class="component">Y offset</span>
         spinners specify the offset of the sample point (blocked grid) or start of the sample
         line (barred grid) from the centre of the cell.  For the <i>x</i> offset, the value is a
-        percentage of the cell width, and the positive direction is right; for the <i>y</i>
-        offset, the value is a percentage of the cell height, and the positive direction is
-        down.
+        percentage of the cell width, and the positive direction is <i>right</i>; for the
+        <i>y</i> offset, the value is a percentage of the cell height, and the positive
+        direction is <i>down</i>.
       </p>
       <p class="wrap">
         For a blocked grid, the <span class="component">Sample size</span> spinner specifies the
@@ -1429,12 +1437,23 @@
       </p>
 
       <h4 id="section6-1-3">6.1.3&nbsp; The <span class="component">Clue indications</span> tab</h4>
-      <p class="wrap">
-        The <span class="component">Clue indications</span> tab controls the <a
-        href="#section4-3-1">clue-reference keyword</a> and the <a
-        href="#section4-3-2">answer-length pattern and substitutions</a> that are applied to the
-        clues that are imported from the external crossword.
+      <p class="noBottomMargin wrap">
+        The <span class="component">Clue indications</span> tab controls the following
+        parameters that are used when parsing clues that are imported from an external
+        crossword:
       </p>
+      <ul class="continuationList">
+        <li class="wrap">
+          the separator between the <a href="#def-fieldId">field IDs</a> of <a
+          href="#def-multiFieldClue">multiple-field clue</a>,
+        </li>
+        <li class="wrap">
+          the <a href="#section4-3-1">clue-reference keyword</a>, and
+        </li>
+        <li class="wrap">
+          the <a href="#section4-3-2">answer-length pattern and substitutions</a>.
+        </li>
+      </ul>
       <p class="wrap">
         The <span class="command">Default</span> button adjacent to the <span
         class="component">Pattern</span> field sets the answer-length pattern to a default value
@@ -1584,46 +1603,54 @@
 
       <h4 id="section6-1-10">6.1.10&nbsp; The <span class="command">Get grid image</span> command</h4>
       <p class="wrap">
-        The <span class="command">Get grid image</span> command first reads an image from the
-        system clipboard.  If the <span class="component">Automatic grid detection</span> check
-        box of the <span class="component">Grid</span> tab is selected, the grid-detection
-        algorithm is applied to the image.  If it finds something that appears to be a grid in
-        the image, a message is displayed to this effect, asking if you want to set the numbers
-        of columns and rows of the grid to those found by the algorithm; otherwise, an error
+        The <span class="command">Get grid image</span> command is enabled only if there is an
+        image in a supported format on the system clipboard.
+      </p>
+      <p class="wrap">
+        The command first reads an image from the system clipboard.  If the <span
+        class="component">Automatic grid detection</span> check box of the <span
+        class="component">Grid</span> tab is selected, a simple grid-detection algorithm is
+        applied to the image.  If it finds a rectangular region in the image that appears to be
+        a grid, a message is displayed to this effect, asking if you want to set the numbers of
+        columns and rows of the grid to those found by the algorithm; otherwise, an error
         message is displayed.
       </p>
       <p class="wrap">
-        Next, a dialog box is displayed in which you can select the grid from the image that was
-        read from the clipboard.  If automatic grid detection was successful, the region of the
-        grid containing the grid is already selected; if the region is incorrect, you can make a
-        new selection.  You make a selection in the <span class="component">Select grid in
-        image</span> dialog by clicking the left mouse button on a corner of the grid in the
-        image, dragging the mouse so that the rubber-band box roughly coincides with the
-        boundary of the grid, then releasing the button.  To proceed with the selected region,
-        close the dialog with <span class="command">OK</span>.
+        Next, a dialog is displayed in which you can select the grid from the image that was
+        read from the clipboard.  If automatic grid detection was enabled and was successful,
+        the region of the grid containing the grid is already selected; if the region is
+        incorrect, you can make a new selection.  You make a selection in the dialog by clicking
+        the left mouse button on a corner of the grid in the image, dragging the mouse so that
+        the rubber-band box roughly coincides with the boundary of the grid, then releasing the
+        mouse button.  After you&apos;ve made an initial selection, you can adjust the selected
+        region by dragging the handles that appear on the sides and at the corners of the region
+        when you hover the mouse cursor over them.  When you are satisfied with the selected
+        region, close the dialog with <span class="command">OK</span>.
       </p>
       <p class="wrap">
-        A grid will be created from the selected region of the image by applying the parameters
-        in the <span class="component">Grid</span> tab to detect the grid separators, and the
-        text &quot;Grid&quot; will be displayed in the first field of the status panel.  The
-        grid might not be correct, but you won&apos;t discover this until a crossword document
-        is created and displayed.  If you are tuning the parameters in the <span
-        class="component">Grid</span> tab, you can skip the capture of clues (and the error
-        message about missing clues) to view the result of the grid capture.
-      </p>
-      <p class="wrap">
-        The command is enabled only if there is an image on the system clipboard.
+        A grid is created from the selected region of the image by applying the parameters in
+        the <span class="component">Grid</span> tab to detect the grid separators, and the text
+        &quot;Grid&quot; is displayed in the first field of the status panel.  The grid is
+        displayed in a <span class="component">Grid preview</span> dialog to allow you to check
+        that it is correct.  If the grid is not correct, you could change some parameters in the
+        <a class="component" href="#section6-1-1">Auto grid detection</a> tab or the <a
+        class="component" href="#section6-1-2">Grid</a> tab and issue the <span
+        class="command">Get grid image</span> command again while the image is still on the
+        system clipboard.
       </p>
 
       <h4 id="section6-1-11">6.1.11&nbsp; The <span class="command">Get clues</span> command</h4>
       <p class="wrap">
-        The <span class="command">Get clues</span> command has two subcommands, one for each
-        grid direction, across and down; select the appropriate subcommand.  The command reads
-        text from the system clipboard and processes it.  The clue parser expects to find a list
-        of clues, and it expects each clue to have a certain format: a list of comma-separated
-        <a href="#def-fieldId">field IDs</a>, followed either by a <a
-        href="#def-clueDefinition">clue definition</a> and an optional <a
-        href="#def-answerLengthExpression">answer-length expression</a> or by a <a
+        The <span class="command">Get clues</span> command is enabled only if there is text on
+        the system clipboard.
+      </p>
+      <p class="wrap">
+        The command has two subcommands, one for each grid direction, across and down; select
+        the appropriate subcommand.  The command reads text from the system clipboard and
+        processes it.  The clue parser expects to find a list of clues, and it expects each clue
+        to have a certain format: a list of comma-separated <a href="#def-fieldId">field
+        IDs</a>, followed either by a <a href="#def-clueDefinition">clue definition</a> and an
+        optional <a href="#def-answerLengthExpression">answer-length expression</a> or by a <a
         href="#def-clueReference">clue reference</a>.
       </p>
       <p class="wrap">
@@ -1647,9 +1674,6 @@
         a list of clues but they don&apos;t check the clues for consistency: the clues are <a
         href="#section6-1-12">validated</a> only when the dialog is accepted with <span
         class="command">OK</span>.
-      </p>
-      <p class="wrap">
-        The command is enabled only if there is text on the system clipboard.
       </p>
 
       <h4 id="section6-1-12">6.1.12&nbsp; Validation of clues</h4>
@@ -1692,57 +1716,39 @@
         <a
         href="https://github.com/blankaspect/crosswordEditor/blob/master/docs/examples/captureParams.xml">A
         file</a> in the CrosswordEditor repository contains <a href="#section6-1-8">sets of
-        parameters</a> for capturing the following free cryptic crosswords published by British
-        newspapers on their websites:
+        parameters</a> for capturing the following cryptic crosswords published by British
+        newspapers on their websites, which were free to access at the beginning of July 2025:
       </p>
       <ul class="list">
-        <li class="spaced">
-          <div class="wrap">
-            <a class="external" href="https://www.theguardian.com/crosswords/series/cryptic">The
-            <i>Guardian</i> cryptic crossword</a>
-          </div>
-          <div class="wrap">
-            Published daily except for Sundays.  The capture parameters are for the web page of
-            the crossword.
-          </div>
-        </li>
         <li class="spaced">
           <div class="wrap">
             <a class="external" href="https://www.ft.com/crossword">The <i>Financial Times</i>
             crossword</a>
           </div>
           <div class="wrap">
-            Published daily except for Sundays.  The capture parameters are for the PDF file.
-          </div>
-        </li>
-        <li class="spaced">
-          <div class="wrap">
-            <a class="external" href="https://www.theguardian.com/crosswords/series/azed">The
-            Azed crossword</a>
-          </div>
-          <div class="wrap">
-            Published in the <i>Observer</i> each Sunday.  The capture parameters are for the
+            Published daily except for Sundays.  The capture parameters are for the downloadable
             PDF version of the crossword.
           </div>
         </li>
         <li class="spaced">
           <div class="wrap">
-            <a class="external" href="https://www.theguardian.com/crosswords/series/genius">The
-            <i>Guardian</i>&apos;s Genius crossword</a>
+            <a class="external" href="https://observer.co.uk/azed">The Azed crossword in <i>The
+            Observer</i></a>
           </div>
           <div class="wrap">
-            Published on the first Monday of each month.  The capture parameters are for the PDF
-            version of the crossword.
+            Published each Sunday.  The capture parameters are for the downloadable PDF version
+            of the crossword.  The grid parameters assume a 12&times;12 grid.  A 13&times;11
+            grid is also common.  The bar-width threshold may need to be adjusted to suit the
+            layout of a particular crossword.
           </div>
         </li>
       </ul>
       <p class="wrap">
-        The parameter sets for the four crosswords provide examples of the automatic
-        grid-detection parameters for various crosswords.  They may become out of date if the
-        publishers change the appearance of the crosswords.
+        The example parameters may become out of date if the publishers change the layout of the
+        crosswords.
       </p>
       <p class="wrap">
-        The examples illustrate the use of a placeholder for a crossword number.  In all four
+        The examples illustrate the use of a placeholder for a crossword number.  In both
         examples, the number placeholder, <code>%n</code>, appears in the <span
         class="component">Title</span> field of the <a class="component"
         href="#section6-1-5">Text</a> tab and the <span class="component">Filename stem</span>
@@ -2348,31 +2354,47 @@
       <h4 id="section8-2-8">8.2.8&nbsp; <span class="command">Import clues from clipboard</span></h4>
       <p class="wrap">
         The <span class="command">Import clues from clipboard</span> command imports lists of
-        clues into the current document from the system clipboard.  The command brings up a
-        dialog in which you can import clues for one or both clue lists, across and down.
+        clues into the current document from text on the system clipboard.  The command brings
+        up a dialog in which you can import clues for one or both clue lists, across and down.
+      </p>
+      <p class="noBottomMargin wrap">
+        The two fields at the top of the <span class="component">Import clues</span> dialog
+        allow you to specify the following parameters that will be used when parsing the
+        clipboard text:
+      </p>
+      <ul class="continuationList">
+        <li class="wrap">
+          the separator between the <a href="#def-fieldId">field IDs</a> of <a
+          href="#def-multiFieldClue">multiple-field clue</a>, and
+        </li>
+        <li class="wrap">
+          the <a href="#section4-3-1">clue-reference keyword</a>.
+        </li>
+      </ul>
+      <p class="wrap">
+        The <a href="#section4-3-2">answer-length pattern and substitutions</a> of the current
+        document will also be used when parsing the clipboard text.  You can edit them with the
+        <a class="command" href="#section8-2-6">Edit &gt; Edit indications</a> command before
+        you issue the <span class="command">Import clues from clipboard</span> command.  If you
+        are importing clues that do not have an answer-length expression, the answer-length
+        pattern should be empty.  In this case, each clue on the clipboard must be on a separate
+        line of text because the clue processor cannot otherwise determine the end of a clue
+        that has no answer-length expression.
       </p>
       <p class="wrap">
-        The clues will be imported using the <a href="#section4-3-1">clue-reference keyword</a>
-        and the <a href="#section4-3-2">answer-length pattern and substitutions</a> of the
-        document, which can be edited with the <a class="command" href="#section8-2-6">Edit &gt;
-        Edit indications</a> command.  If the clues do not have an answer-length expression, the
-        answer-length pattern should be empty.  In this case, each clue on the clipboard must be
-        on a separate line of text because the clue processor cannot otherwise determine the end
-        of a clue that has no answer-length expression.
-      </p>
-      <p class="wrap">
-        At the top of the <span class="component">Import clues</span> dialog is a <a
-        href="#section5-2-2">list</a> of substitutions that will be applied to the text of
-        imported clues.  (You can define a substitution, for example, to replace three dots with
-        an ellipsis character, U+2026.)  Substitutions are applied only to <i>defined clues</i>,
-        not to clue references, and they are applied as the penultimate stage of processing a
-        clue, after an answer-length expression is processed and any line breaks are removed but
-        before style markup is parsed.  The list box and its associated commands are similar to
-        those of the answer-length substitution list described in the preceding paragraph.
+        In the <span class="component">Import clues</span> dialog, you can define a sequence of
+        substitutions that will be applied to the text of imported clues.  (For example, you can
+        define a substitution to replace three dots with an ellipsis character, U+2026.)
+        Substitutions are applied only to <i>defined clues</i>, not to clue references, and they
+        are applied as the penultimate stage of processing a clue, after an answer-length
+        expression is processed and any line breaks are removed but before style markup is
+        parsed.  The <a href="#section5-2-2">list box</a> and its associated command buttons are
+        similar to those in the dialog that is displayed in response to the <a class="command"
+        href="#section8-2-6">Edit &gt; Edit indications</a> command.
       </p>
       <p class="wrap">
         The substitution list can be edited with commands issued from the three buttons to the
-        right of the list.  In the dialog that is displayed in response to the <span
+        right of the list box.  In the dialog that is displayed in response to the <span
         class="command">Add</span> and <span class="command">Edit</span> commands, the
         <i>target</i> is the text that is searched for in the text of the clue and the
         <i>replacement</i> is the text that will replace all occurrences of the target.  You
@@ -2717,9 +2739,9 @@
         means of adding or removing an association between the CrosswordEditor application and
         files with the <a class="configProperty" href="#cp-file-filenameSuffix">filename
         suffix</a> of crossword documents.  A file association will allow you, for example, to
-        open a crossword document in CrosswordEditor by double-clicking on its filename in
-        Windows Explorer.  If CrosswordEditor is already running, the document will be opened in
-        it; otherwise, the document will be opened in a new instance of CrosswordEditor.
+        open a crossword document in CrosswordEditor by double-clicking on its filename in File
+        Explorer.  If CrosswordEditor is already running, the document will be opened in it;
+        otherwise, the document will be opened in a new instance of CrosswordEditor.
       </p>
       <p class="wrap">
         The command creates a file association by modifying entries in the <a class="external"
@@ -3801,8 +3823,7 @@
           for a <a class="definition" href="#def-field">field</a>.
         </dd>
 
-        <dt id="def-answerLengthExpression">answer-length expression&nbsp;<code
-                                                                             class="noBackground">*</code></dt>
+        <dt id="def-answerLengthExpression">answer-length expression&nbsp;<code class="noBackground">*</code></dt>
         <dd class="wrap">
           An <i>answer-length expression</i> is an optional component of a <a class="definition"
           href="#def-clue">clue</a> that indicates the length of its <a class="definition"
@@ -4591,7 +4612,7 @@
     <div id="lastModified">
       <div>
         <div>
-          Last modified: 2023-08-13
+          Last modified: 2025-07-05
         </div>
         <div class="image">
           <a class="hideHover" href="http://validator.w3.org/check?uri=referer">

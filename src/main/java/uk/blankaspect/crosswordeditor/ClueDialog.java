@@ -20,7 +20,6 @@ package uk.blankaspect.crosswordeditor;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -60,7 +59,8 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import uk.blankaspect.common.exception.AppException;
-import uk.blankaspect.common.exception.UnexpectedRuntimeException;
+
+import uk.blankaspect.common.exception2.UnexpectedRuntimeException;
 
 import uk.blankaspect.common.number.NumberUtils;
 
@@ -284,7 +284,7 @@ class ClueDialog
 			preferredHeight = 2 * VERTICAL_MARGIN + fontMetrics.getAscent() + fontMetrics.getDescent() +
 																				fontMetrics.getHeight();
 
-			// Set attributes
+			// Set properties
 			setOpaque(true);
 			setFocusable(true);
 
@@ -659,9 +659,8 @@ class ClueDialog
 					   CrosswordDocument document,
 					   Clue              clue)
 	{
-
 		// Call superclass constructor
-		super(owner, TITLE_STR + clue.getFieldId(), Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, TITLE_STR + clue.getFieldId(), ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		setIconImages(owner.getIconImages());
@@ -839,7 +838,7 @@ class ClueDialog
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
@@ -852,7 +851,6 @@ class ClueDialog
 
 		// Show dialog
 		setVisible(true);
-
 	}
 
 	//------------------------------------------------------------------
@@ -906,7 +904,7 @@ class ClueDialog
 			}
 			catch (StyledText.ParseException e)
 			{
-				throw new UnexpectedRuntimeException();
+				throw new UnexpectedRuntimeException(e);
 			}
 		}
 		return clue;

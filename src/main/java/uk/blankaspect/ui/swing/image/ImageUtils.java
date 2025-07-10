@@ -57,8 +57,9 @@ public class ImageUtils
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static BufferedImage stringArrayToImage(String[] strings,
-												   Color[]  colours)
+	public static BufferedImage stringArrayToImage(
+		String[]	strings,
+		Color[]		colours)
 	{
 		int[] rgbaValues = new int[colours.length];
 		for (int i = 0; i < rgbaValues.length; i++)
@@ -68,8 +69,9 @@ public class ImageUtils
 
 	//------------------------------------------------------------------
 
-	public static BufferedImage stringArrayToImage(String[] strings,
-												   int[]    rgbaValues)
+	public static BufferedImage stringArrayToImage(
+		String[]	strings,
+		int[]		rgbaValues)
 	{
 		int width = strings[0].length();
 		int height = strings.length;
@@ -89,11 +91,12 @@ public class ImageUtils
 	 * @throws IllegalArgumentException
 	 */
 
-	public static BufferedImage getSubimage(BufferedImage image,
-											int           x,
-											int           y,
-											int           width,
-											int           height)
+	public static BufferedImage getSubimage(
+		BufferedImage	image,
+		int				x,
+		int				y,
+		int				width,
+		int				height)
 	{
 		// Validate arguments
 		if ((x < 0) || (width < 0) || (x + width > image.getWidth()) ||
@@ -114,20 +117,22 @@ public class ImageUtils
 	 * @throws IllegalArgumentException
 	 */
 
-	public static BufferedImage getSubimage(BufferedImage image,
-											Rectangle     rect)
+	public static BufferedImage getSubimage(
+		BufferedImage	image,
+		Rectangle		rect)
 	{
 		return getSubimage(image, rect.x, rect.y, rect.width, rect.height);
 	}
 
 	//------------------------------------------------------------------
 
-	public static BufferedImage imageDataToImage(int   dataWidth,
-												 int   dataHeight,
-												 int   imageWidth,
-												 int   imageHeight,
-												 int[] data,
-												 Color colour)
+	public static BufferedImage imageDataToImage(
+		int		dataWidth,
+		int		dataHeight,
+		int		imageWidth,
+		int		imageHeight,
+		int[]	data,
+		Color	colour)
 	{
 		// Set colour in image data
 		int[] outImageData = new int[data.length];
@@ -156,10 +161,11 @@ public class ImageUtils
 
 	//------------------------------------------------------------------
 
-	public static BufferedImage imageDataToImage(int   dataWidth,
-												 int   dataHeight,
-												 int[] imageData,
-												 Color colour)
+	public static BufferedImage imageDataToImage(
+		int		dataWidth,
+		int		dataHeight,
+		int[]	imageData,
+		Color	colour)
 	{
 		return imageDataToImage(dataWidth, dataHeight, dataWidth, dataHeight, imageData, colour);
 	}

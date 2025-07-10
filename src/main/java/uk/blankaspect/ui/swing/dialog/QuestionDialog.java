@@ -19,7 +19,6 @@ package uk.blankaspect.ui.swing.dialog;
 
 
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -84,97 +83,33 @@ public class QuestionDialog
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
+	private static	Point	location;
 
-	// OPTION CLASS
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
 
-
-	public static class Option
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public Option(String key,
-					  String text)
-		{
-			this.key = key;
-			this.text = text;
-		}
-
-		//--------------------------------------------------------------
-
-		public Option(String key,
-					  String text,
-					  int    mnemonic)
-		{
-			this(key, text);
-			this.mnemonic = mnemonic;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	key;
-		private	String	text;
-		private	int		mnemonic;
-
-	}
-
-	//==================================================================
-
-
-	// RESULT CLASS
-
-
-	public static class Result
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public Result(String  selectedKey,
-					  boolean checkBoxSelected)
-		{
-			this.selectedKey = selectedKey;
-			this.checkBoxSelected = checkBoxSelected;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		public	String	selectedKey;
-		public	boolean	checkBoxSelected;
-
-	}
-
-	//==================================================================
+	private	String		selectedKey;
+	private	JCheckBox	checkBox;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	private QuestionDialog(Window   owner,
-						   String   titleStr,
-						   String[] messageStrs,
-						   Option[] options,
-						   int      numColumns,
-						   String   defaultOptionKey,
-						   String   checkBoxStr)
+	private QuestionDialog(
+		Window		owner,
+		String		title,
+		String[]	messageStrs,
+		Option[]	options,
+		int			numColumns,
+		String		defaultOptionKey,
+		String		checkBoxStr)
 	{
-
 		// Call superclass constructor
-		super(owner, titleStr, Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, title, ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		if (owner != null)
@@ -250,7 +185,7 @@ public class QuestionDialog
 		for (int i = 0; i < options.length; i++)
 		{
 			if (options[i] == null)
-				buttonPanel.add(GuiUtils.createFiller());
+				buttonPanel.add(GuiUtils.spacer());
 			else
 			{
 				JButton button = new FButton(options[i].text);
@@ -314,7 +249,8 @@ public class QuestionDialog
 		addWindowListener(new WindowAdapter()
 		{
 			@Override
-			public void windowClosing(WindowEvent event)
+			public void windowClosing(
+				WindowEvent	event)
 			{
 				close();
 			}
@@ -326,7 +262,7 @@ public class QuestionDialog
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
@@ -340,7 +276,6 @@ public class QuestionDialog
 
 		// Show dialog
 		setVisible(true);
-
 	}
 
 	//------------------------------------------------------------------
@@ -349,16 +284,18 @@ public class QuestionDialog
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static Result showDialog(Component parent,
-									String    titleStr,
-									String[]  messageStrs,
-									Option[]  options,
-									int       numColumns,
-									String    defaultOptionKey,
-									String    checkBoxStr)
+	public static Result showDialog(
+		Component	parent,
+		String		title,
+		String[]	messageStrs,
+		Option[]	options,
+		int			numColumns,
+		String		defaultOptionKey,
+		String		checkBoxStr)
 	{
-		return new QuestionDialog(GuiUtils.getWindow(parent), titleStr, messageStrs, options,
-								  numColumns, defaultOptionKey, checkBoxStr).getResult();
+		return new QuestionDialog(GuiUtils.getWindow(parent), title, messageStrs, options, numColumns, defaultOptionKey,
+								  checkBoxStr)
+				.getResult();
 	}
 
 	//------------------------------------------------------------------
@@ -367,7 +304,8 @@ public class QuestionDialog
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
-	public void actionPerformed(ActionEvent event)
+	public void actionPerformed(
+		ActionEvent	event)
 	{
 		String command = event.getActionCommand();
 
@@ -400,7 +338,8 @@ public class QuestionDialog
 
 	//------------------------------------------------------------------
 
-	private void onAccept(String key)
+	private void onAccept(
+		String	key)
 	{
 		selectedKey = key;
 		close();
@@ -416,17 +355,67 @@ public class QuestionDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class variables
+//  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	private static	Point	location;
+
+	// OPTION CLASS
+
+
+	public static class Option
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	key;
+		private	String	text;
+		private	int		mnemonic;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		public Option(
+			String	key,
+			String	text)
+		{
+			this.key = key;
+			this.text = text;
+		}
+
+		//--------------------------------------------------------------
+
+		public Option(
+			String	key,
+			String	text,
+			int		mnemonic)
+		{
+			this(key, text);
+			this.mnemonic = mnemonic;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Member records
 ////////////////////////////////////////////////////////////////////////
 
-	private	String		selectedKey;
-	private	JCheckBox	checkBox;
+
+	// RECORD: RESULT
+
+
+	public record Result(
+		String	selectedKey,
+		boolean	checkBoxSelected)
+	{ }
+
+	//==================================================================
 
 }
 

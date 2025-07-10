@@ -21,7 +21,7 @@ package uk.blankaspect.common.crypto;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import uk.blankaspect.common.exception.UnexpectedRuntimeException;
+import uk.blankaspect.common.exception2.UnexpectedRuntimeException;
 
 //----------------------------------------------------------------------
 
@@ -83,7 +83,8 @@ public class HmacSha256
 	 *           the Java platform is required to support the SHA-256 algorithm.)
 	 */
 
-	public HmacSha256(byte[] key)
+	public HmacSha256(
+		byte[]	key)
 	{
 		// Create an SHA-256 hash-function object
 		try
@@ -127,7 +128,8 @@ public class HmacSha256
 	 *          the data with which the HMAC will be updated.
 	 */
 
-	public void update(byte[] data)
+	public void update(
+		byte[]	data)
 	{
 		hash.update(data);
 	}
@@ -145,9 +147,10 @@ public class HmacSha256
 	 *          the number of bytes with which the HMAC will be updated.
 	 */
 
-	public void update(byte[] data,
-					   int    offset,
-					   int    length)
+	public void update(
+		byte[]	data,
+		int		offset,
+		int		length)
 	{
 		hash.update(data, offset, length);
 	}
@@ -197,7 +200,8 @@ public class HmacSha256
 	 * @see    #getValue(byte[], int, int)
 	 */
 
-	public byte[] getValue(byte[] data)
+	public byte[] getValue(
+		byte[]	data)
 	{
 		update(data);
 		return getValue();
@@ -223,9 +227,10 @@ public class HmacSha256
 	 * @see    #getValue(byte[])
 	 */
 
-	public byte[] getValue(byte[] data,
-						   int    offset,
-						   int    length)
+	public byte[] getValue(
+		byte[]	data,
+		int		offset,
+		int		length)
 	{
 		update(data, offset, length);
 		return getValue();

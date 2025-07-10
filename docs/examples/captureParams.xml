@@ -4,63 +4,6 @@
    xmlns="http://ns.blankaspect.uk/parameterSetList-1"
    version="0"
    application="crosswordEditor">
-  <parameterSet
-     name="Guardian">
-    <property
-       key="answerLengthPattern"
-       value="\((\d[^\(]*?)\)$"/>
-    <property
-       key="automaticGridDetection"
-       value="true"/>
-    <property
-       key="barBrightnessThreshold"
-       value="50"/>
-    <property
-       key="barWidthThreshold"
-       value="3"/>
-    <property
-       key="blockBrightnessThreshold"
-       value="75"/>
-    <property
-       key="clueReferenceKeyword"
-       value="See"/>
-    <property
-       key="filename"
-       value="guardian273%n"/>
-    <property
-       key="gridLine.brightnessThreshold"
-       value="75"/>
-    <property
-       key="gridLine.endpointTolerance"
-       value="1"/>
-    <property
-       key="gridLine.minLength"
-       value="200"/>
-    <property
-       key="gridLine.minSeparation"
-       value="16"/>
-    <property
-       key="gridSeparator"
-       value="block"/>
-    <property
-       key="numColumns"
-       value="15"/>
-    <property
-       key="numRows"
-       value="15"/>
-    <property
-       key="sampleSize"
-       value="1"/>
-    <property
-       key="title"
-       value="Guardian 273%n | "/>
-    <property
-       key="xOffset"
-       value="10"/>
-    <property
-       key="yOffset"
-       value="10"/>
-  </parameterSet>
 
   <parameterSet
      name="FT">
@@ -72,13 +15,13 @@
        value="true"/>
     <property
        key="barBrightnessThreshold"
-       value="50"/>
+       value="60"/>
     <property
        key="barWidthThreshold"
        value="3"/>
     <property
        key="blockBrightnessThreshold"
-       value="50"/>
+       value="60"/>
     <property
        key="clueReferenceKeyword"
        value="See"/>
@@ -87,13 +30,16 @@
        value="/–/—/l"/>
     <property
        key="clueSubstitution.001"
-       value="/. . . ./…/l"/>
+       value="/.../…/l"/>
+    <property
+       key="clueSubstitution.002"
+       value="/\uFB00/ff/"/>
     <property
        key="filename"
-       value="ft156%n"/>
+       value="ft180%n"/>
     <property
        key="gridLine.brightnessThreshold"
-       value="15"/>
+       value="60"/>
     <property
        key="gridLine.endpointTolerance"
        value="1"/>
@@ -107,6 +53,9 @@
        key="gridSeparator"
        value="block"/>
     <property
+       key="multipleFieldClueIdSeparator"
+       value="/"/>
+    <property
        key="numColumns"
        value="15"/>
     <property
@@ -117,7 +66,7 @@
        value="1"/>
     <property
        key="title"
-       value="FT 156%n | "/>
+       value="FT 180%n | "/>
     <property
        key="xOffset"
        value="10"/>
@@ -139,13 +88,13 @@
        value="true"/>
     <property
        key="barBrightnessThreshold"
-       value="75"/>
+       value="60"/>
     <property
        key="barWidthThreshold"
-       value="3"/>
+       value="4"/>
     <property
        key="blockBrightnessThreshold"
-       value="50"/>
+       value="60"/>
     <property
        key="clueReferenceKeyword"
        value="See"/>
@@ -157,10 +106,10 @@
        value="/——/––––/l"/>
     <property
        key="filename"
-       value="azed23%n"/>
+       value="azed27%n"/>
     <property
        key="gridLine.brightnessThreshold"
-       value="40"/>
+       value="60"/>
     <property
        key="gridLine.endpointTolerance"
        value="1"/>
@@ -174,6 +123,9 @@
        key="gridSeparator"
        value="bar"/>
     <property
+       key="multipleFieldClueIdSeparator"
+       value=","/>
+    <property
        key="numColumns"
        value="12"/>
     <property
@@ -184,7 +136,7 @@
        value="1"/>
     <property
        key="title"
-       value="Azed 23%n"/>
+       value="Azed 27%n"/>
     <property
        key="xOffset"
        value="10"/>
@@ -193,61 +145,4 @@
        value="10"/>
   </parameterSet>
 
-  <parameterSet
-     name="Genius">
-    <property
-       key="answerLengthPattern"
-       value="\((\d[^\(]*?)\)$"/>
-    <property
-       key="automaticGridDetection"
-       value="true"/>
-    <property
-       key="barBrightnessThreshold"
-       value="50"/>
-    <property
-       key="barWidthThreshold"
-       value="3"/>
-    <property
-       key="blockBrightnessThreshold"
-       value="50"/>
-    <property
-       key="clueReferenceKeyword"
-       value="See"/>
-    <property
-       key="filename"
-       value="genius1%n"/>
-    <property
-       key="gridLine.brightnessThreshold"
-       value="75"/>
-    <property
-       key="gridLine.endpointTolerance"
-       value="1"/>
-    <property
-       key="gridLine.minLength"
-       value="200"/>
-    <property
-       key="gridLine.minSeparation"
-       value="16"/>
-    <property
-       key="gridSeparator"
-       value="block"/>
-    <property
-       key="numColumns"
-       value="15"/>
-    <property
-       key="numRows"
-       value="15"/>
-    <property
-       key="sampleSize"
-       value="1"/>
-    <property
-       key="title"
-       value="Genius 1%n | "/>
-    <property
-       key="xOffset"
-       value="10"/>
-    <property
-       key="yOffset"
-       value="10"/>
-  </parameterSet>
 </parameterSetList>

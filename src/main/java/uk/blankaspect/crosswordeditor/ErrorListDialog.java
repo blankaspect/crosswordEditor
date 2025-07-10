@@ -2,7 +2,7 @@
 
 ErrorListDialog.java
 
-Error list dialog class.
+Class: error-list dialog.
 
 \*====================================================================*/
 
@@ -56,7 +56,7 @@ import uk.blankaspect.ui.swing.misc.GuiUtils;
 //----------------------------------------------------------------------
 
 
-// NON-EDITABLE TEXT PANE DIALOG CLASS
+// CLASS: ERROR-LIST DIALOG
 
 
 class ErrorListDialog
@@ -68,8 +68,8 @@ class ErrorListDialog
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	private static final	int	NUM_COLUMNS	= 72;
-	private static final	int	NUM_ROWS	= 24;
+	private static final	int		NUM_COLUMNS	= 72;
+	private static final	int		NUM_ROWS	= 24;
 
 	private static final	String	COPY_STR			= "Copy";
 	private static final	String	COPY_TOOLTIP_STR	= "Copy text to clipboard (Alt+C)";
@@ -95,271 +95,44 @@ class ErrorListDialog
 	private static final	Map<String, CommandAction>	COMMANDS;
 
 ////////////////////////////////////////////////////////////////////////
-//  Enumerated types
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// SPAN STYLE
-
-
-	private enum SpanStyle
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		PLAIN
-		(
-			"plain",
-			new Color(0, 0, 0)
-		)
-		{
-			@Override
-			protected void apply(Style style)
-			{
-				StyleConstants.setForeground(style, getColour());
-			}
-		},
-
-		ERROR_KIND
-		(
-			"errorKind",
-			new Color(192, 64, 0)
-		)
-		{
-			@Override
-			protected void apply(Style style)
-			{
-				StyleConstants.setForeground(style, getColour());
-				StyleConstants.setItalic(style, true);
-			}
-		},
-
-		DIRECTION
-		(
-			"direction",
-			new Color(0, 0, 160)
-		)
-		{
-			@Override
-			protected void apply(Style style)
-			{
-				StyleConstants.setForeground(style, getColour());
-			}
-		};
-
-		//--------------------------------------------------------------
-
-		private static final	String	PREFIX	= "span.";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private SpanStyle(String key,
-						  Color  colour)
-		{
-			this.key = PREFIX + key;
-			this.colour = colour;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Abstract methods
-	////////////////////////////////////////////////////////////////////
-
-		protected abstract void apply(Style style);
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		protected Color getColour()
-		{
-			return colour;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	key;
-		private	Color	colour;
-
-	}
-
-	//==================================================================
-
-
-	// PARAGRAPH STYLE
-
-
-	private enum ParagraphStyle
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		ID_LISTS
-		(
-			"idLists"
-		)
-		{
-			@Override
-			protected void apply(Style style)
-			{
-				// do nothing
-			}
-		},
-
-		ERROR_KIND
-		(
-			"errorKind"
-		)
-		{
-			@Override
-			protected void apply(Style style)
-			{
-				StyleConstants.setSpaceAbove(style, (float)StyleConstants.getFontSize(style) * 0.5f);
-			}
-		};
-
-		//--------------------------------------------------------------
-
-		private static final	String	PREFIX	= "paragraph.";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ParagraphStyle(String key)
-		{
-			this.key = PREFIX + key;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Abstract methods
-	////////////////////////////////////////////////////////////////////
-
-		protected abstract void apply(Style style);
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	key;
-
-	}
-
-	//==================================================================
+	private	boolean	accepted;
+	private	boolean	cleared;
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Static initialiser
 ////////////////////////////////////////////////////////////////////////
 
-
-	// IDENTIFIER LIST CLASS
-
-
-	public static class IdList
+	static
 	{
+		// Direction strings
+		DIRECTION_STRS = new EnumMap<>(Direction.class);
+		DIRECTION_STRS.put(Direction.NONE,   "No direction");
+		DIRECTION_STRS.put(Direction.ACROSS, "Across");
+		DIRECTION_STRS.put(Direction.DOWN,   "Down");
 
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public IdList(String              text,
-					  List<Grid.Field.Id> ids)
-		{
-			this.text = text;
-			this.ids = ids;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String				text;
-		private	List<Grid.Field.Id>	ids;
-
+		// Commands
+		COMMANDS = new HashMap<>();
+		COMMANDS.put(Command.COPY,
+					 new CommandAction(Command.COPY, COPY_STR, KeyEvent.VK_C, COPY_TOOLTIP_STR));
+		COMMANDS.put(Command.ACCEPT,
+					 new CommandAction(Command.ACCEPT, AppConstants.OK_STR, 0, null));
+		COMMANDS.put(Command.CLOSE,
+					 new CommandAction(Command.CLOSE, AppConstants.CANCEL_STR, 0, null));
 	}
-
-	//==================================================================
-
-
-	// COMMAND ACTION CLASS
-
-
-	private static class CommandAction
-		extends AbstractAction
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private CommandAction(String command,
-							  String text,
-							  int    mnemonicKey,
-							  String tooltipStr)
-		{
-			// Call superclass constructor
-			super(text);
-
-			// Set action properties
-			putValue(Action.ACTION_COMMAND_KEY, command);
-			if (mnemonicKey != 0)
-				putValue(Action.MNEMONIC_KEY, mnemonicKey);
-			if (tooltipStr != null)
-				putValue(Action.SHORT_DESCRIPTION, tooltipStr);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : ActionListener interface
-	////////////////////////////////////////////////////////////////////
-
-		public void actionPerformed(ActionEvent event)
-		{
-			listener.actionPerformed(event);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	ActionListener	listener;
-
-	}
-
-	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
 	private ErrorListDialog(Window owner,
-							String titleStr,
+							String title,
 							String closeStr)
 	{
 		// Call superclass constructor
-		super(owner, titleStr, KEY, NUM_COLUMNS, NUM_ROWS, getCommands(closeStr), Command.CLOSE);
+		super(owner, title, KEY, NUM_COLUMNS, NUM_ROWS, getCommands(closeStr), Command.CLOSE);
 
 		// Add commands to action map
 		KeyAction.create((JComponent)getContentPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
@@ -383,12 +156,12 @@ class ErrorListDialog
 ////////////////////////////////////////////////////////////////////////
 
 	public static boolean showDialog(Component    parent,
-									 String       titleStr,
+									 String       title,
 									 String       closeStr,
 									 List<IdList> idLists)
 	{
 		// Create dialog
-		ErrorListDialog dialog = new ErrorListDialog(GuiUtils.getWindow(parent), titleStr, closeStr);
+		ErrorListDialog dialog = new ErrorListDialog(GuiUtils.getWindow(parent), title, closeStr);
 
 		// Set text
 		dialog.setText(idLists);
@@ -548,33 +321,260 @@ class ErrorListDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Static initialiser
+//  Enumerated types
 ////////////////////////////////////////////////////////////////////////
 
-	static
-	{
-		// Direction strings
-		DIRECTION_STRS = new EnumMap<>(Direction.class);
-		DIRECTION_STRS.put(Direction.NONE,   "No direction");
-		DIRECTION_STRS.put(Direction.ACROSS, "Across");
-		DIRECTION_STRS.put(Direction.DOWN,   "Down");
 
-		// Commands
-		COMMANDS = new HashMap<>();
-		COMMANDS.put(Command.COPY,
-					 new CommandAction(Command.COPY, COPY_STR, KeyEvent.VK_C, COPY_TOOLTIP_STR));
-		COMMANDS.put(Command.ACCEPT,
-					 new CommandAction(Command.ACCEPT, AppConstants.OK_STR, 0, null));
-		COMMANDS.put(Command.CLOSE,
-					 new CommandAction(Command.CLOSE, AppConstants.CANCEL_STR, 0, null));
+	// ENUMERATION: SPAN STYLE
+
+
+	private enum SpanStyle
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		PLAIN
+		(
+			"plain",
+			new Color(0, 0, 0)
+		)
+		{
+			@Override
+			protected void apply(Style style)
+			{
+				StyleConstants.setForeground(style, getColour());
+			}
+		},
+
+		ERROR_KIND
+		(
+			"errorKind",
+			new Color(192, 64, 0)
+		)
+		{
+			@Override
+			protected void apply(Style style)
+			{
+				StyleConstants.setForeground(style, getColour());
+				StyleConstants.setItalic(style, true);
+			}
+		},
+
+		DIRECTION
+		(
+			"direction",
+			new Color(0, 0, 160)
+		)
+		{
+			@Override
+			protected void apply(Style style)
+			{
+				StyleConstants.setForeground(style, getColour());
+			}
+		};
+
+		//--------------------------------------------------------------
+
+		private static final	String	PREFIX	= "span.";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	key;
+		private	Color	colour;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private SpanStyle(String key,
+						  Color  colour)
+		{
+			this.key = PREFIX + key;
+			this.colour = colour;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Abstract methods
+	////////////////////////////////////////////////////////////////////
+
+		protected abstract void apply(Style style);
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		protected Color getColour()
+		{
+			return colour;
+		}
+
+		//--------------------------------------------------------------
+
 	}
 
+	//==================================================================
+
+
+	// ENUMERATION: PARAGRAPH STYLE
+
+
+	private enum ParagraphStyle
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		ID_LISTS
+		(
+			"idLists"
+		)
+		{
+			@Override
+			protected void apply(Style style)
+			{
+				// do nothing
+			}
+		},
+
+		ERROR_KIND
+		(
+			"errorKind"
+		)
+		{
+			@Override
+			protected void apply(Style style)
+			{
+				StyleConstants.setSpaceAbove(style, (float)StyleConstants.getFontSize(style) * 0.5f);
+			}
+		};
+
+		//--------------------------------------------------------------
+
+		private static final	String	PREFIX	= "paragraph.";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	key;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ParagraphStyle(String key)
+		{
+			this.key = PREFIX + key;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Abstract methods
+	////////////////////////////////////////////////////////////////////
+
+		protected abstract void apply(Style style);
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	private	boolean	accepted;
-	private	boolean	cleared;
+
+	// CLASS: IDENTIFIER LIST
+
+
+	public static class IdList
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String				text;
+		private	List<Grid.Field.Id>	ids;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		public IdList(String              text,
+					  List<Grid.Field.Id> ids)
+		{
+			this.text = text;
+			this.ids = ids;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: COMMAND ACTION
+
+
+	private static class CommandAction
+		extends AbstractAction
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	ActionListener	listener;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private CommandAction(String command,
+							  String text,
+							  int    mnemonicKey,
+							  String tooltipStr)
+		{
+			// Call superclass constructor
+			super(text);
+
+			// Set action properties
+			putValue(Action.ACTION_COMMAND_KEY, command);
+			if (mnemonicKey != 0)
+				putValue(Action.MNEMONIC_KEY, mnemonicKey);
+			if (tooltipStr != null)
+				putValue(Action.SHORT_DESCRIPTION, tooltipStr);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : ActionListener interface
+	////////////////////////////////////////////////////////////////////
+
+		public void actionPerformed(ActionEvent event)
+		{
+			listener.actionPerformed(event);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

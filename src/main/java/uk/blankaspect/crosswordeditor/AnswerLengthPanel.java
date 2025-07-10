@@ -2,7 +2,7 @@
 
 AnswerLengthPanel.java
 
-Answer-length panel class.
+Class: answer-length panel.
 
 \*====================================================================*/
 
@@ -40,12 +40,14 @@ import uk.blankaspect.ui.swing.border.TitledBorder;
 
 import uk.blankaspect.ui.swing.button.FButton;
 
+import uk.blankaspect.ui.swing.label.FLabel;
+
 import uk.blankaspect.ui.swing.textfield.FTextField;
 
 //----------------------------------------------------------------------
 
 
-// ANSWER-LENGTH PANEL CLASS
+// CLASS: ANSWER-LENGTH PANEL
 
 
 class AnswerLengthPanel
@@ -57,8 +59,8 @@ class AnswerLengthPanel
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	private static final	int	PATTERN_NUM_COLUMNS		= 16;
-	private static final	int	SUBSTITUTIONS_NUM_ROWS	= 6;
+	private static final	int		PATTERN_NUM_COLUMNS		= 16;
+	private static final	int		SUBSTITUTIONS_NUM_ROWS	= 6;
 
 	private static final	Insets	BUTTON_MARGINS	= new Insets(2, 6, 2, 6);
 
@@ -74,42 +76,27 @@ class AnswerLengthPanel
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Member interfaces
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// LABEL SOURCE CLASS
-
-
-	interface LabelSource
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Methods
-	////////////////////////////////////////////////////////////////////
-
-		public JLabel createLabel(String text);
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
+	private	FTextField					patternField;
+	private	SubstitutionSelectionPanel	substitutionsPanel;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	public AnswerLengthPanel(LabelSource labelSource)
+	public AnswerLengthPanel()
 	{
-		this(labelSource, null, null);
+		this(null, null, null);
 	}
 
 	//------------------------------------------------------------------
 
-	public AnswerLengthPanel(LabelSource        labelSource,
-							 String             pattern,
-							 List<Substitution> substitutions)
+	public AnswerLengthPanel(
+		ILabelFactory		labelFactory,
+		String				pattern,
+		List<Substitution>	substitutions)
 	{
 		// Set layout manager and border
 		GridBagLayout gridBag = new GridBagLayout();
@@ -121,7 +108,7 @@ class AnswerLengthPanel
 		int gridY = 0;
 
 		// Label: pattern
-		JLabel patternLabel = labelSource.createLabel(PATTERN_STR);
+		JLabel patternLabel = (labelFactory == null) ? new FLabel(PATTERN_STR) : labelFactory.createLabel(PATTERN_STR);
 
 		gbc.gridx = 0;
 		gbc.gridy = gridY;
@@ -200,7 +187,7 @@ class AnswerLengthPanel
 		add(substitutionsOuterPanel);
 
 		// Label: substitutions
-		JLabel substitutionsLabel = labelSource.createLabel(SUBSTITUTIONS_STR);
+		JLabel substitutionsLabel = new FLabel(SUBSTITUTIONS_STR + ":");
 
 		gbc.gridx = 0;
 		gbc.gridy = 0;
@@ -241,7 +228,9 @@ class AnswerLengthPanel
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
-	public void actionPerformed(ActionEvent event)
+	@Override
+	public void actionPerformed(
+		ActionEvent	event)
 	{
 		if (event.getActionCommand().equals(Command.SET_DEFAULT_PATTERN))
 			patternField.setText(Clue.DEFAULT_LENGTH_REGEX);
@@ -253,21 +242,27 @@ class AnswerLengthPanel
 //  Instance methods : DocumentListener interface
 ////////////////////////////////////////////////////////////////////////
 
-	public void changedUpdate(DocumentEvent event)
+	@Override
+	public void changedUpdate(
+		DocumentEvent	event)
 	{
 		// do nothing
 	}
 
 	//------------------------------------------------------------------
 
-	public void insertUpdate(DocumentEvent event)
+	@Override
+	public void insertUpdate(
+		DocumentEvent	event)
 	{
 		updateSubstitutionsPanel();
 	}
 
 	//------------------------------------------------------------------
 
-	public void removeUpdate(DocumentEvent event)
+	@Override
+	public void removeUpdate(
+		DocumentEvent	event)
 	{
 		updateSubstitutionsPanel();
 	}
@@ -306,14 +301,16 @@ class AnswerLengthPanel
 
 	//------------------------------------------------------------------
 
-	public void setPattern(String pattern)
+	public void setPattern(
+		String	pattern)
 	{
 		patternField.setText(pattern);
 	}
 
 	//------------------------------------------------------------------
 
-	public void setSubstitutions(List<Substitution> substitutions)
+	public void setSubstitutions(
+		List<Substitution>	substitutions)
 	{
 		substitutionsPanel.setSubstitutions(substitutions);
 	}
@@ -328,11 +325,28 @@ class AnswerLengthPanel
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Member interfaces
 ////////////////////////////////////////////////////////////////////////
 
-	private	FTextField					patternField;
-	private	SubstitutionSelectionPanel	substitutionsPanel;
+
+	// INTERFACE: LABEL FACTORY
+
+
+	interface ILabelFactory
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Methods
+	////////////////////////////////////////////////////////////////////
+
+		public JLabel createLabel(
+			String	text);
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

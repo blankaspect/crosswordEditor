@@ -6,63 +6,46 @@ Styles for CrosswordEditor manual
 
 @import url("blankaspect-manual.css");
 
-a.definition
-{
-  text-decoration: none;
-  color: #804018;
-}
-
-dd.highlighted
-{
-  background-color: #F0ECD0;
+dd.highlighted {
   padding-left: 1.0em;
   padding-right: 1.0em;
 }
 
-div.clue
-{
+div.clue {
   margin: 0.2em 0;
 }
 
-dd.preamble
-{
+dd.preamble {
   font-size: 82%;
   line-height: 125%;
   padding: 0.4em 1.5em;
 }
 
-div#gridSymmetry
-{
+div#gridSymmetry {
   display: table;
   line-height: 125%;
 }
-div#gridSymmetry > div
-{
+div#gridSymmetry > div {
   display: table-row;
 }
-div#gridSymmetry > div > div
-{
+div#gridSymmetry > div > div {
   display: table-cell;
   vertical-align: middle;
   padding: 0.3em 0.6em;
 }
-div#gridSymmetry > div > div > div.comment
-{
+div#gridSymmetry > div > div > div.comment {
   font-size: 85%;
   padding-top: 0.2em;
 }
 
-div#topLeftBarImages
-{
+div#topLeftBarImages {
   display: table;
   margin: 0.5em 0;
 }
-div#topLeftBarImages > div
-{
+div#topLeftBarImages > div {
   display: table-row;
 }
-div#topLeftBarImages > div > div
-{
+div#topLeftBarImages > div > div {
   display: table-cell;
   padding: 0 1.5em;
   text-align: center;
@@ -70,52 +53,94 @@ div#topLeftBarImages > div > div
   font-size: 82%;
 }
 
-dl.fileAssoc
-{
+dl.fileAssoc {
   margin: 0.5em 1.0em;
 }
-dl.fileAssoc dt
-{
+dl.fileAssoc dt {
   font-weight: bold;
   padding: 0.3em 0.5em 0 0;
 }
-dl.fileAssoc dd
-{
+dl.fileAssoc dd {
   margin: 0 1.6em;
   padding: 0 0.5em 0.3em 0;
 }
 
-dl.terminology
-{
-  background-color: #FCFAE8;
-  border: 1px solid #E8E6CC;
+dl.terminology {
+  border: 1px solid;
   margin-top: 1.0em;
   margin-bottom: 1.0em;
   padding: 0.3em 1.2em;
 }
-dl.terminology dt
-{
-  color: #804018;
+dl.terminology dt {
   font-weight: bold;
   padding: 0.3em 0.5em 0 0;
 }
-dl.terminology dd
-{
+dl.terminology dd {
   margin: 0 2.0em;
   padding: 0 0.5em 0.3em 0;
 }
 
-span.clue
-{
-  background-color: #ECF4FC;
-  border: 1px solid #C8D8D8;
+span.clue {
+  border: 1px solid;
   padding: 0.1em 0.4em;
 }
 
-table.basic td.definitionTerm
-{
-  color: #004040;
+table.basic td.definitionTerm {
   font-weight: bold;
+}
+
+@media (prefers-color-scheme: light) {
+  a.definition {
+    color: #804018;
+  }
+
+  dd.highlighted {
+    background-color: #F0ECD0;
+  }
+
+  dl.terminology {
+    background-color: #FCFAE8;
+    border-color: #E8E6CC;
+  }
+  dl.terminology dt {
+    color: #804018;
+  }
+
+  span.clue {
+    background-color: #ECF4FC;
+    border-color: #C8D8D8;
+  }
+
+  table.basic td.definitionTerm {
+    color: #004040;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  a.definition {
+    color: #D890A0;
+  }
+
+  dd.highlighted {
+    background-color: #F0ECD0;
+  }
+
+  dl.terminology {
+    background-color: #20242C;
+    border-color: #404850;
+  }
+  dl.terminology dt {
+    color: #D890A0;
+  }
+
+  span.clue {
+    background-color: #403028;
+    border-color: #786050;
+  }
+
+  table.basic td.definitionTerm {
+    color: #80CCC8;
+  }
 }
 
 /*--------------------------------------------------------------------*/

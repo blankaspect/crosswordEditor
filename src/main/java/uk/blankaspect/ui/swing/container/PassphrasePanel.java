@@ -77,7 +77,7 @@ public class PassphrasePanel
 	private static final	String	FAILED_TO_CLEAR_CLIPBOARD_STR	= "Failed to clear the system " +
 																		"clipboard.";
 
-	private static final	List<String>	SHOW_HIDE_STRS	= Arrays.asList(SHOW_STR, HIDE_STR);
+	private static final	List<String>	SHOW_HIDE_STRS	= List.of(SHOW_STR, HIDE_STR);
 
 	// Commands
 	private interface Command

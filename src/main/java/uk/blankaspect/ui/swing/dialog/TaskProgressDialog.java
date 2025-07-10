@@ -19,7 +19,6 @@ package uk.blankaspect.ui.swing.dialog;
 
 
 import java.awt.Color;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FontMetrics;
@@ -140,7 +139,7 @@ public class TaskProgressDialog
 
 	protected TaskProgressDialog(
 		Window	owner,
-		String	titleStr,
+		String	title,
 		Task	task,
 		int		delay,
 		int		numProgressBars,
@@ -149,7 +148,7 @@ public class TaskProgressDialog
 		throws AppException
 	{
 		// Call superclass constructor
-		super(owner, titleStr, Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, title, ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		if (owner != null)
@@ -304,7 +303,7 @@ public class TaskProgressDialog
 			bottomPane = buttonPane;
 
 		if (bottomPane == null)
-			bottomPane = GuiUtils.createFiller();
+			bottomPane = GuiUtils.spacer();
 		else
 			bottomPane.setBorder(BorderFactory.createEmptyBorder(3, 8, 3, 8));
 
@@ -401,7 +400,7 @@ public class TaskProgressDialog
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
@@ -475,7 +474,9 @@ public class TaskProgressDialog
 		if (isVisible())
 		{
 			SwingUtilities.invokeLater(() ->
-					infoField.setText((file == null) ? str : pathnameText(str, getPathname(file), getFileSeparatorChar())));
+					infoField.setText((file == null)
+											? str
+											: pathnameText(str, getPathname(file), getFileSeparatorChar())));
 		}
 		else
 		{
@@ -486,6 +487,14 @@ public class TaskProgressDialog
 				deferredOutput.init(str, file, null);
 			}
 		}
+	}
+
+	//------------------------------------------------------------------
+
+	@Override
+	public int getNumProgressIndicators()
+	{
+		return progressBars.length;
 	}
 
 	//------------------------------------------------------------------
@@ -526,13 +535,10 @@ public class TaskProgressDialog
 	public void close()
 	{
 		stopped = true;
-		SwingUtilities.invokeLater(new Runnable()
+		SwingUtilities.invokeLater(() ->
 		{
-			public void run()
-			{
-				if (isVisible())
-					dispatchEvent(new WindowEvent(TaskProgressDialog.this, WindowEvent.WINDOW_CLOSING));
-			}
+			if (isVisible())
+				dispatchEvent(new WindowEvent(TaskProgressDialog.this, WindowEvent.WINDOW_CLOSING));
 		});
 	}
 
@@ -725,22 +731,21 @@ public class TaskProgressDialog
 			Graphics	gr)
 		{
 			// Create copy of graphics context
-			gr = gr.create();
+			Graphics2D gr2d = GuiUtils.copyGraphicsContext(gr);
 
 			// Draw background
-			gr.setColor(getBackground());
-			gr.fillRect(0, 0, getWidth(), getHeight());
+			gr2d.setColor(getBackground());
+			gr2d.fillRect(0, 0, getWidth(), getHeight());
 
 			// Draw text
 			if (text != null)
 			{
 				// Set rendering hints for text antialiasing and fractional metrics
-				if (gr instanceof Graphics2D gr2d)
-					TextRendering.setHints(gr2d);
+				TextRendering.setHints(gr2d);
 
 				// Draw text
-				gr.setColor(Color.BLACK);
-				gr.drawString(text, 0, gr.getFontMetrics().getAscent());
+				gr2d.setColor(Color.BLACK);
+				gr2d.drawString(text, 0, gr2d.getFontMetrics().getAscent());
 			}
 		}
 
@@ -778,12 +783,12 @@ public class TaskProgressDialog
 	//  Constants
 	////////////////////////////////////////////////////////////////////
 
-		private static final	int	MIN_TIME	= 0;
-		private static final	int	MAX_TIME	= 100 * 60 * 60 * 1000 - 1;
+		private static final	int		MIN_TIME	= 0;
+		private static final	int		MAX_TIME	= 100 * 60 * 60 * 1000 - 1;
 
-		private static final	String	SEPARATOR_STR		= ":";
-		private static final	String	PROTOTYPE_STR		= "00" + SEPARATOR_STR + "00" +
-																					SEPARATOR_STR + "00";
+		private static final	String	SEPARATOR	= ":";
+
+		private static final	String	PROTOTYPE_STR		= "00" + SEPARATOR + "00" + SEPARATOR + "00";
 		private static final	String	OUT_OF_RANGE_STR	= "--";
 
 		private static final	Color	TEXT_COLOUR	= new Color(0, 0, 144);
@@ -819,24 +824,22 @@ public class TaskProgressDialog
 			Graphics	gr)
 		{
 			// Create copy of graphics context
-			gr = gr.create();
+			Graphics2D gr2d = GuiUtils.copyGraphicsContext(gr);
 
 			// Draw background
-			gr.setColor(getBackground());
-			gr.fillRect(0, 0, getWidth(), getHeight());
+			gr2d.setColor(getBackground());
+			gr2d.fillRect(0, 0, getWidth(), getHeight());
 
 			// Draw text
 			if (text != null)
 			{
 				// Set rendering hints for text antialiasing and fractional metrics
-				if (gr instanceof Graphics2D gr2d)
-					TextRendering.setHints(gr2d);
+				TextRendering.setHints(gr2d);
 
 				// Draw text
-				FontMetrics fontMetrics = gr.getFontMetrics();
-				gr.setColor(TEXT_COLOUR);
-				gr.drawString(text, getWidth() - fontMetrics.stringWidth(text),
-							  fontMetrics.getAscent());
+				FontMetrics fontMetrics = gr2d.getFontMetrics();
+				gr2d.setColor(TEXT_COLOUR);
+				gr2d.drawString(text, getWidth() - fontMetrics.stringWidth(text), fontMetrics.getAscent());
 			}
 		}
 
@@ -855,10 +858,10 @@ public class TaskProgressDialog
 				int seconds = milliseconds / 1000;
 				int minutes = seconds / 60;
 				int hours = minutes / 60;
-				str = ((hours == 0) ? Integer.toString(minutes)
-									: Integer.toString(hours) + SEPARATOR_STR +
-												NumberUtils.uIntToDecString(minutes % 60, 2, '0')) +
-									SEPARATOR_STR + NumberUtils.uIntToDecString(seconds % 60, 2, '0');
+				str = ((hours == 0)
+							? Integer.toString(minutes)
+							: Integer.toString(hours) + SEPARATOR + NumberUtils.uIntToDecString(minutes % 60, 2, '0'))
+						+ SEPARATOR + NumberUtils.uIntToDecString(seconds % 60, 2, '0');
 			}
 			setText(str);
 		}

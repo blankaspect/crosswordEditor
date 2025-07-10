@@ -57,47 +57,47 @@ enum AppCommand
 	CREATE_DOCUMENT
 	(
 		"createDocument",
-		"New document" + AppConstants.ELLIPSIS_STR,
+		"New " + AppConstants.ELLIPSIS_STR,
 		KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK)
 	),
 
 	OPEN_DOCUMENT
 	(
 		"openDocument",
-		"Open document" + AppConstants.ELLIPSIS_STR,
+		"Open " + AppConstants.ELLIPSIS_STR,
 		KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK)
 	),
 
 	REVERT_DOCUMENT
 	(
 		"revertDocument",
-		"Revert document"
+		"Revert"
 	),
 
 	CLOSE_DOCUMENT
 	(
 		"closeDocument",
-		"Close document",
+		"Close",
 		KeyStroke.getKeyStroke(KeyEvent.VK_W, KeyEvent.CTRL_DOWN_MASK)
 	),
 
 	CLOSE_ALL_DOCUMENTS
 	(
 		"closeAllDocuments",
-		"Close all document"
+		"Close all"
 	),
 
 	SAVE_DOCUMENT
 	(
 		"saveDocument",
-		"Save document",
+		"Save",
 		KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK)
 	),
 
 	SAVE_DOCUMENT_AS
 	(
 		"saveDocumentAs",
-		"Save document as" + AppConstants.ELLIPSIS_STR
+		"Save as" + AppConstants.ELLIPSIS_STR
 	),
 
 	EXPORT_HTML_FILE
@@ -249,7 +249,7 @@ enum AppCommand
 	@Override
 	public void actionPerformed(ActionEvent event)
 	{
-		App.INSTANCE.executeCommand(this);
+		CrosswordEditorApp.INSTANCE.executeCommand(this);
 	}
 
 	//------------------------------------------------------------------

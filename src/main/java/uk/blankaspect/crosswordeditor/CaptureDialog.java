@@ -2,7 +2,7 @@
 
 CaptureDialog.java
 
-Crossword capture dialog class.
+Class: cossword capture dialog.
 
 \*====================================================================*/
 
@@ -21,16 +21,12 @@ package uk.blankaspect.crosswordeditor;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dialog;
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Window;
-
-import java.awt.datatransfer.FlavorEvent;
-import java.awt.datatransfer.FlavorListener;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -41,6 +37,8 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 
 import java.io.File;
+
+import java.lang.invoke.MethodHandles;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -78,6 +76,8 @@ import uk.blankaspect.common.regex.RegexUtils;
 
 import uk.blankaspect.common.string.StringUtils;
 
+import uk.blankaspect.common.tuple.StringPair;
+
 import uk.blankaspect.ui.swing.action.KeyAction;
 
 import uk.blankaspect.ui.swing.border.TitledBorder;
@@ -92,11 +92,13 @@ import uk.blankaspect.ui.swing.combobox.FComboBox;
 import uk.blankaspect.ui.swing.container.DimensionsSpinnerPanel;
 import uk.blankaspect.ui.swing.container.PathnamePanel;
 
+import uk.blankaspect.ui.swing.dialog.ImageRegionSelectionDialog;
 import uk.blankaspect.ui.swing.dialog.ParameterSetDialog;
 
 import uk.blankaspect.ui.swing.font.FontUtils;
 
 import uk.blankaspect.ui.swing.image.ClipboardImage;
+import uk.blankaspect.ui.swing.image.ImageUtils;
 
 import uk.blankaspect.ui.swing.label.FixedWidthLabel;
 import uk.blankaspect.ui.swing.label.FLabel;
@@ -114,12 +116,12 @@ import uk.blankaspect.ui.swing.textfield.IntegerField;
 //----------------------------------------------------------------------
 
 
-// CROSSWORD CAPTURE DIALOG CLASS
+// CLASS: CROSSWORD CAPTURE DIALOG
 
 
 class CaptureDialog
 	extends JDialog
-	implements ActionListener, AnswerLengthPanel.LabelSource, DocumentListener, FlavorListener
+	implements ActionListener, DocumentListener
 {
 
 ////////////////////////////////////////////////////////////////////////
@@ -167,9 +169,11 @@ class CaptureDialog
 	private static final	String	BAR_WIDTH_THRESHOLD_STR		= "Bar-width threshold";
 
 	// Clue indications panel
-	private static final	int		CLUE_REFERENCE_KEYWORD_NUM_COLUMNS	= 12;
+	private static final	int		MULTIPLE_FIELD_CLUE_ID_SEPARATOR_NUM_COLUMNS	= 2;
+	private static final	int		CLUE_REFERENCE_KEYWORD_NUM_COLUMNS				= 12;
 
-	private static final	String	CLUE_REFERENCE_STR	= "Clue reference";
+	private static final	String	MULTIPLE_FIELD_CLUE_ID_SEPARATOR_STR	= "Multiple-field clue ID separator";
+	private static final	String	CLUE_REFERENCE_STR						= "Clue reference";
 
 	// Clue substitutions panel
 	private static final	int		CLUE_SUBSTITUTIONS_NUM_ROWS	= 8;
@@ -204,7 +208,6 @@ class CaptureDialog
 
 	// General
 	private static final	String	CAPTURE_STR				= "Capture crossword";
-	private static final	String	SELECT_GRID_STR			= "Select grid in image";
 	private static final	String	DOCUMENT_DIR_TITLE_STR	= "Document directory";
 	private static final	String	HTML_DIR_TITLE_STR		= "HTML directory";
 	private static final	String	SELECT_STR				= "Select";
@@ -212,17 +215,14 @@ class CaptureDialog
 	private static final	String	SELECT_DIRECTORY_STR	= "Select directory";
 	private static final	String	PARAMETER_SET_STR		= "Parameter set";
 	private static final	String	PARAMETER_SET_FILE_STR	= "Parameter-set file";
-	private static final	String	CONFIRM_CLEAR_STR		= "Do you want to clear the crossword " +
-																"number, prologue, epilogue,\ngrid image " +
-																"and lists of clues?";
-	private static final	String	GRID_FOUND_STR			= "A grid of %d columns by %d rows was found." +
-																"\nDo you want to set the grid size to " +
-																"these values?";
-	private static final	String	NO_PARAM_SET_FILE_STR	= "No parameter-set file has been specified " +
-																"in the user preferences.\nDo you want " +
-																"to choose a file?";
+	private static final	String	CONFIRM_CLEAR_STR		=
+			"Do you want to clear the crossword number, prologue, epilogue,\ngrid image and lists of clues?";
+	private static final	String	GRID_FOUND_STR			=
+			"A grid of %d columns by %d rows was found.\nDo you want to set the grid size to these values?";
+	private static final	String	NO_PARAM_SET_FILE_STR	=
+			"No parameter-set file has been specified in the user preferences.\nDo you want to choose a file?";
 
-	private static final	String	KEY	= CaptureDialog.class.getCanonicalName();
+	private static final	String	KEY	= MethodHandles.lookup().lookupClass().getName();
 
 	// Commands
 	private interface Command
@@ -239,469 +239,64 @@ class CaptureDialog
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Enumerated types
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// TABS
-
-
-	private enum Tab
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		AUTOMATIC_GRID_DETECTION
-		(
-			"Auto grid detection"
-		)
-		{
-			@Override
-			protected JPanel createPanel(CaptureDialog dialog)
-			{
-				return dialog.createPanelAutoGridDetection();
-			}
-		},
-
-		GRID
-		(
-			"Grid"
-		)
-		{
-			@Override
-			protected JPanel createPanel(CaptureDialog dialog)
-			{
-				return dialog.createPanelGrid();
-			}
-		},
-
-		CLUE_INDICATIONS
-		(
-			"Clue indications"
-		)
-		{
-			@Override
-			protected JPanel createPanel(CaptureDialog dialog)
-			{
-				return dialog.createPanelClueIndications();
-			}
-		},
-
-		CLUE_SUBSTITUTIONS
-		(
-			"Clue substitutions"
-		)
-		{
-			@Override
-			protected JPanel createPanel(CaptureDialog dialog)
-			{
-				return dialog.createPanelClueSubstitutions();
-			}
-		},
-
-		TEXT
-		(
-			"Text"
-		)
-		{
-			@Override
-			protected JPanel createPanel(CaptureDialog dialog)
-			{
-				return dialog.createPanelText();
-			}
-		},
-
-		FILE
-		(
-			"File"
-		)
-		{
-			@Override
-			protected JPanel createPanel(CaptureDialog dialog)
-			{
-				return dialog.createPanelFile();
-			}
-		};
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Tab(String text)
-		{
-			this.text = text;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Abstract methods
-	////////////////////////////////////////////////////////////////////
-
-		protected abstract JPanel createPanel(CaptureDialog dialog);
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	text;
-
-	}
-
-	//==================================================================
-
-
-	// ERROR IDENTIFIERS
-
-
-	private enum ErrorId
-		implements AppException.IId
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		NOT_A_FILE
-		("The pathname does not denote a normal file."),
-
-		NOT_A_DIRECTORY
-		("The pathname does not denote a directory."),
-
-		MALFORMED_PATTERN
-		("The pattern is not a well-formed regular expression.\n(%1)");
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ErrorId(String message)
-		{
-			this.message = message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : AppException.IId interface
-	////////////////////////////////////////////////////////////////////
-
-		public String getMessage()
-		{
-			return message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	message;
-
-	}
-
-	//==================================================================
+	private static	CaptureParams	params		= new CaptureParams();
+	private static	Point			location;
+	private static	int				tabIndex	= Tab.TEXT.ordinal();
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// GRID LABEL CLASS
-
-
-	private static class GridLabel
-		extends FixedWidthLabel
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	KEY	= GridLabel.class.getCanonicalName();
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private GridLabel(String text)
-		{
-			super(text);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		private static void reset()
-		{
-			MaxValueMap.removeAll(KEY);
-		}
-
-		//--------------------------------------------------------------
-
-		private static void update()
-		{
-			MaxValueMap.update(KEY);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		protected String getKey()
-		{
-			return KEY;
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
-
-
-	// CLUE INDICATIONS LABEL CLASS
-
-
-	private static class ClueIndicationsLabel
-		extends FixedWidthLabel
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	KEY	= ClueIndicationsLabel.class.getCanonicalName();
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ClueIndicationsLabel(String text)
-		{
-			super(text);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		private static void reset()
-		{
-			MaxValueMap.removeAll(KEY);
-		}
-
-		//--------------------------------------------------------------
-
-		private static void update()
-		{
-			MaxValueMap.update(KEY);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		protected String getKey()
-		{
-			return KEY;
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
-
-
-	// NUMBER FIELD CLASS
-
-
-	private static class NumberField
-		extends IntegerField.Unsigned
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private NumberField()
-		{
-			super(NUMBER_FIELD_LENGTH);
-			AppFont.TEXT_FIELD.apply(this);
-			GuiUtils.setTextComponentMargins(this);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		protected int getColumnWidth()
-		{
-			return (FontUtils.getCharWidth('0', getFontMetrics(getFont())) + 1);
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
-
-
-	// STATUS PANEL CLASS
-
-
-	private static class StatusPanel
-		extends AbstractStatusPanel
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	GRID_STR	= "Grid";
-		private static final	String	CLUES_STR	= "Clues - ";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private StatusPanel()
-		{
-			// Call superclass constructor
-			super(true);
-
-			// Field: grid
-			gridField = new StatusField();
-			add(gridField);
-
-			// Fields: clues
-			cluesFields = new EnumMap<>(Direction.class);
-			for (Direction direction : Direction.DEFINED_DIRECTIONS)
-			{
-				StatusField cluesField = new StatusField();
-				cluesFields.put(direction, cluesField);
-				add(cluesField);
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public void setGrid(boolean enabled)
-		{
-			gridField.setText(enabled ? GRID_STR : null);
-		}
-
-		//--------------------------------------------------------------
-
-		public void setClues(Direction direction,
-							 boolean   enabled)
-		{
-			cluesFields.get(direction).setText(enabled ? CLUES_STR + direction.toString() : null);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	StatusField					gridField;
-		private	Map<Direction, StatusField>	cluesFields;
-
-	}
-
-	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
-//  Member classes : inner classes
-////////////////////////////////////////////////////////////////////////
-
-
-	// MENU ITEM CLASS
-
-
-	private class MenuItem
-		extends JMenuItem
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private MenuItem(Direction direction)
-		{
-			super(direction.toString());
-			AppFont.MAIN.apply(this);
-			setMnemonic(direction.getKeyCode());
-			setActionCommand(Command.GET_CLUES + direction.getKey());
-			addActionListener(CaptureDialog.this);
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
-
-
-	// BUTTON CLASS
-
-
-	private class Button
-		extends FButton
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Button(String text,
-					   String command,
-					   int    mnemonicKey)
-		{
-			super(text);
-			setMargin(BUTTON_MARGINS);
-			setMnemonic(mnemonicKey);
-			setActionCommand(command);
-			addActionListener(CaptureDialog.this);
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
+	private	boolean						accepted;
+	private	int							documentIndex;
+	private	CrosswordDocument			document;
+	private	BufferedImage				gridImage;
+	private	Map<Direction, List<Clue>>	clueLists;
+	private	JTabbedPane					tabbedPanel;
+	private	FIntegerSpinner				gridLineBrightnessThresholdSpinner;
+	private	FIntegerSpinner				gridLineMinLengthSpinner;
+	private	FIntegerSpinner				gridLineMinSeparationSpinner;
+	private	FIntegerSpinner				gridLineEndpointToleranceSpinner;
+	private	FComboBox<Grid.Separator>	gridSeparatorComboBox;
+	private	DimensionsSpinnerPanel		gridSizePanel;
+	private	JCheckBox					autoGridDetectionCheckBox;
+	private	FIntegerSpinner				xOffsetSpinner;
+	private	FIntegerSpinner				yOffsetSpinner;
+	private	JPanel						gridSeparatorParamPanel;
+	private	FIntegerSpinner				sampleSizeSpinner;
+	private	FIntegerSpinner				blockBrightnessThresholdSpinner;
+	private	FIntegerSpinner				barWidthThresholdSpinner;
+	private	FIntegerSpinner				barBrightnessThresholdSpinner;
+	private	FTextField					multipleFieldClueIdSeparatorField;
+	private	FTextField					clueReferenceKeywordField;
+	private	AnswerLengthPanel			answerLengthPanel;
+	private	SubstitutionSelectionPanel	clueSubstitutionsPanel;
+	private	NumberField					numberField;
+	private	FTextField					titleField;
+	private	TextPanel					prologuePanel;
+	private	TextPanel					epiloguePanel;
+	private	FTextField					filenameStemField;
+	private	FPathnameField				documentDirectoryField;
+	private	FPathnameField				htmlDirectoryField;
+	private	JButton						clearButton;
+	private	JButton						getGridImageButton;
+	private	MenuButton					getCluesButton;
+	private	JButton						okButton;
+	private	StatusPanel					statusPanel;
+	private	JFileChooser				documentDirectoryChooser;
+	private	JFileChooser				htmlDirectoryChooser;
+	private	JFileChooser				parameterSetFileChooser;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	private CaptureDialog(Window owner,
-						  int    documentIndex)
+	private CaptureDialog(
+		Window	owner,
+		int		documentIndex)
 	{
 		// Call superclass constructor
 		super(owner, CAPTURE_STR, Dialog.ModalityType.APPLICATION_MODAL);
@@ -890,14 +485,15 @@ class CaptureDialog
 		addWindowListener(new WindowAdapter()
 		{
 			@Override
-			public void windowClosing(WindowEvent event)
+			public void windowClosing(
+				WindowEvent	event)
 			{
 				onClose();
 			}
 		});
 
 		// Respond to changes to data flavours on system clipboard
-		getToolkit().getSystemClipboard().addFlavorListener(this);
+		getToolkit().getSystemClipboard().addFlavorListener(event -> updateClipboardButtons());
 
 		// Prevent window from being resized
 		setResizable(false);
@@ -920,8 +516,9 @@ class CaptureDialog
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static CrosswordDocument showDialog(Component parent,
-											   int       documentIndex)
+	public static CrosswordDocument showDialog(
+		Component	parent,
+		int			documentIndex)
 
 	{
 		return new CaptureDialog(GuiUtils.getWindow(parent), documentIndex).getDocument();
@@ -933,7 +530,9 @@ class CaptureDialog
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
-	public void actionPerformed(ActionEvent event)
+	@Override
+	public void actionPerformed(
+		ActionEvent	event)
 	{
 		try
 		{
@@ -975,48 +574,32 @@ class CaptureDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance methods : AnswerLengthPanel.LabelSource interface
-////////////////////////////////////////////////////////////////////////
-
-	public JLabel createLabel(String text)
-	{
-		return new ClueIndicationsLabel(text);
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
 //  Instance methods : DocumentListener interface
 ////////////////////////////////////////////////////////////////////////
 
-	public void changedUpdate(DocumentEvent event)
+	@Override
+	public void changedUpdate(
+		DocumentEvent	event)
 	{
 		// do nothing
 	}
 
 	//------------------------------------------------------------------
 
-	public void insertUpdate(DocumentEvent event)
+	@Override
+	public void insertUpdate(
+		DocumentEvent	event)
 	{
 		updateClearButton();
 	}
 
 	//------------------------------------------------------------------
 
-	public void removeUpdate(DocumentEvent event)
+	@Override
+	public void removeUpdate(
+		DocumentEvent	event)
 	{
 		updateClearButton();
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods : FlavorListener interface
-////////////////////////////////////////////////////////////////////////
-
-	public void flavorsChanged(FlavorEvent event)
-	{
-		updateClipboardButtons();
 	}
 
 	//------------------------------------------------------------------
@@ -1027,7 +610,7 @@ class CaptureDialog
 
 	private CrosswordDocument getDocument()
 	{
-		return (accepted ? document : null);
+		return accepted ? document : null;
 	}
 
 	//------------------------------------------------------------------
@@ -1039,7 +622,8 @@ class CaptureDialog
 
 	//------------------------------------------------------------------
 
-	private String getText(JTextField textField)
+	private String getText(
+		JTextField	textField)
 	{
 		return textField.getText().replace(NUMBER_PLACEHOLDER, numberField.getText());
 	}
@@ -1048,26 +632,26 @@ class CaptureDialog
 
 	private File getDocumentDirectory()
 	{
-		return (documentDirectoryField.isEmpty()
+		return documentDirectoryField.isEmpty()
 						? null
-						: new File(PathnameUtils.parsePathname(getText(documentDirectoryField))));
+						: new File(PathnameUtils.parsePathname(getText(documentDirectoryField)));
 	}
 
 	//------------------------------------------------------------------
 
 	private File getHtmlDirectory()
 	{
-		return (htmlDirectoryField.isEmpty()
+		return htmlDirectoryField.isEmpty()
 						? null
-						: new File(PathnameUtils.parsePathname(getText(htmlDirectoryField))));
+						: new File(PathnameUtils.parsePathname(getText(htmlDirectoryField)));
 	}
 
 	//------------------------------------------------------------------
 
 	private void updateComponents()
 	{
-		((CardLayout)gridSeparatorParamPanel.getLayout()).
-											show(gridSeparatorParamPanel, getGridSeparator().getKey());
+		((CardLayout)gridSeparatorParamPanel.getLayout())
+				.show(gridSeparatorParamPanel, getGridSeparator().getKey());
 		updateClearButton();
 		updateClipboardButtons();
 		updateAcceptButton();
@@ -1101,41 +685,41 @@ class CaptureDialog
 	private CaptureParams getParams()
 	{
 		Grid.Separator gridSeparator = getGridSeparator();
-		return new CaptureParams(gridSeparator,
-								 gridSizePanel.getValue1(),
-								 gridSizePanel.getValue2(),
-								 autoGridDetectionCheckBox.isSelected(),
-								 xOffsetSpinner.getIntValue(),
-								 yOffsetSpinner.getIntValue(),
-								 (gridSeparator == Grid.Separator.BLOCK)
-															? sampleSizeSpinner.getIntValue()
-															: CaptureParams.DEFAULT_SAMPLE_SIZE,
-								 (gridSeparator == Grid.Separator.BLOCK)
-															? blockBrightnessThresholdSpinner.getIntValue()
-															: CaptureParams.DEFAULT_BRIGHTNESS_THRESHOLD,
-								 (gridSeparator == Grid.Separator.BAR)
-															? barWidthThresholdSpinner.getIntValue()
-															: CaptureParams.DEFAULT_BAR_WIDTH_THRESHOLD,
-								 (gridSeparator == Grid.Separator.BAR)
-															? barBrightnessThresholdSpinner.getIntValue()
-															: CaptureParams.DEFAULT_BRIGHTNESS_THRESHOLD,
-								 gridLineBrightnessThresholdSpinner.getIntValue(),
-								 gridLineMinLengthSpinner.getIntValue(),
-								 gridLineMinSeparationSpinner.getIntValue(),
-								 gridLineEndpointToleranceSpinner.getIntValue(),
-								 clueReferenceKeywordField.getText(),
-								 answerLengthPanel.getPattern(),
-								 answerLengthPanel.getSubstitutions(),
-								 clueSubstitutionsPanel.getSubstitutions(),
-								 titleField.getText(),
-								 filenameStemField.getText(),
-								 documentDirectoryField.getPathname(),
-								 htmlDirectoryField.getPathname());
+		return new CaptureParams(
+			gridSeparator,
+			gridSizePanel.getValue1(),
+			gridSizePanel.getValue2(),
+			autoGridDetectionCheckBox.isSelected(),
+			xOffsetSpinner.getIntValue(),
+			yOffsetSpinner.getIntValue(),
+			(gridSeparator == Grid.Separator.BLOCK) ? sampleSizeSpinner.getIntValue()
+													: CaptureParams.DEFAULT_SAMPLE_SIZE,
+			(gridSeparator == Grid.Separator.BLOCK) ? blockBrightnessThresholdSpinner.getIntValue()
+													: CaptureParams.DEFAULT_BRIGHTNESS_THRESHOLD,
+			(gridSeparator == Grid.Separator.BAR) ? barWidthThresholdSpinner.getIntValue()
+												  : CaptureParams.DEFAULT_BAR_WIDTH_THRESHOLD,
+			(gridSeparator == Grid.Separator.BAR) ? barBrightnessThresholdSpinner.getIntValue()
+												  : CaptureParams.DEFAULT_BRIGHTNESS_THRESHOLD,
+			gridLineBrightnessThresholdSpinner.getIntValue(),
+			gridLineMinLengthSpinner.getIntValue(),
+			gridLineMinSeparationSpinner.getIntValue(),
+			gridLineEndpointToleranceSpinner.getIntValue(),
+			multipleFieldClueIdSeparatorField.getText(),
+			clueReferenceKeywordField.getText(),
+			answerLengthPanel.getPattern(),
+			answerLengthPanel.getSubstitutions(),
+			clueSubstitutionsPanel.getSubstitutions(),
+			titleField.getText(),
+			filenameStemField.getText(),
+			documentDirectoryField.getPathname(),
+			htmlDirectoryField.getPathname()
+		);
 	}
 
 	//------------------------------------------------------------------
 
-	private void setParams(CaptureParams params)
+	private void setParams(
+		CaptureParams	params)
 	{
 		gridSeparatorComboBox.setSelectedValue(params.getGridSeparator());
 		gridSizePanel.setValues(params.getNumColumns(), params.getNumRows());
@@ -1150,6 +734,7 @@ class CaptureDialog
 		gridLineMinLengthSpinner.setIntValue(params.getGridLineMinLength());
 		gridLineMinSeparationSpinner.setIntValue(params.getGridLineMinSeparation());
 		gridLineEndpointToleranceSpinner.setIntValue(params.getGridLineEndpointTolerance());
+		multipleFieldClueIdSeparatorField.setText(params.getMultipleFieldClueIdSeparator());
 		clueReferenceKeywordField.setText(params.getClueReferenceKeyword());
 		answerLengthPanel.setPattern(params.getAnswerLengthPattern());
 		answerLengthPanel.setSubstitutions(params.getAnswerLengthSubstitutions());
@@ -1181,6 +766,40 @@ class CaptureDialog
 				answerLengthPanel.getPatternField().setCaretPosition(index);
 			throw new AppException(ErrorId.MALFORMED_PATTERN, RegexUtils.getExceptionMessage(e));
 		}
+	}
+
+	//------------------------------------------------------------------
+
+	private Grid gridFromImage()
+		throws AppException
+	{
+		int numColumns = gridSizePanel.getValue1();
+		int numRows = gridSizePanel.getValue2();
+		int xOffset = xOffsetSpinner.getIntValue();
+		int yOffset = yOffsetSpinner.getIntValue();
+		int sampleSize = sampleSizeSpinner.getIntValue();
+		int barWidthThreshold = barWidthThresholdSpinner.getIntValue();
+		Grid grid = null;
+		switch (getGridSeparator())
+		{
+			case BLOCK:
+			{
+				double brightnessThreshold =
+						(double)blockBrightnessThresholdSpinner.getIntValue() * BRIGHTNESS_THRESHOLD_FACTOR;
+				grid = new BlockGrid(numColumns, numRows, gridImage, xOffset, yOffset, sampleSize, brightnessThreshold);
+				break;
+			}
+
+			case BAR:
+			{
+				double brightnessThreshold =
+						(double)barBrightnessThresholdSpinner.getIntValue() * BRIGHTNESS_THRESHOLD_FACTOR;
+				grid = new BarGrid(numColumns, numRows, gridImage, xOffset, yOffset, brightnessThreshold,
+								   barWidthThreshold);
+				break;
+			}
+		}
+		return grid;
 	}
 
 	//------------------------------------------------------------------
@@ -1225,7 +844,6 @@ class CaptureDialog
 
 	private JPanel createPanelAutoGridDetection()
 	{
-
 		//----  Control panel
 
 		GridBagLayout gridBag = new GridBagLayout();
@@ -1285,10 +903,9 @@ class CaptureDialog
 		controlPanel.add(minLineLengthLabel);
 
 		// Spinner: minimum line length
-		gridLineMinLengthSpinner = new FIntegerSpinner(CaptureParams.MIN_GRID_LINE_MIN_LENGTH,
-													   CaptureParams.MIN_GRID_LINE_MIN_LENGTH,
-													   CaptureParams.MAX_GRID_LINE_MIN_LENGTH,
-													   MIN_LINE_LENGTH_FIELD_LENGTH);
+		gridLineMinLengthSpinner =
+				new FIntegerSpinner(CaptureParams.MIN_GRID_LINE_MIN_LENGTH, CaptureParams.MIN_GRID_LINE_MIN_LENGTH,
+									CaptureParams.MAX_GRID_LINE_MIN_LENGTH, MIN_LINE_LENGTH_FIELD_LENGTH);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -1318,10 +935,10 @@ class CaptureDialog
 		controlPanel.add(minLineSeparationLabel);
 
 		// Spinner: minimum line separation
-		gridLineMinSeparationSpinner = new FIntegerSpinner(CaptureParams.MIN_GRID_LINE_MIN_SEPARATION,
-														   CaptureParams.MIN_GRID_LINE_MIN_SEPARATION,
-														   CaptureParams.MAX_GRID_LINE_MIN_SEPARATION,
-														   MIN_LINE_SEPARATION_FIELD_LENGTH);
+		gridLineMinSeparationSpinner =
+				new FIntegerSpinner(CaptureParams.MIN_GRID_LINE_MIN_SEPARATION,
+									CaptureParams.MIN_GRID_LINE_MIN_SEPARATION,
+									CaptureParams.MAX_GRID_LINE_MIN_SEPARATION, MIN_LINE_SEPARATION_FIELD_LENGTH);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -1351,11 +968,10 @@ class CaptureDialog
 		controlPanel.add(lineEndpointToleranceLabel);
 
 		// Spinner: line endpoint tolerance
-		gridLineEndpointToleranceSpinner =
-										new FIntegerSpinner(CaptureParams.MIN_GRID_LINE_ENDPOINT_TOLERANCE,
-															CaptureParams.MIN_GRID_LINE_ENDPOINT_TOLERANCE,
-															CaptureParams.MAX_GRID_LINE_ENDPOINT_TOLERANCE,
-															MIN_LINE_ENDPOINT_TOLERANCE_FIELD_LENGTH);
+		gridLineEndpointToleranceSpinner = new FIntegerSpinner(CaptureParams.MIN_GRID_LINE_ENDPOINT_TOLERANCE,
+															   CaptureParams.MIN_GRID_LINE_ENDPOINT_TOLERANCE,
+															   CaptureParams.MAX_GRID_LINE_ENDPOINT_TOLERANCE,
+															   MIN_LINE_ENDPOINT_TOLERANCE_FIELD_LENGTH);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -1397,7 +1013,6 @@ class CaptureDialog
 
 	private JPanel createPanelGrid()
 	{
-
 		//----  Control panel
 
 		GridBagLayout gridBag = new GridBagLayout();
@@ -1462,10 +1077,10 @@ class CaptureDialog
 		controlPanel.add(gridSizeLabel);
 
 		// Panel: grid size
-		gridSizePanel = new DimensionsSpinnerPanel(Grid.DEFAULT_NUM_COLUMNS, Grid.DEFAULT_NUM_ROWS,
-												   Grid.MIN_NUM_COLUMNS, Grid.MAX_NUM_COLUMNS,
-												   GRID_SIZE_FIELD_LENGTH,
-												   new String[] { COLUMNS_STR, ROWS_STR }, true);
+		gridSizePanel =
+				new DimensionsSpinnerPanel(Grid.DEFAULT_NUM_COLUMNS, Grid.DEFAULT_NUM_ROWS, Grid.MIN_NUM_COLUMNS,
+										  Grid.MAX_NUM_COLUMNS, GRID_SIZE_FIELD_LENGTH,
+										  StringPair.of(COLUMNS_STR, ROWS_STR), true);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -1525,8 +1140,9 @@ class CaptureDialog
 		controlPanel.add(xOffsetPanel);
 
 		// Spinner: x offset
-		xOffsetSpinner = new FIntegerSpinner(CaptureParams.MIN_X_OFFSET, CaptureParams.MIN_X_OFFSET,
-											 CaptureParams.MAX_X_OFFSET, X_OFFSET_FIELD_LENGTH, true);
+		xOffsetSpinner =
+				new FIntegerSpinner(CaptureParams.MIN_X_OFFSET, CaptureParams.MIN_X_OFFSET, CaptureParams.MAX_X_OFFSET,
+									X_OFFSET_FIELD_LENGTH, true);
 
 		gbc.gridx = 0;
 		gbc.gridy = 0;
@@ -1586,8 +1202,9 @@ class CaptureDialog
 		controlPanel.add(yOffsetPanel);
 
 		// Spinner: y offset
-		yOffsetSpinner = new FIntegerSpinner(CaptureParams.MIN_Y_OFFSET, CaptureParams.MIN_Y_OFFSET,
-											 CaptureParams.MAX_Y_OFFSET, Y_OFFSET_FIELD_LENGTH, true);
+		yOffsetSpinner =
+				new FIntegerSpinner(CaptureParams.MIN_Y_OFFSET, CaptureParams.MIN_Y_OFFSET, CaptureParams.MAX_Y_OFFSET,
+									Y_OFFSET_FIELD_LENGTH, true);
 
 		gbc.gridx = 0;
 		gbc.gridy = 0;
@@ -1687,10 +1304,9 @@ class CaptureDialog
 		panel.add(sampleSizeLabel);
 
 		// Spinner: sample size
-		sampleSizeSpinner = new FIntegerSpinner(CaptureParams.MIN_SAMPLE_SIZE,
-												CaptureParams.MIN_SAMPLE_SIZE,
-												CaptureParams.MAX_SAMPLE_SIZE,
-												SAMPLE_SIZE_FIELD_LENGTH);
+		sampleSizeSpinner =
+				new FIntegerSpinner(CaptureParams.MIN_SAMPLE_SIZE, CaptureParams.MIN_SAMPLE_SIZE,
+									CaptureParams.MAX_SAMPLE_SIZE, SAMPLE_SIZE_FIELD_LENGTH);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -1720,10 +1336,9 @@ class CaptureDialog
 		panel.add(blockBrightnessThresholdLabel);
 
 		// Spinner: block brightness threshold
-		blockBrightnessThresholdSpinner = new FIntegerSpinner(CaptureParams.MIN_BRIGHTNESS_THRESHOLD,
-															  CaptureParams.MIN_BRIGHTNESS_THRESHOLD,
-															  CaptureParams.MAX_BRIGHTNESS_THRESHOLD,
-															  BRIGHTNESS_THRESHOLD_FIELD_LENGTH);
+		blockBrightnessThresholdSpinner =
+				new FIntegerSpinner(CaptureParams.MIN_BRIGHTNESS_THRESHOLD, CaptureParams.MIN_BRIGHTNESS_THRESHOLD,
+									CaptureParams.MAX_BRIGHTNESS_THRESHOLD, BRIGHTNESS_THRESHOLD_FIELD_LENGTH);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -1767,10 +1382,9 @@ class CaptureDialog
 		panel.add(barWidthThresholdLabel);
 
 		// Spinner: bar width threshold
-		barWidthThresholdSpinner = new FIntegerSpinner(CaptureParams.MIN_BAR_WIDTH_THRESHOLD,
-													   CaptureParams.MIN_BAR_WIDTH_THRESHOLD,
-													   CaptureParams.MAX_BAR_WIDTH_THRESHOLD,
-													   BAR_WIDTH_THRESHOLD_FIELD_LENGTH);
+		barWidthThresholdSpinner =
+				new FIntegerSpinner(CaptureParams.MIN_BAR_WIDTH_THRESHOLD, CaptureParams.MIN_BAR_WIDTH_THRESHOLD,
+									CaptureParams.MAX_BAR_WIDTH_THRESHOLD, BAR_WIDTH_THRESHOLD_FIELD_LENGTH);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -1800,10 +1414,9 @@ class CaptureDialog
 		panel.add(barBrightnessThresholdLabel);
 
 		// Spinner: bar brightness threshold
-		barBrightnessThresholdSpinner = new FIntegerSpinner(CaptureParams.MIN_BRIGHTNESS_THRESHOLD,
-															CaptureParams.MIN_BRIGHTNESS_THRESHOLD,
-															CaptureParams.MAX_BRIGHTNESS_THRESHOLD,
-															BRIGHTNESS_THRESHOLD_FIELD_LENGTH);
+		barBrightnessThresholdSpinner =
+				new FIntegerSpinner(CaptureParams.MIN_BRIGHTNESS_THRESHOLD, CaptureParams.MIN_BRIGHTNESS_THRESHOLD,
+									CaptureParams.MAX_BRIGHTNESS_THRESHOLD, BRIGHTNESS_THRESHOLD_FIELD_LENGTH);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -1824,10 +1437,6 @@ class CaptureDialog
 
 	private JPanel createPanelClueIndications()
 	{
-		// Reset fixed-width labels
-		ClueIndicationsLabel.reset();
-
-
 		//----  Control panel
 
 		GridBagLayout gridBag = new GridBagLayout();
@@ -1838,8 +1447,38 @@ class CaptureDialog
 
 		int gridY = 0;
 
+		// Label: multiple-field clue ID separator
+		JLabel multipleFieldClueIdSeparatorLabel = new FLabel(MULTIPLE_FIELD_CLUE_ID_SEPARATOR_STR);
+
+		gbc.gridx = 0;
+		gbc.gridy = gridY;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.LINE_END;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gridBag.setConstraints(multipleFieldClueIdSeparatorLabel, gbc);
+		controlPanel.add(multipleFieldClueIdSeparatorLabel);
+
+		// Field: multiple-field clue ID separator
+		multipleFieldClueIdSeparatorField = new FTextField(MULTIPLE_FIELD_CLUE_ID_SEPARATOR_NUM_COLUMNS);
+
+		gbc.gridx = 1;
+		gbc.gridy = gridY++;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.LINE_START;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gridBag.setConstraints(multipleFieldClueIdSeparatorField, gbc);
+		controlPanel.add(multipleFieldClueIdSeparatorField);
+
 		// Label: clue reference
-		JLabel clueReferenceLabel = new ClueIndicationsLabel(CLUE_REFERENCE_STR);
+		JLabel clueReferenceLabel = new FLabel(CLUE_REFERENCE_STR);
 
 		gbc.gridx = 0;
 		gbc.gridy = gridY;
@@ -1860,7 +1499,7 @@ class CaptureDialog
 		gbc.gridy = gridY++;
 		gbc.gridwidth = 1;
 		gbc.gridheight = 1;
-		gbc.weightx = 1.0;
+		gbc.weightx = 0.0;
 		gbc.weighty = 0.0;
 		gbc.anchor = GridBagConstraints.LINE_START;
 		gbc.fill = GridBagConstraints.NONE;
@@ -1871,10 +1510,7 @@ class CaptureDialog
 
 		//----  Answer length panel
 
-		answerLengthPanel = new AnswerLengthPanel(this);
-
-		// Update widths of labels
-		ClueIndicationsLabel.update();
+		answerLengthPanel = new AnswerLengthPanel();
 
 
 		//----  Outer panel
@@ -1918,7 +1554,6 @@ class CaptureDialog
 
 	private JPanel createPanelClueSubstitutions()
 	{
-
 		//----  Clue substitutions panel
 
 		clueSubstitutionsPanel = new SubstitutionSelectionPanel(CLUE_SUBSTITUTIONS_NUM_ROWS);
@@ -1952,7 +1587,6 @@ class CaptureDialog
 
 	private JPanel createPanelText()
 	{
-
 		//----  Control panel
 
 		GridBagLayout gridBag = new GridBagLayout();
@@ -2114,7 +1748,6 @@ class CaptureDialog
 
 	private JPanel createPanelFile()
 	{
-
 		//----  Control panel
 
 		GridBagLayout gridBag = new GridBagLayout();
@@ -2173,8 +1806,8 @@ class CaptureDialog
 		// Panel: document directory
 		documentDirectoryField = new FPathnameField();
 		FPathnameField.addObserver(KEY, documentDirectoryField);
-		JPanel documentDirectoryPanel = new PathnamePanel(documentDirectoryField,
-														  Command.CHOOSE_DOCUMENT_DIRECTORY, this);
+		JPanel documentDirectoryPanel =
+				new PathnamePanel(documentDirectoryField, Command.CHOOSE_DOCUMENT_DIRECTORY, this);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -2206,8 +1839,8 @@ class CaptureDialog
 		// Panel: HTML directory
 		htmlDirectoryField = new FPathnameField();
 		FPathnameField.addObserver(KEY, htmlDirectoryField);
-		JPanel htmlDirectoryPanel = new PathnamePanel(htmlDirectoryField, Command.CHOOSE_HTML_DIRECTORY,
-													  this);
+		JPanel htmlDirectoryPanel =
+				new PathnamePanel(htmlDirectoryField, Command.CHOOSE_HTML_DIRECTORY, this);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -2282,24 +1915,24 @@ class CaptureDialog
 		// Get image from clipboard
 		BufferedImage image = Utils.getClipboardImage();
 
-		// Select grid
+		// Find grid in image
 		Grid.Info gridInfo = null;
 		if (autoGridDetectionCheckBox.isSelected())
 		{
 			try
 			{
-				double brightnessThreshold = (double)gridLineBrightnessThresholdSpinner.getIntValue()
-																						* BRIGHTNESS_THRESHOLD_FACTOR;
+				double brightnessThreshold =
+						(double)gridLineBrightnessThresholdSpinner.getIntValue() * BRIGHTNESS_THRESHOLD_FACTOR;
 				int minLineLength = gridLineMinLengthSpinner.getIntValue();
 				int minLineSeparation = gridLineMinSeparationSpinner.getIntValue();
 				int endpointTolerance = gridLineEndpointToleranceSpinner.getIntValue();
 				gridInfo = Grid.findGrid(image, brightnessThreshold, minLineLength, minLineSeparation,
 										 endpointTolerance);
-				String messageStr = String.format(GRID_FOUND_STR, gridInfo.numColumns, gridInfo.numRows);
+				String messageStr = String.format(GRID_FOUND_STR, gridInfo.numColumns(), gridInfo.numRows());
 				int result = JOptionPane.showConfirmDialog(this, messageStr, GET_GRID_IMAGE_STR,
 														   JOptionPane.YES_NO_CANCEL_OPTION);
 				if (result == JOptionPane.YES_OPTION)
-					gridSizePanel.setValues(gridInfo.numColumns, gridInfo.numRows);
+					gridSizePanel.setValues(gridInfo.numColumns(), gridInfo.numRows());
 				else if (result != JOptionPane.NO_OPTION)
 					return;
 			}
@@ -2309,32 +1942,35 @@ class CaptureDialog
 			}
 		}
 
-		// Select grid in image
-		Dimension viewportSize = AppConfig.INSTANCE.getGridImageViewportSize();
-		image = ImageRegionSelectionDialog.showDialog(this, SELECT_GRID_STR, viewportSize.width, viewportSize.height,
-													  image, (gridInfo == null) ? null : gridInfo.getBounds());
-		if (image != null)
+		// Display dialog for selecting grid in image
+		ImageRegionSelectionDialog.Selection result =
+				ImageRegionSelectionDialog.show(this, getGridImageButton, image,
+												(gridInfo == null) ? null : gridInfo.getBounds());
+		if (result != null)
 		{
-			gridImage = image;
+			gridImage = result.allSelected() ? image : ImageUtils.getSubimage(image, result.region());
 			statusPanel.setGrid(true);
 			updateComponents();
+
+			GridPreviewDialog.showDialog(this, gridFromImage());
 		}
 	}
 
 	//------------------------------------------------------------------
 
-	private void onGetClues(String key)
+	private void onGetClues(
+		String	key)
 		throws AppException
 	{
 		validateClueParams();
-		String clueReferenceKeyword = clueReferenceKeywordField.isEmpty() ? null
-																		  : clueReferenceKeywordField.getText();
+		String clueReferenceKeyword =
+				clueReferenceKeywordField.isEmpty() ? null : clueReferenceKeywordField.getText();
 		Clue.AnswerLengthParser answerLengthParser = answerLengthPanel.isPattern()
 													? new Clue.AnswerLengthParser(answerLengthPanel.getPattern(),
 																				  answerLengthPanel.getSubstitutions())
 													: null;
-		List<Clue> clues = Clue.getCluesFromClipboard(clueReferenceKeyword, answerLengthParser,
-													  clueSubstitutionsPanel.getSubstitutions());
+		List<Clue> clues = Clue.getCluesFromClipboard(multipleFieldClueIdSeparatorField.getText(), clueReferenceKeyword,
+													  answerLengthParser, clueSubstitutionsPanel.getSubstitutions());
 		if (!clues.isEmpty())
 		{
 			Direction direction = Direction.forKey(key);
@@ -2396,7 +2032,8 @@ class CaptureDialog
 			parameterSetFileChooser.rescanCurrentDirectory();
 			if (parameterSetFileChooser.showDialog(this, SELECT_STR) == JFileChooser.APPROVE_OPTION)
 			{
-				file = Utils.appendSuffix(parameterSetFileChooser.getSelectedFile(), AppConstants.XML_FILENAME_EXTENSION);
+				file = Utils.appendSuffix(parameterSetFileChooser.getSelectedFile(),
+										  AppConstants.XML_FILENAME_EXTENSION);
 				if (file.exists() && !file.isFile())
 					throw new FileException(ErrorId.NOT_A_FILE, file);
 				config.setParameterSetPathname(Utils.getPathname(file));
@@ -2411,9 +2048,9 @@ class CaptureDialog
 				CaptureParameterSetList.createFile(file);
 
 			// Show the parameter-set dialog
-			CaptureParams params = ParameterSetDialog.showDialog(this, CAPTURE_STR + " : " + PARAMETER_SET_STR,
-																 getParams(), new CaptureParams(),
-																 new CaptureParameterSetList(), file);
+			CaptureParams params =
+					ParameterSetDialog.showDialog(this, CAPTURE_STR + " : " + PARAMETER_SET_STR, getParams(),
+												  new CaptureParams(), new CaptureParameterSetList(), file);
 
 			// Update components with parameters
 			if (params != null)
@@ -2421,7 +2058,7 @@ class CaptureDialog
 
 			// Set focus
 			JComponent focusOwner = (JComponent)((JPanel)tabbedPanel.getSelectedComponent())
-																.getClientProperty(PropertyKeys.PREFERRED_FOCUS_OWNER);
+					.getClientProperty(PropertyKeys.PREFERRED_FOCUS_OWNER);
 			if (focusOwner != null)
 				focusOwner.requestFocusInWindow();
 		}
@@ -2442,33 +2079,7 @@ class CaptureDialog
 		params = getParams();
 
 		// Create grid from image
-		int numColumns = gridSizePanel.getValue1();
-		int numRows = gridSizePanel.getValue2();
-		int xOffset = xOffsetSpinner.getIntValue();
-		int yOffset = yOffsetSpinner.getIntValue();
-		int sampleSize = sampleSizeSpinner.getIntValue();
-		int barWidthThreshold = barWidthThresholdSpinner.getIntValue();
-		Grid grid = null;
-		switch (getGridSeparator())
-		{
-			case BLOCK:
-			{
-				double brightnessThreshold = (double)blockBrightnessThresholdSpinner.getIntValue()
-																						* BRIGHTNESS_THRESHOLD_FACTOR;
-				grid = new BlockGrid(numColumns, numRows, gridImage, xOffset, yOffset, sampleSize,
-									 brightnessThreshold);
-				break;
-			}
-
-			case BAR:
-			{
-				double brightnessThreshold = (double)barBrightnessThresholdSpinner.getIntValue()
-																						* BRIGHTNESS_THRESHOLD_FACTOR;
-				grid = new BarGrid(numColumns, numRows, gridImage, xOffset, yOffset, brightnessThreshold,
-								   barWidthThreshold);
-				break;
-			}
-		}
+		Grid grid = gridFromImage();
 
 		// Create document
 		document = new CrosswordDocument(documentIndex);
@@ -2529,55 +2140,418 @@ class CaptureDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class variables
+//  Enumerated types
 ////////////////////////////////////////////////////////////////////////
 
-	private static	CaptureParams	params		= new CaptureParams();
-	private static	Point			location;
-	private static	int				tabIndex	= Tab.TEXT.ordinal();
+
+	// ENUMERATION: TABS
+
+
+	private enum Tab
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		AUTOMATIC_GRID_DETECTION
+		(
+			"Auto grid detection"
+		)
+		{
+			@Override
+			protected JPanel createPanel(
+				CaptureDialog	dialog)
+			{
+				return dialog.createPanelAutoGridDetection();
+			}
+		},
+
+		GRID
+		(
+			"Grid"
+		)
+		{
+			@Override
+			protected JPanel createPanel(
+				CaptureDialog	dialog)
+			{
+				return dialog.createPanelGrid();
+			}
+		},
+
+		CLUE_INDICATIONS
+		(
+			"Clue indications"
+		)
+		{
+			@Override
+			protected JPanel createPanel(
+				CaptureDialog	dialog)
+			{
+				return dialog.createPanelClueIndications();
+			}
+		},
+
+		CLUE_SUBSTITUTIONS
+		(
+			"Clue substitutions"
+		)
+		{
+			@Override
+			protected JPanel createPanel(
+				CaptureDialog	dialog)
+			{
+				return dialog.createPanelClueSubstitutions();
+			}
+		},
+
+		TEXT
+		(
+			"Text"
+		)
+		{
+			@Override
+			protected JPanel createPanel(
+				CaptureDialog	dialog)
+			{
+				return dialog.createPanelText();
+			}
+		},
+
+		FILE
+		(
+			"File"
+		)
+		{
+			@Override
+			protected JPanel createPanel(
+				CaptureDialog	dialog)
+			{
+				return dialog.createPanelFile();
+			}
+		};
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	text;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Tab(
+			String	text)
+		{
+			this.text = text;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Abstract methods
+	////////////////////////////////////////////////////////////////////
+
+		protected abstract JPanel createPanel(
+			CaptureDialog	dialog);
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// ENUMERATION: ERROR IDENTIFIERS
+
+
+	private enum ErrorId
+		implements AppException.IId
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		NOT_A_FILE
+		("The pathname does not denote a normal file."),
+
+		NOT_A_DIRECTORY
+		("The pathname does not denote a directory."),
+
+		MALFORMED_PATTERN
+		("The pattern is not a well-formed regular expression.\n(%1)");
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	message;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ErrorId(
+			String	message)
+		{
+			this.message = message;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : AppException.IId interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getMessage()
+		{
+			return message;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	private	boolean						accepted;
-	private	int							documentIndex;
-	private	CrosswordDocument			document;
-	private	BufferedImage				gridImage;
-	private	Map<Direction, List<Clue>>	clueLists;
-	private	JTabbedPane					tabbedPanel;
-	private	FIntegerSpinner				gridLineBrightnessThresholdSpinner;
-	private	FIntegerSpinner				gridLineMinLengthSpinner;
-	private	FIntegerSpinner				gridLineMinSeparationSpinner;
-	private	FIntegerSpinner				gridLineEndpointToleranceSpinner;
-	private	FComboBox<Grid.Separator>	gridSeparatorComboBox;
-	private	DimensionsSpinnerPanel		gridSizePanel;
-	private	JCheckBox					autoGridDetectionCheckBox;
-	private	FIntegerSpinner				xOffsetSpinner;
-	private	FIntegerSpinner				yOffsetSpinner;
-	private	JPanel						gridSeparatorParamPanel;
-	private	FIntegerSpinner				sampleSizeSpinner;
-	private	FIntegerSpinner				blockBrightnessThresholdSpinner;
-	private	FIntegerSpinner				barWidthThresholdSpinner;
-	private	FIntegerSpinner				barBrightnessThresholdSpinner;
-	private	FTextField					clueReferenceKeywordField;
-	private	AnswerLengthPanel			answerLengthPanel;
-	private	SubstitutionSelectionPanel	clueSubstitutionsPanel;
-	private	NumberField					numberField;
-	private	FTextField					titleField;
-	private	TextPanel					prologuePanel;
-	private	TextPanel					epiloguePanel;
-	private	FTextField					filenameStemField;
-	private	FPathnameField				documentDirectoryField;
-	private	FPathnameField				htmlDirectoryField;
-	private	JButton						clearButton;
-	private	JButton						getGridImageButton;
-	private	MenuButton					getCluesButton;
-	private	JButton						okButton;
-	private	StatusPanel					statusPanel;
-	private	JFileChooser				documentDirectoryChooser;
-	private	JFileChooser				htmlDirectoryChooser;
-	private	JFileChooser				parameterSetFileChooser;
+
+	// CLASS: GRID LABEL
+
+
+	private static class GridLabel
+		extends FixedWidthLabel
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	KEY	= GridLabel.class.getCanonicalName();
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private GridLabel(
+			String	text)
+		{
+			super(text);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Class methods
+	////////////////////////////////////////////////////////////////////
+
+		private static void reset()
+		{
+			MaxValueMap.removeAll(KEY);
+		}
+
+		//--------------------------------------------------------------
+
+		private static void update()
+		{
+			MaxValueMap.update(KEY);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		protected String getKey()
+		{
+			return KEY;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: NUMBER FIELD
+
+
+	private static class NumberField
+		extends IntegerField.Unsigned
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private NumberField()
+		{
+			super(NUMBER_FIELD_LENGTH);
+			AppFont.TEXT_FIELD.apply(this);
+			GuiUtils.setTextComponentMargins(this);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		protected int getColumnWidth()
+		{
+			return FontUtils.getCharWidth('0', getFontMetrics(getFont())) + 1;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: STATUS PANEL
+
+
+	private static class StatusPanel
+		extends AbstractStatusPanel
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	GRID_STR	= "Grid";
+		private static final	String	CLUES_STR	= "Clues - ";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	StatusField					gridField;
+		private	Map<Direction, StatusField>	cluesFields;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private StatusPanel()
+		{
+			// Call superclass constructor
+			super(true);
+
+			// Field: grid
+			gridField = new StatusField();
+			add(gridField);
+
+			// Fields: clues
+			cluesFields = new EnumMap<>(Direction.class);
+			for (Direction direction : Direction.DEFINED_DIRECTIONS)
+			{
+				StatusField cluesField = new StatusField();
+				cluesFields.put(direction, cluesField);
+				add(cluesField);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public void setGrid(
+			boolean	enabled)
+		{
+			gridField.setText(enabled ? GRID_STR : null);
+		}
+
+		//--------------------------------------------------------------
+
+		public void setClues(
+			Direction	direction,
+			boolean		enabled)
+		{
+			cluesFields.get(direction).setText(enabled ? CLUES_STR + direction.toString() : null);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+////////////////////////////////////////////////////////////////////////
+//  Member classes : inner classes
+////////////////////////////////////////////////////////////////////////
+
+
+	// CLASS: MENU ITEM
+
+
+	private class MenuItem
+		extends JMenuItem
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private MenuItem(
+			Direction	direction)
+		{
+			super(direction.toString());
+			AppFont.MAIN.apply(this);
+			setMnemonic(direction.getKeyCode());
+			setActionCommand(Command.GET_CLUES + direction.getKey());
+			addActionListener(CaptureDialog.this);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// CLASS: BUTTON
+
+
+	private class Button
+		extends FButton
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Button(
+			String	text,
+			String	command,
+			int		mnemonicKey)
+		{
+			super(text);
+			setMargin(BUTTON_MARGINS);
+			setMnemonic(mnemonicKey);
+			setActionCommand(command);
+			addActionListener(CaptureDialog.this);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

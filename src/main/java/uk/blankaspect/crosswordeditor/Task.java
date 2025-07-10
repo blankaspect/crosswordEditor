@@ -23,6 +23,8 @@ import java.io.File;
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.TaskCancelledException;
 
+import uk.blankaspect.common.exception2.BaseException;
+
 import uk.blankaspect.common.platform.windows.FileAssociations;
 
 //----------------------------------------------------------------------
@@ -314,18 +316,18 @@ abstract class Task
 			// Perform task
 			try
 			{
-				fileAssociations.executeScript(App.SHORT_NAME, javaLauncherPathname, jarPathname,
+				fileAssociations.executeScript(CrosswordEditorApp.SHORT_NAME, javaLauncherPathname, jarPathname,
 											   iconPathname, tempDirectoryPrefix, scriptFilename,
 											   removeEntries, scriptLifeCycle,
 											   ((TextOutputTaskDialog)getProgressView()).getWriter());
 			}
-			catch (TaskCancelledException e)
+			catch (uk.blankaspect.common.exception2.TaskCancelledException e)
 			{
 				// ignore
 			}
-			catch (AppException e)
+			catch (BaseException e)
 			{
-				setException(e, false);
+				setException(new AppException(e.getMessage()), false);
 			}
 
 			// Remove thread

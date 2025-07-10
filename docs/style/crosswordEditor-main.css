@@ -6,22 +6,39 @@ Styles for CrosswordEditor project page
 
 @import url("blankaspect-project.css");
 
-div.hr
-{
-  border-bottom: 1px solid #B4B8C8;
+div.hr {
+  border-bottom: 1px solid;
   margin: 0.5em 1.0em;
   padding-top: 0.2em;
 }
 
-h4
-{
+h4 {
   padding-bottom: 0.3em;
-  border-bottom: 1px solid #B4B8C8;
+  border-bottom: 1px solid;
 }
 
-ul.list li
-{
+ul.list li {
   margin-left: -0.5em;
+}
+
+@media (prefers-color-scheme: light) {
+  div.hr {
+    border-bottom-color: #B4B8C8;
+  }
+
+  h1, h2, h3, h4, h5 {
+    border-bottom-color: #B4B8C8;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  div.hr {
+    border-bottom-color: #606888;
+  }
+
+  h1, h2, h3, h4, h5 {
+    border-bottom-color: #606888;
+  }
 }
 
 /*--------------------------------------------------------------------*/

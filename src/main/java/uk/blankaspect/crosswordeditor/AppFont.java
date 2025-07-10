@@ -2,7 +2,7 @@
 
 AppFont.java
 
-Application font enumeration.
+Enumeration: application font.
 
 \*====================================================================*/
 
@@ -24,12 +24,13 @@ import java.awt.Font;
 import uk.blankaspect.common.misc.IStringKeyed;
 
 import uk.blankaspect.ui.swing.font.FontEx;
+import uk.blankaspect.ui.swing.font.FontStyle;
 import uk.blankaspect.ui.swing.font.FontUtils;
 
 //----------------------------------------------------------------------
 
 
-// APPLICATION FONT ENUMERATION
+// ENUMERATION: APPLICATION FONT
 
 
 public enum AppFont
@@ -67,7 +68,10 @@ public enum AppFont
 	FIELD_NUMBER
 	(
 		"fieldNumber",
-		"Field number"
+		"Field number",
+		null,
+		null,
+		9
 	),
 
 	GRID_ENTRY
@@ -77,15 +81,45 @@ public enum AppFont
 	);
 
 ////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	String	key;
+	private	String	text;
+	private	FontEx	fontEx;
+
+////////////////////////////////////////////////////////////////////////
+//  Static initialiser
+////////////////////////////////////////////////////////////////////////
+
+	static
+	{
+		FontUtils.setAppFontClass(AppFont.class);
+	}
+
+////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	private AppFont(String key,
-					String text)
+	private AppFont(
+		String	key,
+		String	text)
+	{
+		this(key, text, null, null, 0);
+	}
+
+	//------------------------------------------------------------------
+
+	private AppFont(
+		String		key,
+		String		text,
+		String		name,
+		FontStyle	style,
+		int			size)
 	{
 		this.key = key;
 		this.text = text;
-		fontEx = new FontEx();
+		fontEx = new FontEx(name, style, size);
 	}
 
 	//------------------------------------------------------------------
@@ -111,7 +145,8 @@ public enum AppFont
 
 	//------------------------------------------------------------------
 
-	public static void setFontExs(FontEx[] fontExs)
+	public static void setFontExs(
+		FontEx...	fontExs)
 	{
 		for (AppFont appFont : values())
 		{
@@ -127,6 +162,7 @@ public enum AppFont
 //  Instance methods : IStringKeyed interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public String getKey()
 	{
 		return key;
@@ -164,36 +200,21 @@ public enum AppFont
 
 	//------------------------------------------------------------------
 
-	public void setFontEx(FontEx fontEx)
+	public void setFontEx(
+		FontEx	fontEx)
 	{
 		this.fontEx = fontEx;
 	}
 
 	//------------------------------------------------------------------
 
-	public void apply(Component component)
+	public void apply(
+		Component	component)
 	{
 		fontEx.applyFont(component);
 	}
 
 	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Static initialiser
-////////////////////////////////////////////////////////////////////////
-
-	static
-	{
-		FontUtils.setAppFontClass(AppFont.class);
-	}
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	String	key;
-	private	String	text;
-	private	FontEx	fontEx;
 
 }
 

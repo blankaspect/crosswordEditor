@@ -76,19 +76,20 @@ class AppConfig
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	public static final		AppConfig	INSTANCE;
+	public static final		AppConfig	INSTANCE	= new AppConfig();
 
-	private static final	int	VERSION					= 0;
-	private static final	int	MIN_SUPPORTED_VERSION	= 0;
-	private static final	int	MAX_SUPPORTED_VERSION	= 0;
+	private static final	int		VERSION					= 0;
+	private static final	int		MIN_SUPPORTED_VERSION	= 0;
+	private static final	int		MAX_SUPPORTED_VERSION	= 0;
 
-	private static final	String	CONFIG_ERROR_STR	= "Configuration error";
 	private static final	String	CONFIG_DIR_KEY		= Property.APP_PREFIX + "configDir";
-	private static final	String	PROPERTIES_FILENAME	= App.NAME_KEY + "-properties" + AppConstants.XML_FILENAME_EXTENSION;
-	private static final	String	FILENAME_STEM		= App.NAME_KEY + "-config";
+	private static final	String	PROPERTIES_FILENAME	=
+			CrosswordEditorApp.NAME_KEY + "-properties" + AppConstants.XML_FILENAME_EXTENSION;
+	private static final	String	FILENAME_STEM		= CrosswordEditorApp.NAME_KEY + "-config";
 	private static final	String	CONFIG_FILENAME		= FILENAME_STEM + AppConstants.XML_FILENAME_EXTENSION;
 	private static final	String	CONFIG_OLD_FILENAME	= FILENAME_STEM + "-old" + AppConstants.XML_FILENAME_EXTENSION;
 
+	private static final	String	CONFIGURATION_ERROR_STR		= "Configuration error";
 	private static final	String	SAVE_CONFIGURATION_FILE_STR	= "Save configuration file";
 	private static final	String	WRITING_STR					= "Writing";
 
@@ -106,7 +107,7 @@ class AppConfig
 		String	CLEAR_EDIT_LIST_ON_SAVE			= "clearEditListOnSave";
 		String	CLUE							= "clue";
 		String	COLOUR							= "colour";
-		String	CONFIGURATION					= App.NAME_KEY + "Configuration";
+		String	CONFIGURATION					= CrosswordEditorApp.NAME_KEY + "Configuration";
 		String	DIRECTION_KEYWORDS				= "directionKeywords";
 		String	ENTRY_CHARACTERS				= "entryCharacters";
 		String	ENTRY_COLOUR					= "entryColour";
@@ -152,6 +153,319 @@ class AppConfig
 	}
 
 ////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	File			file;
+	private	boolean			fileRead;
+	private	File			selectedFile;
+	private	JFileChooser	fileChooser;
+	private	List<Property>	properties;
+
+////////////////////////////////////////////////////////////////////////
+//  Constructors
+////////////////////////////////////////////////////////////////////////
+
+	private AppConfig()
+	{
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Class methods
+////////////////////////////////////////////////////////////////////////
+
+	public static void showWarningMessage(AppException exception)
+	{
+		CrosswordEditorApp.INSTANCE
+				.showWarningMessage(CrosswordEditorApp.SHORT_NAME + " : " + CONFIGURATION_ERROR_STR, exception);
+	}
+
+	//------------------------------------------------------------------
+
+	public static void showErrorMessage(AppException exception)
+	{
+		CrosswordEditorApp.INSTANCE
+				.showErrorMessage(CrosswordEditorApp.SHORT_NAME + " : " + CONFIGURATION_ERROR_STR, exception);
+	}
+
+	//------------------------------------------------------------------
+
+	private static File getFile()
+		throws AppException
+	{
+		File file = null;
+
+		// Get location of container of class file of application
+		Path containerLocation = null;
+		try
+		{
+			containerLocation = ClassUtils.getClassFileContainer(AppConfig.class);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		// Get pathname of configuration directory from properties file
+		String pathname = null;
+		Path propertiesFile = (containerLocation == null) ? Path.of(PROPERTIES_FILENAME)
+														  : containerLocation.resolveSibling(PROPERTIES_FILENAME);
+		if (Files.isRegularFile(propertiesFile, LinkOption.NOFOLLOW_LINKS))
+		{
+			try
+			{
+				Properties properties = new Properties();
+				properties.loadFromXML(new FileInputStream(propertiesFile.toFile()));
+				pathname = properties.getProperty(CONFIG_DIR_KEY);
+			}
+			catch (IOException e)
+			{
+				throw new FileException(ErrorId.ERROR_READING_PROPERTIES_FILE, propertiesFile.toFile());
+			}
+		}
+
+		// Get pathname of configuration directory from system property or set system property to pathname
+		try
+		{
+			if (pathname == null)
+				pathname = System.getProperty(CONFIG_DIR_KEY);
+			else
+				System.setProperty(CONFIG_DIR_KEY, pathname);
+		}
+		catch (SecurityException e)
+		{
+			// ignore
+		}
+
+		// Look for configuration file in default locations
+		if (pathname == null)
+		{
+			// Look for configuration file in local directory
+			file = new File(CONFIG_FILENAME);
+
+			// Look for configuration file in default configuration directory
+			if (!file.isFile())
+			{
+				file = null;
+				pathname = Utils.getPropertiesPathname();
+				if (pathname != null)
+				{
+					file = new File(pathname, CONFIG_FILENAME);
+					if (!file.isFile())
+						file = null;
+				}
+			}
+		}
+
+		// Get location of configuration file from pathname of configuration directory
+		else if (!pathname.isEmpty())
+		{
+			file = new File(PathnameUtils.parsePathname(pathname), CONFIG_FILENAME);
+			if (!file.isFile())
+				throw new FileException(ErrorId.NO_CONFIGURATION_FILE, file);
+		}
+
+		return file;
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods
+////////////////////////////////////////////////////////////////////////
+
+	public File chooseFile(Component parent)
+	{
+		if (fileChooser == null)
+		{
+			fileChooser = new JFileChooser();
+			fileChooser.setDialogTitle(SAVE_CONFIGURATION_FILE_STR);
+			fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			fileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.XML_FILES_STR,
+															   AppConstants.XML_FILENAME_EXTENSION));
+			selectedFile = file;
+		}
+
+		fileChooser.setSelectedFile((selectedFile == null) ? new File(CONFIG_FILENAME).getAbsoluteFile()
+														   : selectedFile.getAbsoluteFile());
+		fileChooser.rescanCurrentDirectory();
+		if (fileChooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION)
+		{
+			selectedFile = Utils.appendSuffix(fileChooser.getSelectedFile(),
+											  AppConstants.XML_FILENAME_EXTENSION);
+			return selectedFile;
+		}
+		return null;
+	}
+
+	//------------------------------------------------------------------
+
+	public void read()
+	{
+		// Read configuration file
+		fileRead = false;
+		ConfigFile configFile = null;
+		try
+		{
+			file = getFile();
+			if (file != null)
+			{
+				configFile = new ConfigFile();
+				configFile.read(file);
+				fileRead = true;
+			}
+		}
+		catch (AppException e)
+		{
+			showErrorMessage(e);
+		}
+
+		// Get properties
+		if (fileRead)
+			getProperties(configFile, Property.getSystemSource());
+		else
+			getProperties(Property.getSystemSource());
+
+		// Reset changed status of properties
+		resetChanged();
+	}
+
+	//------------------------------------------------------------------
+
+	public void write()
+	{
+		if (isChanged())
+		{
+			try
+			{
+				if (file == null)
+				{
+					if (System.getProperty(CONFIG_DIR_KEY) == null)
+					{
+						String pathname = Utils.getPropertiesPathname();
+						if (pathname != null)
+						{
+							File directory = new File(pathname);
+							if (!directory.exists() && !directory.mkdirs())
+								throw new FileException(ErrorId.FAILED_TO_CREATE_DIRECTORY, directory);
+							file = new File(directory, CONFIG_FILENAME);
+						}
+					}
+				}
+				else
+				{
+					if (!fileRead)
+						file.renameTo(new File(file.getParentFile(), CONFIG_OLD_FILENAME));
+				}
+				if (file != null)
+				{
+					write(file);
+					resetChanged();
+				}
+			}
+			catch (AppException e)
+			{
+				showErrorMessage(e);
+			}
+		}
+	}
+
+	//------------------------------------------------------------------
+
+	public void write(File file)
+		throws AppException
+	{
+		// Initialise progress view
+		IProgressView progressView = Task.getProgressView();
+		if (progressView != null)
+		{
+			progressView.setInfo(WRITING_STR, file);
+			progressView.setProgress(0, -1.0);
+		}
+
+		// Create new DOM document
+		ConfigFile configFile = new ConfigFile(Integer.toString(VERSION));
+
+		// Set configuration properties in document
+		putProperties(configFile);
+
+		// Write file
+		configFile.write(file);
+	}
+
+	//------------------------------------------------------------------
+
+	private void getProperties(Property.ISource... propertySources)
+	{
+		for (Property property : getProperties())
+		{
+			try
+			{
+				property.get(propertySources);
+			}
+			catch (AppException e)
+			{
+				showWarningMessage(e);
+			}
+		}
+	}
+
+	//------------------------------------------------------------------
+
+	private void putProperties(Property.ITarget propertyTarget)
+	{
+		for (Property property : getProperties())
+			property.put(propertyTarget);
+	}
+
+	//------------------------------------------------------------------
+
+	private boolean isChanged()
+	{
+		for (Property property : getProperties())
+		{
+			if (property.isChanged())
+				return true;
+		}
+		return false;
+	}
+
+	//------------------------------------------------------------------
+
+	private void resetChanged()
+	{
+		for (Property property : getProperties())
+			property.setChanged(false);
+	}
+
+	//------------------------------------------------------------------
+
+	private List<Property> getProperties()
+	{
+		if (properties == null)
+		{
+			properties = new ArrayList<>();
+			for (Field field : getClass().getDeclaredFields())
+			{
+				try
+				{
+					if (field.getName().startsWith(Property.FIELD_PREFIX))
+						properties.add((Property)field.get(this));
+				}
+				catch (IllegalAccessException e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+		return properties;
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
 //  Enumerated types
 ////////////////////////////////////////////////////////////////////////
 
@@ -180,8 +494,8 @@ class AppConfig
 		("The version number of the configuration file is invalid."),
 
 		UNSUPPORTED_CONFIGURATION_FILE
-		("The version of the configuration file (%1) is not supported by this version of " +
-			App.SHORT_NAME + "."),
+		("The version of the configuration file (%1) is not supported by this version of "
+			+ CrosswordEditorApp.SHORT_NAME + "."),
 
 		FAILED_TO_CREATE_DIRECTORY
 		("Failed to create the directory for the configuration file."),
@@ -1372,8 +1686,8 @@ class AppConfig
 		private CPBarGridBarWidth()
 		{
 			super(concatenateKeys(Key.GRID, Grid.Separator.BAR.getKey(), Key.BAR_WIDTH),
-				  GridPanel.Bar.MIN_BAR_WIDTH, GridPanel.Bar.MAX_BAR_WIDTH);
-			value = GridPanel.Bar.DEFAULT_BAR_WIDTH;
+				  GridPane.Bar.MIN_BAR_WIDTH, GridPane.Bar.MAX_BAR_WIDTH);
+			value = GridPane.Bar.DEFAULT_BAR_WIDTH;
 		}
 
 		//--------------------------------------------------------------
@@ -2765,8 +3079,8 @@ class AppConfig
 		private CPHtmlBarGridBarWidth()
 		{
 			super(concatenateKeys(Key.HTML, Key.BAR_GRID, Key.BAR_WIDTH),
-				  GridPanel.Bar.MIN_BAR_WIDTH, GridPanel.Bar.MAX_BAR_WIDTH);
-			value = GridPanel.Bar.DEFAULT_BAR_WIDTH;
+				  GridPane.Bar.MIN_BAR_WIDTH, GridPane.Bar.MAX_BAR_WIDTH);
+			value = GridPane.Bar.DEFAULT_BAR_WIDTH;
 		}
 
 		//--------------------------------------------------------------
@@ -2860,12 +3174,6 @@ class AppConfig
 	{
 
 	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	int	DEFAULT_FIELD_NUMBER_FONT_SIZE	= 9;
-
-	////////////////////////////////////////////////////////////////////
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
@@ -2873,8 +3181,7 @@ class AppConfig
 		{
 			super(Key.FONT, AppFont.class);
 			for (AppFont font : AppFont.values())
-				values.put(font, new FontEx());
-			values.get(AppFont.FIELD_NUMBER).setSize(DEFAULT_FIELD_NUMBER_FONT_SIZE);
+				values.put(font, font.getFontEx().clone());
 		}
 
 		//--------------------------------------------------------------
@@ -2897,7 +3204,7 @@ class AppConfig
 			{
 				showWarningMessage(new IllegalValueException(input));
 			}
-			catch (uk.blankaspect.common.exception.ValueOutOfBoundsException e)
+			catch (uk.blankaspect.common.exception2.ValueOutOfBoundsException e)
 			{
 				showWarningMessage(new ValueOutOfBoundsException(input));
 			}
@@ -2943,326 +3250,6 @@ class AppConfig
 	private	CPFonts	cpFonts	= new CPFonts();
 
 	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
-//  Constructors
-////////////////////////////////////////////////////////////////////////
-
-	private AppConfig()
-	{
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Class methods
-////////////////////////////////////////////////////////////////////////
-
-	public static void showWarningMessage(AppException exception)
-	{
-		App.INSTANCE.showWarningMessage(App.SHORT_NAME + " : " + CONFIG_ERROR_STR, exception);
-	}
-
-	//------------------------------------------------------------------
-
-	public static void showErrorMessage(AppException exception)
-	{
-		App.INSTANCE.showErrorMessage(App.SHORT_NAME + " : " + CONFIG_ERROR_STR, exception);
-	}
-
-	//------------------------------------------------------------------
-
-	private static File getFile()
-		throws AppException
-	{
-		File file = null;
-
-		// Get location of container of class file of application
-		Path containerLocation = null;
-		try
-		{
-			containerLocation = ClassUtils.getClassFileContainer(AppConfig.class);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-
-		// Get pathname of configuration directory from properties file
-		String pathname = null;
-		Path propertiesFile = (containerLocation == null) ? Path.of(PROPERTIES_FILENAME)
-														  : containerLocation.resolveSibling(PROPERTIES_FILENAME);
-		if (Files.isRegularFile(propertiesFile, LinkOption.NOFOLLOW_LINKS))
-		{
-			try
-			{
-				Properties properties = new Properties();
-				properties.loadFromXML(new FileInputStream(propertiesFile.toFile()));
-				pathname = properties.getProperty(CONFIG_DIR_KEY);
-			}
-			catch (IOException e)
-			{
-				throw new FileException(ErrorId.ERROR_READING_PROPERTIES_FILE, propertiesFile.toFile());
-			}
-		}
-
-		// Get pathname of configuration directory from system property or set system property to pathname
-		try
-		{
-			if (pathname == null)
-				pathname = System.getProperty(CONFIG_DIR_KEY);
-			else
-				System.setProperty(CONFIG_DIR_KEY, pathname);
-		}
-		catch (SecurityException e)
-		{
-			// ignore
-		}
-
-		// Look for configuration file in default locations
-		if (pathname == null)
-		{
-			// Look for configuration file in local directory
-			file = new File(CONFIG_FILENAME);
-
-			// Look for configuration file in default configuration directory
-			if (!file.isFile())
-			{
-				file = null;
-				pathname = Utils.getPropertiesPathname();
-				if (pathname != null)
-				{
-					file = new File(pathname, CONFIG_FILENAME);
-					if (!file.isFile())
-						file = null;
-				}
-			}
-		}
-
-		// Get location of configuration file from pathname of configuration directory
-		else if (!pathname.isEmpty())
-		{
-			file = new File(PathnameUtils.parsePathname(pathname), CONFIG_FILENAME);
-			if (!file.isFile())
-				throw new FileException(ErrorId.NO_CONFIGURATION_FILE, file);
-		}
-
-		return file;
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods
-////////////////////////////////////////////////////////////////////////
-
-	public File chooseFile(Component parent)
-	{
-		if (fileChooser == null)
-		{
-			fileChooser = new JFileChooser();
-			fileChooser.setDialogTitle(SAVE_CONFIGURATION_FILE_STR);
-			fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-			fileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.XML_FILES_STR,
-															   AppConstants.XML_FILENAME_EXTENSION));
-			selectedFile = file;
-		}
-
-		fileChooser.setSelectedFile((selectedFile == null) ? new File(CONFIG_FILENAME).getAbsoluteFile()
-														   : selectedFile.getAbsoluteFile());
-		fileChooser.rescanCurrentDirectory();
-		if (fileChooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION)
-		{
-			selectedFile = Utils.appendSuffix(fileChooser.getSelectedFile(),
-											  AppConstants.XML_FILENAME_EXTENSION);
-			return selectedFile;
-		}
-		return null;
-	}
-
-	//------------------------------------------------------------------
-
-	public void read()
-	{
-		// Read configuration file
-		fileRead = false;
-		ConfigFile configFile = null;
-		try
-		{
-			file = getFile();
-			if (file != null)
-			{
-				configFile = new ConfigFile();
-				configFile.read(file);
-				fileRead = true;
-			}
-		}
-		catch (AppException e)
-		{
-			showErrorMessage(e);
-		}
-
-		// Get properties
-		if (fileRead)
-			getProperties(configFile, Property.getSystemSource());
-		else
-			getProperties(Property.getSystemSource());
-
-		// Reset changed status of properties
-		resetChanged();
-	}
-
-	//------------------------------------------------------------------
-
-	public void write()
-	{
-		if (isChanged())
-		{
-			try
-			{
-				if (file == null)
-				{
-					if (System.getProperty(CONFIG_DIR_KEY) == null)
-					{
-						String pathname = Utils.getPropertiesPathname();
-						if (pathname != null)
-						{
-							File directory = new File(pathname);
-							if (!directory.exists() && !directory.mkdirs())
-								throw new FileException(ErrorId.FAILED_TO_CREATE_DIRECTORY, directory);
-							file = new File(directory, CONFIG_FILENAME);
-						}
-					}
-				}
-				else
-				{
-					if (!fileRead)
-						file.renameTo(new File(file.getParentFile(), CONFIG_OLD_FILENAME));
-				}
-				if (file != null)
-				{
-					write(file);
-					resetChanged();
-				}
-			}
-			catch (AppException e)
-			{
-				showErrorMessage(e);
-			}
-		}
-	}
-
-	//------------------------------------------------------------------
-
-	public void write(File file)
-		throws AppException
-	{
-		// Initialise progress view
-		IProgressView progressView = Task.getProgressView();
-		if (progressView != null)
-		{
-			progressView.setInfo(WRITING_STR, file);
-			progressView.setProgress(0, -1.0);
-		}
-
-		// Create new DOM document
-		ConfigFile configFile = new ConfigFile(Integer.toString(VERSION));
-
-		// Set configuration properties in document
-		putProperties(configFile);
-
-		// Write file
-		configFile.write(file);
-	}
-
-	//------------------------------------------------------------------
-
-	private void getProperties(Property.ISource... propertySources)
-	{
-		for (Property property : getProperties())
-		{
-			try
-			{
-				property.get(propertySources);
-			}
-			catch (AppException e)
-			{
-				showWarningMessage(e);
-			}
-		}
-	}
-
-	//------------------------------------------------------------------
-
-	private void putProperties(Property.ITarget propertyTarget)
-	{
-		for (Property property : getProperties())
-			property.put(propertyTarget);
-	}
-
-	//------------------------------------------------------------------
-
-	private boolean isChanged()
-	{
-		for (Property property : getProperties())
-		{
-			if (property.isChanged())
-				return true;
-		}
-		return false;
-	}
-
-	//------------------------------------------------------------------
-
-	private void resetChanged()
-	{
-		for (Property property : getProperties())
-			property.setChanged(false);
-	}
-
-	//------------------------------------------------------------------
-
-	private List<Property> getProperties()
-	{
-		if (properties == null)
-		{
-			properties = new ArrayList<>();
-			for (Field field : getClass().getDeclaredFields())
-			{
-				try
-				{
-					if (field.getName().startsWith(Property.FIELD_PREFIX))
-						properties.add((Property)field.get(this));
-				}
-				catch (IllegalAccessException e)
-				{
-					e.printStackTrace();
-				}
-			}
-		}
-		return properties;
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Static initialiser
-////////////////////////////////////////////////////////////////////////
-
-	static
-	{
-		INSTANCE = new AppConfig();
-	}
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	File			file;
-	private	boolean			fileRead;
-	private	File			selectedFile;
-	private	JFileChooser	fileChooser;
-	private	List<Property>	properties;
 
 }
 

@@ -20,7 +20,7 @@ package uk.blankaspect.common.xml;
 
 import java.util.Arrays;
 
-import uk.blankaspect.common.exception.UnexpectedRuntimeException;
+import uk.blankaspect.common.exception2.UnexpectedRuntimeException;
 
 import uk.blankaspect.common.number.NumberUtils;
 

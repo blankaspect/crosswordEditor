@@ -2,7 +2,7 @@
 
 ImportCluesDialog.java
 
-Import clues dialog class.
+Class: import clues dialog.
 
 \*====================================================================*/
 
@@ -19,7 +19,6 @@ package uk.blankaspect.crosswordeditor;
 
 
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -46,6 +45,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -64,16 +64,19 @@ import uk.blankaspect.ui.swing.border.TitledBorder;
 import uk.blankaspect.ui.swing.button.FButton;
 import uk.blankaspect.ui.swing.button.MenuButton;
 
+import uk.blankaspect.ui.swing.label.FLabel;
+
 import uk.blankaspect.ui.swing.misc.GuiUtils;
 
 import uk.blankaspect.ui.swing.text.TextUtils;
 
+import uk.blankaspect.ui.swing.textfield.FTextField;
 import uk.blankaspect.ui.swing.textfield.InformationField;
 
 //----------------------------------------------------------------------
 
 
-// IMPORT CLUES DIALOG CLASS
+// CLASS: IMPORT CLUES DIALOG
 
 
 class ImportCluesDialog
@@ -85,13 +88,18 @@ class ImportCluesDialog
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	private static final	int	CLUE_SUBSTITUTIONS_NUM_ROWS	= 8;
+	private static final	int		CLUE_SUBSTITUTIONS_NUM_ROWS	= 8;
 
 	private static final	Insets	BUTTON_MARGINS	= new Insets(2, 8, 2, 8);
 
-	private static final	String	TITLE_STR			= "Import clues";
-	private static final	String	SUBSTITUTIONS_STR	= "Substitutions";
-	private static final	String	GET_CLUES_STR		= "Get clues";
+	private static final	int		MULTIPLE_FIELD_CLUE_ID_SEPARATOR_NUM_COLUMNS	= 2;
+	private static final	int		CLUE_REFERENCE_KEYWORD_NUM_COLUMNS				= 12;
+
+	private static final	String	TITLE_STR								= "Import clues";
+	private static final	String	MULTIPLE_FIELD_CLUE_ID_SEPARATOR_STR	= "Multiple-field clue ID separator";
+	private static final	String	CLUE_REFERENCE_STR						= "Clue reference";
+	private static final	String	SUBSTITUTIONS_STR						= "Substitutions";
+	private static final	String	GET_CLUES_STR							= "Get clues";
 
 	// Commands
 	private interface Command
@@ -102,92 +110,118 @@ class ImportCluesDialog
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// RESULT CLASS
-
-
-	public static class Result
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public Result(Map<Direction, List<Clue>> clues,
-					  List<Substitution>         substitutions)
-		{
-			this.clues = clues;
-			this.substitutions = substitutions;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		Map<Direction, List<Clue>>	clues;
-		List<Substitution>			substitutions;
-
-	}
-
-	//==================================================================
+	private static	Point	location;
+	private static	String	multipleFieldClueIdSeparator	=
+			CrosswordDocument.DEFAULT_MULTIPLE_FIELD_CLUE_ID_SEPARATOR;
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : inner classes
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// MENU ITEM CLASS
-
-
-	private class MenuItem
-		extends JMenuItem
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private MenuItem(Direction direction)
-		{
-			super(direction.toString());
-			AppFont.MAIN.apply(this);
-			setMnemonic(direction.getKeyCode());
-			setActionCommand(Command.GET_CLUES + direction.getKey());
-			addActionListener(ImportCluesDialog.this);
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
+	private	boolean								accepted;
+	private	Clue.AnswerLengthParser				answerLengthParser;
+	private	Map<Direction, List<Clue>>			clueLists;
+	private	FTextField							multipleFieldClueIdSeparatorField;
+	private	FTextField							clueReferenceKeywordField;
+	private	SubstitutionSelectionPanel			clueSubstitutionsPanel;
+	private	Map<Direction, InformationField>	informationFields;
+	private	MenuButton							getCluesButton;
+	private	JButton								okButton;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	private ImportCluesDialog(Window                  owner,
-							  EnumSet<Direction>      directions,
-							  String                  clueReferenceKeyword,
-							  Clue.AnswerLengthParser answerLengthParser,
-							  List<Substitution>      clueSubstitutions)
+	private ImportCluesDialog(
+		Window					owner,
+		EnumSet<Direction>		directions,
+		String					clueReferenceKeyword,
+		Clue.AnswerLengthParser	answerLengthParser,
+		List<Substitution>		clueSubstitutions)
 	{
-
 		// Call superclass constructor
-		super(owner, TITLE_STR, Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, TITLE_STR, ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		setIconImages(owner.getIconImages());
 
 		// Initialise instance variables
-		this.clueReferenceKeyword = clueReferenceKeyword;
 		this.answerLengthParser = answerLengthParser;
 		clueLists = new EnumMap<>(Direction.class);
+
+		//----  Control panel
+
+		GridBagLayout gridBag = new GridBagLayout();
+		GridBagConstraints gbc = new GridBagConstraints();
+
+		JPanel controlPanel = new JPanel(gridBag);
+		GuiUtils.setPaddedLineBorder(controlPanel);
+
+		int gridY = 0;
+
+		// Label: multiple-field clue ID separator
+		JLabel multipleFieldClueIdSeparatorLabel = new FLabel(MULTIPLE_FIELD_CLUE_ID_SEPARATOR_STR);
+
+		gbc.gridx = 0;
+		gbc.gridy = gridY;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.LINE_END;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gridBag.setConstraints(multipleFieldClueIdSeparatorLabel, gbc);
+		controlPanel.add(multipleFieldClueIdSeparatorLabel);
+
+		// Field: multiple-field clue ID separator
+		multipleFieldClueIdSeparatorField = new FTextField(multipleFieldClueIdSeparator,
+														   MULTIPLE_FIELD_CLUE_ID_SEPARATOR_NUM_COLUMNS);
+
+		gbc.gridx = 1;
+		gbc.gridy = gridY++;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.LINE_START;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gridBag.setConstraints(multipleFieldClueIdSeparatorField, gbc);
+		controlPanel.add(multipleFieldClueIdSeparatorField);
+
+		// Label: clue reference
+		JLabel clueReferenceLabel = new FLabel(CLUE_REFERENCE_STR);
+
+		gbc.gridx = 0;
+		gbc.gridy = gridY;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.LINE_END;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gridBag.setConstraints(clueReferenceLabel, gbc);
+		controlPanel.add(clueReferenceLabel);
+
+		// Field: clue-reference keyword
+		clueReferenceKeywordField = new FTextField(clueReferenceKeyword, CLUE_REFERENCE_KEYWORD_NUM_COLUMNS);
+
+		gbc.gridx = 1;
+		gbc.gridy = gridY++;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.LINE_START;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gridBag.setConstraints(clueReferenceKeywordField, gbc);
+		controlPanel.add(clueReferenceKeywordField);
 
 
 		//----  Clue substitutions panel
@@ -198,9 +232,6 @@ class ImportCluesDialog
 
 
 		//----  Information panel
-
-		GridBagLayout gridBag = new GridBagLayout();
-		GridBagConstraints gbc = new GridBagConstraints();
 
 		JPanel infoPanel = new JPanel(gridBag);
 		GuiUtils.setPaddedLineBorder(infoPanel);
@@ -299,7 +330,7 @@ class ImportCluesDialog
 		JPanel mainPanel = new JPanel(gridBag);
 		mainPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 
-		int gridY = 0;
+		gridY = 0;
 
 		gbc.gridx = 0;
 		gbc.gridy = gridY++;
@@ -310,6 +341,18 @@ class ImportCluesDialog
 		gbc.anchor = GridBagConstraints.NORTH;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
+		gridBag.setConstraints(controlPanel, gbc);
+		mainPanel.add(controlPanel);
+
+		gbc.gridx = 0;
+		gbc.gridy = gridY++;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.NORTH;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.insets = new Insets(3, 0, 0, 0);
 		gridBag.setConstraints(clueSubstitutionsPanel, gbc);
 		mainPanel.add(clueSubstitutionsPanel);
 
@@ -357,7 +400,8 @@ class ImportCluesDialog
 		addWindowListener(new WindowAdapter()
 		{
 			@Override
-			public void windowClosing(WindowEvent event)
+			public void windowClosing(
+				WindowEvent	event)
 			{
 				onClose();
 			}
@@ -372,7 +416,7 @@ class ImportCluesDialog
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
@@ -382,7 +426,6 @@ class ImportCluesDialog
 
 		// Show dialog
 		setVisible(true);
-
 	}
 
 	//------------------------------------------------------------------
@@ -391,14 +434,16 @@ class ImportCluesDialog
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static Result showDialog(Component               parent,
-									EnumSet<Direction>      directions,
-									String                  clueReferenceKeyword,
-									Clue.AnswerLengthParser answerLengthParser,
-									List<Substitution>      clueSubstitutions)
+	public static Result showDialog(
+		Component				parent,
+		EnumSet<Direction>		directions,
+		String					clueReferenceKeyword,
+		Clue.AnswerLengthParser	answerLengthParser,
+		List<Substitution>		clueSubstitutions)
 	{
-		return new ImportCluesDialog(GuiUtils.getWindow(parent), directions, clueReferenceKeyword,
-									 answerLengthParser, clueSubstitutions).getResult();
+		return new ImportCluesDialog(GuiUtils.getWindow(parent), directions,  clueReferenceKeyword, answerLengthParser,
+									 clueSubstitutions)
+				.getResult();
 	}
 
 	//------------------------------------------------------------------
@@ -407,7 +452,9 @@ class ImportCluesDialog
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
-	public void actionPerformed(ActionEvent event)
+	@Override
+	public void actionPerformed(
+		ActionEvent	event)
 	{
 		String command = event.getActionCommand();
 
@@ -427,7 +474,9 @@ class ImportCluesDialog
 //  Instance methods : FlavorListener interface
 ////////////////////////////////////////////////////////////////////////
 
-	public void flavorsChanged(FlavorEvent event)
+	@Override
+	public void flavorsChanged(
+		FlavorEvent	event)
 	{
 		updateComponents();
 	}
@@ -440,7 +489,7 @@ class ImportCluesDialog
 
 	private Result getResult()
 	{
-		return (accepted ? new Result(clueLists, clueSubstitutionsPanel.getSubstitutions()) : null);
+		return accepted ? new Result(clueLists, clueSubstitutionsPanel.getSubstitutions()) : null;
 	}
 
 	//------------------------------------------------------------------
@@ -453,12 +502,16 @@ class ImportCluesDialog
 
 	//------------------------------------------------------------------
 
-	private void onGetClues(String key)
+	private void onGetClues(
+		String	key)
 	{
 		try
 		{
-			List<Clue> clues = Clue.getCluesFromClipboard(clueReferenceKeyword, answerLengthParser,
-														  clueSubstitutionsPanel.getSubstitutions());
+			String clueReferenceKeyword =
+					clueReferenceKeywordField.isEmpty() ? null : clueReferenceKeywordField.getText();
+			List<Clue> clues =
+					Clue.getCluesFromClipboard(multipleFieldClueIdSeparatorField.getText(), clueReferenceKeyword,
+											   answerLengthParser, clueSubstitutionsPanel.getSubstitutions());
 			if (!clues.isEmpty())
 			{
 				Direction direction = Direction.forKey(key);
@@ -486,6 +539,7 @@ class ImportCluesDialog
 	private void onClose()
 	{
 		location = getLocation();
+		multipleFieldClueIdSeparator = multipleFieldClueIdSeparatorField.getText();
 		setVisible(false);
 		dispose();
 	}
@@ -493,23 +547,51 @@ class ImportCluesDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class variables
+//  Member records
 ////////////////////////////////////////////////////////////////////////
 
-	private static	Point	location;
+
+	// RECORD: RESULT
+
+
+	public record Result(
+		Map<Direction, List<Clue>>	clues,
+		List<Substitution>			substitutions)
+	{ }
+
+	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Member classes : inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	private	boolean								accepted;
-	private	String								clueReferenceKeyword;
-	private	Clue.AnswerLengthParser				answerLengthParser;
-	private	Map<Direction, List<Clue>>			clueLists;
-	private	SubstitutionSelectionPanel			clueSubstitutionsPanel;
-	private	Map<Direction, InformationField>	informationFields;
-	private	MenuButton							getCluesButton;
-	private	JButton								okButton;
+
+	// CLASS: MENU ITEM
+
+
+	private class MenuItem
+		extends JMenuItem
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private MenuItem(
+			Direction	direction)
+		{
+			super(direction.toString());
+			AppFont.MAIN.apply(this);
+			setMnemonic(direction.getKeyCode());
+			setActionCommand(Command.GET_CLUES + direction.getKey());
+			addActionListener(ImportCluesDialog.this);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

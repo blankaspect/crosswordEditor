@@ -107,74 +107,6 @@ public class DataTxChannel
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
-////////////////////////////////////////////////////////////////////////
-
-
-	// CLASS: MESSAGE CONTENT
-
-
-	private static class MessageContent
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	sourceId;
-		private	String	targetId;
-		private	String	messageId;
-		private	String	data;
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private MessageContent(String sourceId,
-							   String targetId,
-							   String messageId,
-							   String data)
-		{
-			this.sourceId = sourceId;
-			this.targetId = targetId;
-			this.messageId = messageId;
-			this.data = data;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String toString()
-		{
-			return sourceId + MESSAGE_SEPARATOR + targetId + MESSAGE_SEPARATOR + messageId + MESSAGE_SEPARATOR + data;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private boolean matches(String sourceId,
-								String targetId,
-								String messageId,
-								String data)
-		{
-			return this.sourceId.equals(sourceId) && this.targetId.equals(targetId) && this.messageId.equals(messageId)
-						&& this.data.equals(data);
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
 //  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
@@ -196,7 +128,8 @@ public class DataTxChannel
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	public DataTxChannel(String id)
+	public DataTxChannel(
+		String	id)
 	{
 		// Initialise instance variables
 		this.id = id;
@@ -219,8 +152,9 @@ public class DataTxChannel
 
 	//------------------------------------------------------------------
 
-	private static String read(Reader reader,
-							   int    timeout)
+	private static String read(
+		Reader	reader,
+		int		timeout)
 		throws IOException
 	{
 		String message = null;
@@ -275,7 +209,8 @@ public class DataTxChannel
 
 	//------------------------------------------------------------------
 
-	private static MessageContent getMessageContent(String message)
+	private static MessageContent getMessageContent(
+		String	message)
 	{
 		// Split message at separator
 		String[] parts = message.split(MESSAGE_SEPARATOR, NUM_MESSAGE_PARTS);
@@ -317,14 +252,15 @@ public class DataTxChannel
 
 	//------------------------------------------------------------------
 
-	public void listen(IProcedure1<String> dataHandler)
+	public void listen(
+		IProcedure1<String>	dataHandler)
 	{
 		// Test for open server socket
 		if (serverSocket == null)
 			throw new IllegalStateException("Receiver is not open");
 
-		// Create receiver
-		Runnable receiver = () ->
+		// Create and start receiver thread
+		DaemonFactory.create(RECEIVER_THREAD_NAME, () ->
 		{
 			while (true)
 			{
@@ -346,18 +282,20 @@ public class DataTxChannel
 				// Start thread for new connection
 				if (connectionSocket != null)
 				{
+					// Create and start connector thread
 					Socket socket = connectionSocket;
-					Runnable connector = () ->
+					DaemonFactory.create(CONNECTION_THREAD_NAME + serverSocket.getLocalPort(), () ->
 					{
 						try
 						{
 							// Get input stream of socket
-							InputStreamReader inStream = new InputStreamReader(socket.getInputStream(),
-																			   StandardCharsets.UTF_8);
+							InputStreamReader inStream =
+									new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
 
 							// Get output stream of socket
-							BufferedWriter outStream = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(),
-																								 StandardCharsets.UTF_8));
+							BufferedWriter outStream =
+									new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(),
+													   StandardCharsets.UTF_8));
 
 							// Read from input stream
 							StringBuilder buffer = new StringBuilder(1024);
@@ -411,7 +349,8 @@ public class DataTxChannel
 													writeAck(outStream, content);
 
 													// Change state
-													state = (numDataItems == 0) ? ListenerState.DONE : ListenerState.DATA;
+													state = (numDataItems == 0)
+																? ListenerState.DONE : ListenerState.DATA;
 												}
 											}
 
@@ -526,32 +465,30 @@ public class DataTxChannel
 								// ignore
 							}
 						}
-					};
-
-					// Create and start connector thread
-					DaemonFactory.create(CONNECTION_THREAD_NAME + serverSocket.getLocalPort(), connector).start();
+					})
+					.start();
 				}
 			}
-		};
-
-		// Create and start receiver thread
-		DaemonFactory.create(RECEIVER_THREAD_NAME, receiver).start();
+		})
+		.start();
 	}
 
 	//------------------------------------------------------------------
 
-	public boolean transmit(int       port,
-							String    targetId,
-							String... dataItems)
+	public boolean transmit(
+		int			port,
+		String		targetId,
+		String...	dataItems)
 	{
-		return transmit(port, targetId, Arrays.asList(dataItems));
+		return transmit(port, targetId, List.of(dataItems));
 	}
 
 	//------------------------------------------------------------------
 
-	public boolean transmit(int          port,
-							String       targetId,
-							List<String> dataItems)
+	public boolean transmit(
+		int				port,
+		String			targetId,
+		List<String>	dataItems)
 	{
 		boolean success = false;
 
@@ -577,8 +514,8 @@ public class DataTxChannel
 				InputStreamReader inStream = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
 
 				// Get output stream of socket
-				BufferedWriter outStream = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(),
-																					 StandardCharsets.UTF_8));
+				BufferedWriter outStream =
+						new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
 
 				// Send 'start' message
 				writeMessage(outStream, targetId, MessageId.START, Integer.toString(dataItems.size()));
@@ -635,7 +572,8 @@ public class DataTxChannel
 
 	//------------------------------------------------------------------
 
-	private MessageContent readResponse(Reader reader)
+	private MessageContent readResponse(
+		Reader	reader)
 		throws IOException
 	{
 		// Read message
@@ -654,10 +592,11 @@ public class DataTxChannel
 
 	//------------------------------------------------------------------
 
-	private void writeMessage(Writer writer,
-							  String targetId,
-							  String messageId,
-							  String data)
+	private void writeMessage(
+		Writer	writer,
+		String	targetId,
+		String	messageId,
+		String	data)
 		throws IOException
 	{
 		writer.write(CHANNEL_ID);
@@ -676,8 +615,9 @@ public class DataTxChannel
 
 	//------------------------------------------------------------------
 
-	private void writeAck(Writer         writer,
-						  MessageContent content)
+	private void writeAck(
+		Writer			writer,
+		MessageContent	content)
 		throws IOException
 	{
 		writeMessage(writer, content.sourceId, MessageId.ACK, content.messageId);
@@ -685,14 +625,62 @@ public class DataTxChannel
 
 	//------------------------------------------------------------------
 
-	private void writeNak(Writer         writer,
-						  MessageContent content)
+	private void writeNak(
+		Writer			writer,
+		MessageContent	content)
 		throws IOException
 	{
 		writeMessage(writer, content.sourceId, MessageId.NAK, content.messageId);
 	}
 
 	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Member records
+////////////////////////////////////////////////////////////////////////
+
+
+	// RECORD: MESSAGE CONTENT
+
+
+	private record MessageContent(
+		String	sourceId,
+		String	targetId,
+		String	messageId,
+		String	data)
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String toString()
+		{
+			return sourceId + MESSAGE_SEPARATOR + targetId + MESSAGE_SEPARATOR + messageId + MESSAGE_SEPARATOR + data;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private boolean matches(
+			String	sourceId,
+			String	targetId,
+			String	messageId,
+			String	data)
+		{
+			return this.sourceId.equals(sourceId) && this.targetId.equals(targetId) && this.messageId.equals(messageId)
+					&& this.data.equals(data);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

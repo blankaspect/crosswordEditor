@@ -19,7 +19,6 @@ package uk.blankaspect.crosswordeditor;
 
 
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -43,6 +42,8 @@ import javax.swing.KeyStroke;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import uk.blankaspect.common.tuple.StringPair;
 
 import uk.blankaspect.ui.swing.action.KeyAction;
 
@@ -92,16 +93,15 @@ class GridParamsDialog
 ////////////////////////////////////////////////////////////////////////
 
 	private GridParamsDialog(Window         owner,
-							 String         titleStr,
+							 String         title,
 							 Grid.Separator separator,
 							 int            numColumns,
 							 int            numRows,
 							 Grid.Symmetry  symmetry)
 	{
-
 		// Call superclass constructor
-		super(owner, (titleStr == null) ? TITLE_STR : TITLE_STR + " : " + titleStr,
-			  Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, (title == null) ? TITLE_STR : TITLE_STR + " : " + title,
+			  ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		setIconImages(owner.getIconImages());
@@ -164,10 +164,9 @@ class GridParamsDialog
 		controlPanel.add(sizeLabel);
 
 		// Panel: size
-		sizePanel = new DimensionsSpinnerPanel(Grid.DEFAULT_NUM_COLUMNS, Grid.DEFAULT_NUM_ROWS,
-											   Grid.MIN_NUM_COLUMNS, Grid.MAX_NUM_COLUMNS,
-											   SIZE_FIELD_LENGTH, new String[] { COLUMNS_STR, ROWS_STR },
-											   true);
+		sizePanel = new DimensionsSpinnerPanel(Grid.DEFAULT_NUM_COLUMNS, Grid.DEFAULT_NUM_ROWS, Grid.MIN_NUM_COLUMNS,
+											   Grid.MAX_NUM_COLUMNS, SIZE_FIELD_LENGTH,
+											   StringPair.of(COLUMNS_STR, ROWS_STR), true);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -291,7 +290,7 @@ class GridParamsDialog
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
@@ -301,7 +300,6 @@ class GridParamsDialog
 
 		// Show dialog
 		setVisible(true);
-
 	}
 
 	//------------------------------------------------------------------
@@ -311,9 +309,9 @@ class GridParamsDialog
 ////////////////////////////////////////////////////////////////////////
 
 	public static Grid showDialog(Component parent,
-								  String    titleStr)
+								  String    title)
 	{
-		return new GridParamsDialog(GuiUtils.getWindow(parent), titleStr, Grid.DEFAULT_SEPARATOR,
+		return new GridParamsDialog(GuiUtils.getWindow(parent), title, Grid.DEFAULT_SEPARATOR,
 									Grid.DEFAULT_NUM_COLUMNS, Grid.DEFAULT_NUM_ROWS,
 									Grid.DEFAULT_SYMMETRY).getGrid();
 	}

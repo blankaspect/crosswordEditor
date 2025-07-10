@@ -2,7 +2,7 @@
 
 GridDialog.java
 
-Grid dialog class.
+Class: grid dialog.
 
 \*====================================================================*/
 
@@ -20,7 +20,6 @@ package uk.blankaspect.crosswordeditor;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -78,7 +77,7 @@ import uk.blankaspect.ui.swing.text.TextRendering;
 //----------------------------------------------------------------------
 
 
-// GRID DIALOG CLASS
+// CLASS: GRID DIALOG
 
 
 class GridDialog
@@ -135,168 +134,33 @@ class GridDialog
 	};
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
+	private static	boolean	highlightFullyIntersecting;
+	private static	Point	location;
 
-	// NUMBER FIELD CLASS
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
 
+	private	boolean						accepted;
+	private	FComboBox<Grid.Symmetry>	symmetryComboBox;
+	private	JCheckBox					highlightFullyIntersectingCheckBox;
+	private	GridPane					gridPane;
+	private	Map<Direction, NumberField>	numFieldsFields;
+	private	JPopupMenu					contextMenu;
 
-	private static class NumberField
-		extends JComponent
+////////////////////////////////////////////////////////////////////////
+//  Static initialiser
+////////////////////////////////////////////////////////////////////////
+
+	static
 	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	int	VERTICAL_MARGIN		= 2;
-		private static final	int	HORIZONTAL_MARGIN	= 6;
-
-		private static final	Color	TEXT_COLOUR			= Color.BLACK;
-		private static final	Color	BACKGROUND_COLOUR	= new Color(236, 244, 236);
-		private static final	Color	BORDER_COLOUR		= new Color(192, 196, 192);
-
-		private static final	String	PROTOTYPE_STR	= "000";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private NumberField()
-		{
-			// Set font
-			AppFont.TEXT_FIELD.apply(this);
-
-			// Initialise instance variables
-			numFields = -1;
-
-			// Set preferred size
-			FontMetrics fontMetrics = getFontMetrics(getFont());
-			int width = 2 * HORIZONTAL_MARGIN + fontMetrics.stringWidth(PROTOTYPE_STR);
-			int height = 2 * VERTICAL_MARGIN + fontMetrics.getAscent() + fontMetrics.getDescent();
-			setPreferredSize(new Dimension(width, height));
-
-			// Set attributes
-			setEnabled(false);
-			setOpaque(true);
-			setFocusable(false);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		protected void paintComponent(Graphics gr)
-		{
-			// Create copy of graphics context
-			gr = gr.create();
-
-			// Get dimensions
-			int width = getWidth();
-			int height = getHeight();
-
-			// Draw background
-			gr.setColor(BACKGROUND_COLOUR);
-			gr.fillRect(0, 0, width, height);
-
-			// Draw text
-			if (numFields >= 0)
-			{
-				// Set rendering hints for text antialiasing and fractional metrics
-				TextRendering.setHints((Graphics2D)gr);
-
-				// Draw text
-				String text = Integer.toString(numFields);
-				FontMetrics fontMetrics = gr.getFontMetrics();
-				int x = width - HORIZONTAL_MARGIN - fontMetrics.stringWidth(text);
-				gr.setColor(TEXT_COLOUR);
-				gr.drawString(text, x, VERTICAL_MARGIN + fontMetrics.getAscent());
-			}
-
-			// Draw border
-			gr.setColor(BORDER_COLOUR);
-			gr.drawRect(0, 0, width - 1, height - 1);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private void setNumFields(int numFields)
-		{
-			if (this.numFields != numFields)
-			{
-				this.numFields = numFields;
-				repaint();
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	int	numFields;
-
+		COMMANDS = new HashMap<>();
+		COMMANDS.put(Command.UNDO, new CommandAction(Command.UNDO, UNDO_STR));
+		COMMANDS.put(Command.REDO, new CommandAction(Command.REDO, REDO_STR));
 	}
-
-	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
-//  Member classes : inner classes
-////////////////////////////////////////////////////////////////////////
-
-
-	// COMMAND ACTION CLASS
-
-
-	private static class CommandAction
-		extends AbstractAction
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private CommandAction(String command,
-							  String text)
-		{
-			// Call superclass constructor
-			super(text);
-
-			// Set action properties
-			putValue(Action.ACTION_COMMAND_KEY, command);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : ActionListener interface
-	////////////////////////////////////////////////////////////////////
-
-		public void actionPerformed(ActionEvent event)
-		{
-			listener.actionPerformed(event);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	ActionListener	listener;
-
-	}
-
-	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -305,9 +169,8 @@ class GridDialog
 	private GridDialog(Window owner,
 					   Grid   grid)
 	{
-
 		// Call superclass constructor
-		super(owner, TITLE_STR, Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, TITLE_STR, ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		setIconImages(owner.getIconImages());
@@ -316,9 +179,7 @@ class GridDialog
 		for (String commandKey : COMMANDS.keySet())
 			COMMANDS.get(commandKey).listener = this;
 
-
-		//----  Control panel
-
+		// Create control panel
 		GridBagLayout gridBag = new GridBagLayout();
 		GridBagConstraints gbc = new GridBagConstraints();
 
@@ -383,15 +244,14 @@ class GridDialog
 		gridBag.setConstraints(highlightFullyIntersectingCheckBox, gbc);
 		controlPanel.add(highlightFullyIntersectingCheckBox);
 
+		// Create outer grid pane
+		JPanel gridOuterPane = new JPanel(gridBag);
+		GuiUtils.setPaddedLineBorder(gridOuterPane);
 
-		//----  Grid panel
-
-		JPanel gridOuterPanel = new JPanel(gridBag);
-		GuiUtils.setPaddedLineBorder(gridOuterPanel);
-
-		gridPanel = grid.getSeparator().createGridPanel(grid);
-		gridPanel.addChangeListener(this);
-		gridPanel.addMouseListener(this);
+		// Create grid pane
+		gridPane = grid.getSeparator().createGridPane(grid, true);
+		gridPane.addChangeListener(this);
+		gridPane.addMouseListener(this);
 
 		gbc.gridx = 0;
 		gbc.gridy = 0;
@@ -402,14 +262,12 @@ class GridDialog
 		gbc.anchor = GridBagConstraints.NORTH;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
-		gridBag.setConstraints(gridPanel, gbc);
-		gridOuterPanel.add(gridPanel);
+		gridBag.setConstraints(gridPane, gbc);
+		gridOuterPane.add(gridPane);
 
-
-		//----  Number of fields panel
-
-		JPanel numFieldsPanel = new JPanel(gridBag);
-		GuiUtils.setPaddedLineBorder(numFieldsPanel);
+		// Create pane: number of fields
+		JPanel numFieldsPane = new JPanel(gridBag);
+		GuiUtils.setPaddedLineBorder(numFieldsPane);
 
 		numFieldsFields = new EnumMap<>(Direction.class);
 		int gridX = 0;
@@ -428,7 +286,7 @@ class GridDialog
 			gbc.fill = GridBagConstraints.NONE;
 			gbc.insets = new Insets(0, (gridX == 0) ? 0 : 16, 0, 0);
 			gridBag.setConstraints(directionLabel, gbc);
-			numFieldsPanel.add(directionLabel);
+			numFieldsPane.add(directionLabel);
 
 			// Field: number of fields
 			NumberField field = new NumberField();
@@ -444,35 +302,31 @@ class GridDialog
 			gbc.fill = GridBagConstraints.NONE;
 			gbc.insets = new Insets(0, 6, 0, 0);
 			gridBag.setConstraints(field, gbc);
-			numFieldsPanel.add(field);
+			numFieldsPane.add(field);
 		}
 		updateHighlighting();
 		updateNumFields();
 
-
-		//----  Button panel
-
-		JPanel buttonPanel = new JPanel(new GridLayout(1, 0, 8, 0));
-		buttonPanel.setBorder(BorderFactory.createEmptyBorder(3, 12, 3, 12));
+		// Create button pane
+		JPanel buttonPane = new JPanel(new GridLayout(1, 0, 8, 0));
+		buttonPane.setBorder(BorderFactory.createEmptyBorder(3, 12, 3, 12));
 
 		// Button: OK
 		JButton okButton = new FButton(AppConstants.OK_STR);
 		okButton.setActionCommand(Command.ACCEPT);
 		okButton.addActionListener(this);
-		buttonPanel.add(okButton);
+		buttonPane.add(okButton);
 
 		// Button: cancel
 		JButton cancelButton = new FButton(AppConstants.CANCEL_STR);
 		cancelButton.setActionCommand(Command.CLOSE);
 		cancelButton.addActionListener(this);
-		buttonPanel.add(cancelButton);
+		buttonPane.add(cancelButton);
 
-
-		//----  Main panel
-
-		JPanel mainPanel = new JPanel(gridBag);
-		mainPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-		mainPanel.addMouseListener(this);
+		// Create main pane
+		JPanel mainPane = new JPanel(gridBag);
+		mainPane.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+		mainPane.addMouseListener(this);
 
 		gridY = 0;
 
@@ -486,7 +340,7 @@ class GridDialog
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
 		gridBag.setConstraints(controlPanel, gbc);
-		mainPanel.add(controlPanel);
+		mainPane.add(controlPanel);
 
 		gbc.gridx = 0;
 		gbc.gridy = gridY++;
@@ -497,8 +351,8 @@ class GridDialog
 		gbc.anchor = GridBagConstraints.NORTH;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(3, 0, 0, 0);
-		gridBag.setConstraints(gridOuterPanel, gbc);
-		mainPanel.add(gridOuterPanel);
+		gridBag.setConstraints(gridOuterPane, gbc);
+		mainPane.add(gridOuterPane);
 
 		gbc.gridx = 0;
 		gbc.gridy = gridY++;
@@ -509,8 +363,8 @@ class GridDialog
 		gbc.anchor = GridBagConstraints.NORTH;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(3, 0, 0, 0);
-		gridBag.setConstraints(numFieldsPanel, gbc);
-		mainPanel.add(numFieldsPanel);
+		gridBag.setConstraints(numFieldsPane, gbc);
+		mainPane.add(numFieldsPane);
 
 		gbc.gridx = 0;
 		gbc.gridy = gridY++;
@@ -521,17 +375,14 @@ class GridDialog
 		gbc.anchor = GridBagConstraints.NORTH;
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.insets = new Insets(3, 0, 0, 0);
-		gridBag.setConstraints(buttonPanel, gbc);
-		mainPanel.add(buttonPanel);
+		gridBag.setConstraints(buttonPane, gbc);
+		mainPane.add(buttonPane);
 
 		// Add commands to action map
-		KeyAction.create(mainPanel, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, this, KEY_COMMANDS);
-
-
-		//----  Window
+		KeyAction.create(mainPane, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, this, KEY_COMMANDS);
 
 		// Set content pane
-		setContentPane(mainPanel);
+		setContentPane(mainPane);
 
 		// Dispose of window explicitly
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -552,7 +403,7 @@ class GridDialog
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
@@ -562,7 +413,6 @@ class GridDialog
 
 		// Show dialog
 		setVisible(true);
-
 	}
 
 	//------------------------------------------------------------------
@@ -617,7 +467,7 @@ class GridDialog
 
 	public void stateChanged(ChangeEvent event)
 	{
-		symmetryComboBox.setSelectedValue(gridPanel.getGrid().getSymmetry());
+		symmetryComboBox.setSelectedValue(gridPane.getGrid().getSymmetry());
 	}
 
 	//------------------------------------------------------------------
@@ -667,7 +517,7 @@ class GridDialog
 
 	private Grid getGrid()
 	{
-		return (accepted ? gridPanel.getGrid() : null);
+		return (accepted ? gridPane.getGrid() : null);
 	}
 
 	//------------------------------------------------------------------
@@ -675,14 +525,14 @@ class GridDialog
 	private void updateNumFields()
 	{
 		for (Direction direction : numFieldsFields.keySet())
-			numFieldsFields.get(direction).setNumFields(gridPanel.getNumFields(direction));
+			numFieldsFields.get(direction).setNumFields(gridPane.getNumFields(direction));
 	}
 
 	//------------------------------------------------------------------
 
 	private void updateHighlighting()
 	{
-		gridPanel.setHighlightFullyIntersecting(highlightFullyIntersectingCheckBox.isSelected());
+		gridPane.setHighlightFullyIntersecting(highlightFullyIntersectingCheckBox.isSelected());
 	}
 
 	//------------------------------------------------------------------
@@ -701,7 +551,7 @@ class GridDialog
 			}
 
 			// Update commands
-			Grid grid = gridPanel.getGrid();
+			Grid grid = gridPane.getGrid();
 			COMMANDS.get(Command.UNDO).setEnabled(grid.canUndoEdit());
 			COMMANDS.get(Command.REDO).setEnabled(grid.canRedoEdit());
 
@@ -717,7 +567,7 @@ class GridDialog
 
 	private void onSelectSymmetry()
 	{
-		gridPanel.setSymmetry(symmetryComboBox.getSelectedValue());
+		gridPane.setSymmetry(symmetryComboBox.getSelectedValue());
 		updateNumFields();
 	}
 
@@ -732,14 +582,14 @@ class GridDialog
 
 	private void onUndo()
 	{
-		gridPanel.undoEdit();
+		gridPane.undoEdit();
 	}
 
 	//------------------------------------------------------------------
 
 	private void onRedo()
 	{
-		gridPanel.redoEdit();
+		gridPane.redoEdit();
 	}
 
 	//------------------------------------------------------------------
@@ -770,33 +620,169 @@ class GridDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class variables
+//  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	private static	boolean	highlightFullyIntersecting;
-	private static	Point	location;
 
-////////////////////////////////////////////////////////////////////////
-//  Static initialiser
-////////////////////////////////////////////////////////////////////////
+	// CLASS: NUMBER FIELD
 
-	static
+
+	private static class NumberField
+		extends JComponent
 	{
-		COMMANDS = new HashMap<>();
-		COMMANDS.put(Command.UNDO, new CommandAction(Command.UNDO, UNDO_STR));
-		COMMANDS.put(Command.REDO, new CommandAction(Command.REDO, REDO_STR));
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	int	VERTICAL_MARGIN		= 2;
+		private static final	int	HORIZONTAL_MARGIN	= 6;
+
+		private static final	Color	TEXT_COLOUR			= Color.BLACK;
+		private static final	Color	BACKGROUND_COLOUR	= new Color(236, 244, 236);
+		private static final	Color	BORDER_COLOUR		= new Color(192, 196, 192);
+
+		private static final	String	PROTOTYPE_STR	= "000";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	int	numFields;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private NumberField()
+		{
+			// Set font
+			AppFont.TEXT_FIELD.apply(this);
+
+			// Initialise instance variables
+			numFields = -1;
+
+			// Set preferred size
+			FontMetrics fontMetrics = getFontMetrics(getFont());
+			int width = 2 * HORIZONTAL_MARGIN + fontMetrics.stringWidth(PROTOTYPE_STR);
+			int height = 2 * VERTICAL_MARGIN + fontMetrics.getAscent() + fontMetrics.getDescent();
+			setPreferredSize(new Dimension(width, height));
+
+			// Set properties
+			setEnabled(false);
+			setOpaque(true);
+			setFocusable(false);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		protected void paintComponent(Graphics gr)
+		{
+			// Create copy of graphics context
+			gr = gr.create();
+
+			// Get dimensions
+			int width = getWidth();
+			int height = getHeight();
+
+			// Draw background
+			gr.setColor(BACKGROUND_COLOUR);
+			gr.fillRect(0, 0, width, height);
+
+			// Draw text
+			if (numFields >= 0)
+			{
+				// Set rendering hints for text antialiasing and fractional metrics
+				TextRendering.setHints((Graphics2D)gr);
+
+				// Draw text
+				String text = Integer.toString(numFields);
+				FontMetrics fontMetrics = gr.getFontMetrics();
+				int x = width - HORIZONTAL_MARGIN - fontMetrics.stringWidth(text);
+				gr.setColor(TEXT_COLOUR);
+				gr.drawString(text, x, VERTICAL_MARGIN + fontMetrics.getAscent());
+			}
+
+			// Draw border
+			gr.setColor(BORDER_COLOUR);
+			gr.drawRect(0, 0, width - 1, height - 1);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private void setNumFields(int numFields)
+		{
+			if (this.numFields != numFields)
+			{
+				this.numFields = numFields;
+				repaint();
+			}
+		}
+
+		//--------------------------------------------------------------
+
 	}
 
+	//==================================================================
+
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Member classes : inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	private	boolean						accepted;
-	private	FComboBox<Grid.Symmetry>	symmetryComboBox;
-	private	JCheckBox					highlightFullyIntersectingCheckBox;
-	private	GridPanel					gridPanel;
-	private	Map<Direction, NumberField>	numFieldsFields;
-	private	JPopupMenu					contextMenu;
+
+	// CLASS: COMMAND ACTION
+
+
+	private static class CommandAction
+		extends AbstractAction
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	ActionListener	listener;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private CommandAction(String command,
+							  String text)
+		{
+			// Call superclass constructor
+			super(text);
+
+			// Set action properties
+			putValue(Action.ACTION_COMMAND_KEY, command);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : ActionListener interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void actionPerformed(ActionEvent event)
+		{
+			listener.actionPerformed(event);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

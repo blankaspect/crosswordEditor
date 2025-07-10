@@ -21,7 +21,6 @@ package uk.blankaspect.ui.swing.inputmap;
 import java.awt.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,7 +106,7 @@ public class InputMapUtils
 										 int          condition,
 										 KeyStroke... keys)
 	{
-		return removeFromInputMap(component, condition, Arrays.asList(keys));
+		return removeFromInputMap(component, condition, List.of(keys));
 	}
 
 	//------------------------------------------------------------------
@@ -124,7 +123,7 @@ public class InputMapUtils
 			while (inputMap != null)
 			{
 				KeyStroke[] mapKeys = inputMap.keys();
-				if ((mapKeys != null) && Arrays.asList(mapKeys).contains(key))
+				if ((mapKeys != null) && List.of(mapKeys).contains(key))
 				{
 					removedKeys.add(new RemovedKey(inputMap, key, inputMap.get(key)));
 					inputMap.remove(key);
@@ -166,7 +165,7 @@ public class InputMapUtils
 										  int          condition,
 										  KeyStroke... keyStrokes)
 	{
-		removeFromInputMap(component, true, condition, Arrays.asList(keyStrokes));
+		removeFromInputMap(component, true, condition, List.of(keyStrokes));
 	}
 
 	//------------------------------------------------------------------

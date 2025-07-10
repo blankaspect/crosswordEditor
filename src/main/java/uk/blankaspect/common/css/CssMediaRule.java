@@ -19,13 +19,12 @@ package uk.blankaspect.common.css;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
-import uk.blankaspect.common.exception.UnexpectedRuntimeException;
+import uk.blankaspect.common.exception2.UnexpectedRuntimeException;
 
 import uk.blankaspect.common.misc.IStringKeyed;
 
@@ -72,7 +71,7 @@ public class CssMediaRule
 		MediaType...	mediaTypes)
 	{
 		// Call alternative constructor
-		this(Arrays.asList(mediaTypes));
+		this(List.of(mediaTypes));
 	}
 
 	//------------------------------------------------------------------
@@ -95,7 +94,7 @@ public class CssMediaRule
 		CssRuleSet...			ruleSets)
 	{
 		// Call alternative constructor
-		this(mediaTypes, Arrays.asList(ruleSets));
+		this(mediaTypes, List.of(ruleSets));
 	}
 
 	//------------------------------------------------------------------

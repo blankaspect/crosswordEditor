@@ -56,31 +56,19 @@ public class MenuButton
 
 	private static final	int	MIN_ICON_TEXT_GAP	= 16;
 
-	private static final	ImageIcon	ARROWHEAD_RIGHT	= new ImageIcon(ImageData.ARROWHEAD_RIGHT);
-
-	private interface ImageData
-	{
-		byte[]	ARROWHEAD_RIGHT	=
-		{
-			(byte)0x89, (byte)0x50, (byte)0x4E, (byte)0x47, (byte)0x0D, (byte)0x0A, (byte)0x1A, (byte)0x0A,
-			(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x0D, (byte)0x49, (byte)0x48, (byte)0x44, (byte)0x52,
-			(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x04, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x08,
-			(byte)0x08, (byte)0x06, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0xDE, (byte)0x33, (byte)0x5E,
-			(byte)0x05, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x27, (byte)0x49, (byte)0x44, (byte)0x41,
-			(byte)0x54, (byte)0x78, (byte)0xDA, (byte)0x63, (byte)0x60, (byte)0x60, (byte)0x60, (byte)0x68,
-			(byte)0xF8, (byte)0xFF, (byte)0xFF, (byte)0x3F, (byte)0x03, (byte)0x0C, (byte)0x83, (byte)0xC0,
-			(byte)0x7F, (byte)0x64, (byte)0x41, (byte)0x98, (byte)0x00, (byte)0x5C, (byte)0x10, (byte)0x59,
-			(byte)0x00, (byte)0x2C, (byte)0x88, (byte)0x57, (byte)0xA0, (byte)0x01, (byte)0xA7, (byte)0xA1,
-			(byte)0x28, (byte)0xD6, (byte)0x02, (byte)0x00, (byte)0x6E, (byte)0xDB, (byte)0x33, (byte)0xD1,
-			(byte)0x03, (byte)0x72, (byte)0x77, (byte)0x36, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-			(byte)0x49, (byte)0x45, (byte)0x4E, (byte)0x44, (byte)0xAE, (byte)0x42, (byte)0x60, (byte)0x82
-		};
-	}
+	private static final	ImageIcon	ARROWHEAD_RIGHT	= new ImageIcon(ImgData.ARROWHEAD_RIGHT);
 
 	private interface Command
 	{
 		String	SHOW_MENU	= "showMenu";
 	}
+
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	int			textWidth;
+	private	JPopupMenu	menu;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -98,7 +86,7 @@ public class MenuButton
 		textWidth = getFontMetrics(getFont()).stringWidth(text);
 		menu = new JPopupMenu();
 
-		// Set component attributes
+		// Set properties
 		setHorizontalTextPosition(SwingConstants.LEADING);
 		setHorizontalAlignment(SwingConstants.TRAILING);
 		setIconTextGap(MIN_ICON_TEXT_GAP);
@@ -207,7 +195,7 @@ public class MenuButton
 	{
 		// Get the absolute location of the button and the bounds of its screen
 		Point baseLocation = getLocationOnScreen();
-		Rectangle screenRect = GuiUtils.getComponentScreenBounds(this);
+		Rectangle screenRect = GuiUtils.getComponentScreenBounds(this).bounds();
 
 		// Make the menu visible to initialise its dimensions
 		menu.setInvoker(this);
@@ -235,11 +223,33 @@ public class MenuButton
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Image data
 ////////////////////////////////////////////////////////////////////////
 
-	private	int			textWidth;
-	private	JPopupMenu	menu;
+	/**
+	 * PNG image data.
+	 */
+
+	private interface ImgData
+	{
+		byte[]	ARROWHEAD_RIGHT	=
+		{
+			(byte)0x89, (byte)0x50, (byte)0x4E, (byte)0x47, (byte)0x0D, (byte)0x0A, (byte)0x1A, (byte)0x0A,
+			(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x0D, (byte)0x49, (byte)0x48, (byte)0x44, (byte)0x52,
+			(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x04, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x08,
+			(byte)0x08, (byte)0x06, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0xDE, (byte)0x33, (byte)0x5E,
+			(byte)0x05, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x27, (byte)0x49, (byte)0x44, (byte)0x41,
+			(byte)0x54, (byte)0x78, (byte)0xDA, (byte)0x63, (byte)0x60, (byte)0x60, (byte)0x60, (byte)0x68,
+			(byte)0xF8, (byte)0xFF, (byte)0xFF, (byte)0x3F, (byte)0x03, (byte)0x0C, (byte)0x83, (byte)0xC0,
+			(byte)0x7F, (byte)0x64, (byte)0x41, (byte)0x98, (byte)0x00, (byte)0x5C, (byte)0x10, (byte)0x59,
+			(byte)0x00, (byte)0x2C, (byte)0x88, (byte)0x57, (byte)0xA0, (byte)0x01, (byte)0xA7, (byte)0xA1,
+			(byte)0x28, (byte)0xD6, (byte)0x02, (byte)0x00, (byte)0x6E, (byte)0xDB, (byte)0x33, (byte)0xD1,
+			(byte)0x03, (byte)0x72, (byte)0x77, (byte)0x36, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+			(byte)0x49, (byte)0x45, (byte)0x4E, (byte)0x44, (byte)0xAE, (byte)0x42, (byte)0x60, (byte)0x82
+		};
+	}
+
+	//==================================================================
 
 }
 

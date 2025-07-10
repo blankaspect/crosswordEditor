@@ -60,7 +60,8 @@ import uk.blankaspect.common.css.CssSelector;
 
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.TaskCancelledException;
-import uk.blankaspect.common.exception.UnexpectedRuntimeException;
+
+import uk.blankaspect.common.exception2.UnexpectedRuntimeException;
 
 import uk.blankaspect.common.misc.IStringKeyed;
 
@@ -148,11 +149,11 @@ abstract class Grid
 		)
 	);
 
-	private static final	int	INDENT_INCREMENT	= 2;
+	private static final	int		INDENT_INCREMENT	= 2;
 
-	private static final	int	MIN_NUM_LINES_PER_DIMENSION	= 3;
+	private static final	int		MIN_NUM_LINES_PER_DIMENSION	= 4;
 
-	private static final	int	SOLUTION_LINE_LENGTH	= 72;
+	private static final	int		SOLUTION_LINE_LENGTH	= 72;
 
 	private static final	Charset	SOLUTION_ENCODING	= StandardCharsets.UTF_8;
 
@@ -419,10 +420,10 @@ abstract class Grid
 		if (linesV.size() < MIN_NUM_LINES_PER_DIMENSION)
 			throw new AppException(ErrorId.TOO_FEW_LINES, Line.Orientation.VERTICAL.toString());
 
-		// Get the largest subset of horizontal and vertical lines within coincident bounding rectangles
+		// Find the largest subset of horizontal and vertical lines within coincident bounding rectangles
 		List<Line> maxCombinedLinesH = new ArrayList<>();
 		List<Line> maxCombinedLinesV = new ArrayList<>();
-		int maxArea = 0;
+		long maxArea = 0;
 		for (int ih = 0; ih < linesH.size(); ih++)
 		{
 			// Get the datum horizontal line
@@ -455,8 +456,8 @@ abstract class Grid
 				}
 			}
 
-			// If the set of combined horizontal lines is smaller than the current largest subset, try the next subset
-			if (combinedLinesH.size() < Math.max(MIN_NUM_LINES_PER_DIMENSION, maxCombinedLinesH.size()))
+			// If there are too few combined horizontal lines, try the next subset
+			if (combinedLinesH.size() < MIN_NUM_LINES_PER_DIMENSION)
 				continue;
 
 			// Get the coordinates of the bounding rectangle of the combined horizontal lines
@@ -506,8 +507,8 @@ abstract class Grid
 					}
 				}
 
-				// If the set of combined vertical lines is smaller than the current largest subset, try the next subset
-				if (combinedLinesV.size() < Math.max(MIN_NUM_LINES_PER_DIMENSION, maxCombinedLinesV.size()))
+				// If there are too few combined vertical lines, try the next subset
+				if (combinedLinesV.size() < MIN_NUM_LINES_PER_DIMENSION)
 					continue;
 
 				// Get the coordinates of the bounding rectangle of the combined vertical lines
@@ -525,29 +526,28 @@ abstract class Grid
 						combinedLinesH.remove(i--);
 				}
 
-				// If the set of combined horizontal lines is now smaller than the current largest subset, try the next
-				// subset
-				if (combinedLinesH.size() < Math.max(MIN_NUM_LINES_PER_DIMENSION, maxCombinedLinesH.size()))
+				// If there are now too few combined horizontal lines, try the next subset
+				if (combinedLinesH.size() < MIN_NUM_LINES_PER_DIMENSION)
 					continue;
 
 				// Calculate the area of the combined bounding rectangle
 				Rectangle rect = getCombinedBounds(getBoundsH(combinedLinesH), vBounds);
-				int area = rect.width * rect.height;
+				long area = rect.width * rect.height;
 
-				// Update the current largest subsets of horizontal and vertical lines
-				if ((combinedLinesH.size() > maxCombinedLinesH.size())
-					|| (combinedLinesV.size() > maxCombinedLinesV.size()) || (area > maxArea))
+				// If the area is greater than the current maximum, update the current largest subsets of horizontal and
+				// vertical lines
+				if (maxArea < area)
 				{
+					maxArea = area;
 					maxCombinedLinesH = combinedLinesH;
 					maxCombinedLinesV = combinedLinesV;
-					maxArea = area;
 				}
 			}
 		}
 
 		// Test for sufficient horizontal and vertical lines
 		if ((maxCombinedLinesH.size() < MIN_NUM_LINES_PER_DIMENSION)
-			|| (maxCombinedLinesV.size() < MIN_NUM_LINES_PER_DIMENSION))
+				|| (maxCombinedLinesV.size() < MIN_NUM_LINES_PER_DIMENSION))
 			throw new AppException(ErrorId.TOO_FEW_COINCIDENT_HORIZONTAL_AND_VERTICAL_LINES);
 
 		// Get the combined bounding rectangle
@@ -773,7 +773,7 @@ abstract class Grid
 		Direction	direction)
 	{
 		return fieldLists.containsKey(direction) ? Collections.unmodifiableList(fieldLists.get(direction))
-												 : new ArrayList<>();
+												 : Collections.emptyList();
 	}
 
 	//------------------------------------------------------------------
@@ -1064,8 +1064,8 @@ abstract class Grid
 		int			column,
 		Direction	direction)
 	{
-		return findFields(field -> ((direction == Direction.NONE) || (direction == field.direction))
-								   && field.containsCell(row, column));
+		return findFields(field ->
+				((direction == Direction.NONE) || (direction == field.direction)) && field.containsCell(row, column));
 	}
 
 	//------------------------------------------------------------------
@@ -1073,8 +1073,8 @@ abstract class Grid
 	public List<Field> findFields(
 		Field.Id	id)
 	{
-		return findFields(field -> ((id.direction == Direction.NONE) || (id.direction == field.direction))
-								   && (id.number == field.number));
+		return findFields(field ->
+				((id.direction == Direction.NONE) || (id.direction == field.direction)) && (id.number == field.number));
 	}
 
 	//------------------------------------------------------------------
@@ -1250,7 +1250,10 @@ abstract class Grid
 				try
 				{
 					SwingUtilities.invokeAndWait(() ->
-							result[0] = PassphraseDialog.showDialog(App.INSTANCE.getMainWindow(), SOLUTION_STR, !required));
+					{
+						result[0] = PassphraseDialog.showDialog(CrosswordEditorApp.INSTANCE.getMainWindow(),
+																SOLUTION_STR, !required);
+					});
 				}
 				catch (Exception e)
 				{
@@ -1344,11 +1347,11 @@ abstract class Grid
 	{
 		// Write start tag, grid
 		AttributeList attributes = new AttributeList();
-		attributes.add(AttrName.KIND, RECTANGULAR_ORTHOGONAL_STR);
-		attributes.add(AttrName.SEPARATOR, getSeparator().key);
+		attributes.add(AttrName.KIND,        RECTANGULAR_ORTHOGONAL_STR);
+		attributes.add(AttrName.SEPARATOR,   getSeparator().key);
 		attributes.add(AttrName.NUM_COLUMNS, numColumns);
-		attributes.add(AttrName.NUM_ROWS, numRows);
-		attributes.add(AttrName.SYMMETRY, symmetry.key);
+		attributes.add(AttrName.NUM_ROWS,    numRows);
+		attributes.add(AttrName.SYMMETRY,    symmetry.key);
 		writer.writeElementStart(ElementName.GRID, attributes, indent, true, true);
 
 		// Write grid definition
@@ -1430,8 +1433,7 @@ abstract class Grid
 		// Write start tag, solution
 		AttributeList attributes = new AttributeList();
 		NumberUtils.setLower();
-		EncryptionKind encryptionKind = passphrase.isEmpty() ? EncryptionKind.NONE
-															 : EncryptionKind.SALSA20;
+		EncryptionKind encryptionKind = passphrase.isEmpty() ? EncryptionKind.NONE : EncryptionKind.SALSA20;
 		attributes.add(AttrName.ENCRYPTION, encryptionKind.key);
 		attributes.add(AttrName.NONCE, NumberUtils.bytesToHexString(encodedSolution.nonce));
 		attributes.add(AttrName.HASH, NumberUtils.bytesToHexString(encodedSolution.hashValue));
@@ -1683,19 +1685,20 @@ abstract class Grid
 			//----------------------------------------------------------
 
 			@Override
-			public GridPanel createGridPanel(
+			public GridPane createGridPane(
 				CrosswordDocument	document)
 			{
-				return new GridPanel.Block(document);
+				return new GridPane.Block(document);
 			}
 
 			//----------------------------------------------------------
 
 			@Override
-			public GridPanel createGridPanel(
-				Grid	grid)
+			public GridPane createGridPane(
+				Grid	grid,
+				boolean	editable)
 			{
-				return (grid instanceof BlockGrid) ? new GridPanel.Block(grid.createCopy()) : null;
+				return (grid instanceof BlockGrid) ? new GridPane.Block(grid.createCopy(), editable) : null;
 			}
 
 			//----------------------------------------------------------
@@ -1731,19 +1734,20 @@ abstract class Grid
 			//----------------------------------------------------------
 
 			@Override
-			public GridPanel createGridPanel(
+			public GridPane createGridPane(
 				CrosswordDocument	document)
 			{
-				return new GridPanel.Bar(document);
+				return new GridPane.Bar(document);
 			}
 
 			//----------------------------------------------------------
 
 			@Override
-			public GridPanel createGridPanel(
-				Grid	grid)
+			public GridPane createGridPane(
+				Grid	grid,
+				boolean	editable)
 			{
-				return (grid instanceof BarGrid) ? new GridPanel.Bar(grid.createCopy()) : null;
+				return (grid instanceof BarGrid) ? new GridPane.Bar(grid.createCopy(), editable) : null;
 			}
 
 			//----------------------------------------------------------
@@ -1804,13 +1808,14 @@ abstract class Grid
 
 		//--------------------------------------------------------------
 
-		public abstract GridPanel createGridPanel(
+		public abstract GridPane createGridPane(
 			CrosswordDocument	document);
 
 		//--------------------------------------------------------------
 
-		public abstract GridPanel createGridPanel(
-			Grid	grid);
+		public abstract GridPane createGridPane(
+			Grid	grid,
+			boolean	editable);
 
 		//--------------------------------------------------------------
 
@@ -2243,48 +2248,21 @@ abstract class Grid
 	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Member records
 ////////////////////////////////////////////////////////////////////////
 
 
-	// CLASS: GRID INFORMATION
+	// RECORD: GRID INFORMATION
 
 
-	public static class Info
+	public record Info(
+		int	x,
+		int	y,
+		int	width,
+		int	height,
+		int	numColumns,
+		int	numRows)
 	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		int	x;
-		int	y;
-		int	width;
-		int	height;
-		int	numColumns;
-		int	numRows;
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Info(
-			int	x,
-			int	y,
-			int	width,
-			int	height,
-			int	numColumns,
-			int	numRows)
-		{
-			this.x = x;
-			this.y = y;
-			this.width = width;
-			this.height = height;
-			this.numColumns = numColumns;
-			this.numRows = numRows;
-		}
-
-		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
 	//  Instance methods
@@ -2300,6 +2278,23 @@ abstract class Grid
 	}
 
 	//==================================================================
+
+
+	// RECORD: BOUNDS
+
+
+	private record Bounds(
+		int	x1,
+		int	y1,
+		int	x2,
+		int	y2)
+	{ }
+
+	//==================================================================
+
+////////////////////////////////////////////////////////////////////////
+//  Member classes : non-inner classes
+////////////////////////////////////////////////////////////////////////
 
 
 	// CLASS: CELL INDEX PAIR
@@ -3537,44 +3532,6 @@ abstract class Grid
 	//==================================================================
 
 
-	// CLASS: BOUNDS
-
-
-	private static class Bounds
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	int	x1;
-		private	int	y1;
-		private	int	x2;
-		private	int	y2;
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Bounds(
-			int	x1,
-			int	y1,
-			int	x2,
-			int	y2)
-		{
-			this.x1 = x1;
-			this.y1 = y1;
-			this.x2 = x2;
-			this.y2 = y2;
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
-
-
 	// CLASS: PSEUDO-RANDOM NUMBER GENERATOR
 
 
@@ -3586,7 +3543,7 @@ abstract class Grid
 	////////////////////////////////////////////////////////////////////
 
 		private static final	int	NUM_ROUNDS	= 20;
-		private static final	int	BUFFER_SIZE	= Salsa20.BLOCK_SIZE;
+		private static final	int	BUFFER_LENGTH	= Salsa20.BLOCK_SIZE;
 
 	////////////////////////////////////////////////////////////////////
 	//  Class variables
@@ -3612,8 +3569,8 @@ abstract class Grid
 			byte[]	nonce)
 		{
 			prng = new Salsa20(NUM_ROUNDS, Salsa20.stringToKey(passphrase), nonce);
-			buffer = new byte[BUFFER_SIZE];
-			indexMask = BUFFER_SIZE - 1;
+			buffer = new byte[BUFFER_LENGTH];
+			indexMask = BUFFER_LENGTH - 1;
 		}
 
 		//--------------------------------------------------------------

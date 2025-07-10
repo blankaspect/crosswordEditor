@@ -19,7 +19,6 @@ package uk.blankaspect.crosswordeditor;
 
 
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -45,7 +44,8 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
 import uk.blankaspect.common.exception.AppException;
-import uk.blankaspect.common.exception.UnexpectedRuntimeException;
+
+import uk.blankaspect.common.exception2.UnexpectedRuntimeException;
 
 import uk.blankaspect.ui.swing.action.KeyAction;
 
@@ -137,9 +137,8 @@ class TextSectionsDialog
 							   List<String> prologueParagraphs,
 							   List<String> epilogueParagraphs)
 	{
-
 		// Call superclass constructor
-		super(owner, TEXT_SECTIONS_STR, Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, TEXT_SECTIONS_STR, ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		setIconImages(owner.getIconImages());
@@ -327,7 +326,7 @@ class TextSectionsDialog
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
@@ -337,7 +336,6 @@ class TextSectionsDialog
 
 		// Show dialog
 		setVisible(true);
-
 	}
 
 	//------------------------------------------------------------------
@@ -391,7 +389,7 @@ class TextSectionsDialog
 			}
 			catch (StyledText.ParseException e)
 			{
-				throw new UnexpectedRuntimeException();
+				throw new UnexpectedRuntimeException(e);
 			}
 		}
 		return result;

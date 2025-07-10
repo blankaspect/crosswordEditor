@@ -19,7 +19,6 @@ package uk.blankaspect.crosswordeditor;
 
 
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -73,15 +72,15 @@ import uk.blankaspect.ui.swing.textfield.FTextField;
 
 class IndicationsDialog
 	extends JDialog
-	implements ActionListener, AnswerLengthPanel.LabelSource
+	implements ActionListener, AnswerLengthPanel.ILabelFactory
 {
 
 ////////////////////////////////////////////////////////////////////////
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	private static final	int	CLUE_REFERENCE_KEYWORD_NUM_COLUMNS	= 12;
-	private static final	int	LINE_BREAK_FIELD_NUM_COLUMNS		= 4;
+	private static final	int		CLUE_REFERENCE_KEYWORD_NUM_COLUMNS	= 12;
+	private static final	int		LINE_BREAK_FIELD_NUM_COLUMNS		= 4;
 
 	private static final	String	TITLE_STR			= "Indications";
 	private static final	String	CLUE_REFERENCE_STR	= "Clue reference";
@@ -252,9 +251,8 @@ class IndicationsDialog
 	private IndicationsDialog(Window owner,
 							  Params params)
 	{
-
 		// Call superclass constructor
-		super(owner, TITLE_STR, Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, TITLE_STR, ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		setIconImages(owner.getIconImages());
@@ -434,7 +432,7 @@ class IndicationsDialog
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
@@ -444,7 +442,6 @@ class IndicationsDialog
 
 		// Show dialog
 		setVisible(true);
-
 	}
 
 	//------------------------------------------------------------------

@@ -20,7 +20,6 @@ package uk.blankaspect.crosswordeditor;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -174,7 +173,7 @@ class SolutionPropertiesDialog
 									 CrosswordDocument.SolutionProperties properties)
 	{
 		// Call superclass constructor
-		super(owner, TITLE_STR, Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, TITLE_STR, ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		setIconImages(owner.getIconImages());
@@ -359,7 +358,7 @@ class SolutionPropertiesDialog
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
@@ -498,7 +497,9 @@ class SolutionPropertiesDialog
 	private URL getUrl()
 		throws URISyntaxException, MalformedURLException
 	{
-		return (locationField.isEnabled() && !locationField.isEmpty()) ? new URI(locationField.getText()).toURL() : null;
+		return (locationField.isEnabled() && !locationField.isEmpty())
+						? new URI(locationField.getText()).toURL()
+						: null;
 	}
 
 	//------------------------------------------------------------------

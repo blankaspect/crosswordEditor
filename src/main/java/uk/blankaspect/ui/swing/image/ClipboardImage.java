@@ -2,7 +2,7 @@
 
 ClipboardImage.java
 
-Clipboard image class.
+Class: clipboard image.
 
 \*====================================================================*/
 
@@ -27,10 +27,12 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 
+import uk.blankaspect.common.stack.StackUtils;
+
 //----------------------------------------------------------------------
 
 
-// CLIPBOARD IMAGE CLASS
+// CLASS: CLIPBOARD IMAGE
 
 
 public class ClipboardImage
@@ -38,10 +40,17 @@ public class ClipboardImage
 {
 
 ////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	Image	image;
+
+////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	public ClipboardImage(Image image)
+	public ClipboardImage(
+		Image	image)
 	{
 		this.image = image;
 	}
@@ -56,12 +65,11 @@ public class ClipboardImage
 	{
 		try
 		{
-			return Toolkit.getDefaultToolkit().getSystemClipboard().
-														isDataFlavorAvailable(DataFlavor.imageFlavor);
+			return Toolkit.getDefaultToolkit().getSystemClipboard().isDataFlavorAvailable(DataFlavor.imageFlavor);
 		}
 		catch (IllegalStateException e)
 		{
-			System.out.println(Thread.currentThread().getStackTrace()[1] + " : " + e);
+			System.err.println(StackUtils.toStackTraceString(StackUtils.stackFrame()) + " : " + e);
 		}
 		return false;
 	}
@@ -72,8 +80,10 @@ public class ClipboardImage
 //  Instance methods : ClipboardOwner interface
 ////////////////////////////////////////////////////////////////////////
 
-	public void lostOwnership(Clipboard    clipboard,
-							  Transferable contents)
+	@Override
+	public void lostOwnership(
+		Clipboard		clipboard,
+		Transferable	contents)
 	{
 		// do nothing
 	}
@@ -84,7 +94,9 @@ public class ClipboardImage
 //  Instance methods : Transferable interface
 ////////////////////////////////////////////////////////////////////////
 
-	public Object getTransferData(DataFlavor flavour)
+	@Override
+	public Object getTransferData(
+		DataFlavor	flavour)
 		throws UnsupportedFlavorException
 	{
 		if (!flavour.equals(DataFlavor.imageFlavor))
@@ -94,6 +106,7 @@ public class ClipboardImage
 
 	//------------------------------------------------------------------
 
+	@Override
 	public DataFlavor[] getTransferDataFlavors()
 	{
 		return new DataFlavor[] { DataFlavor.imageFlavor };
@@ -101,18 +114,14 @@ public class ClipboardImage
 
 	//------------------------------------------------------------------
 
-	public boolean isDataFlavorSupported(DataFlavor flavour)
+	@Override
+	public boolean isDataFlavorSupported(
+		DataFlavor	flavour)
 	{
 		return flavour.equals(DataFlavor.imageFlavor);
 	}
 
 	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	Image	image;
 
 }
 

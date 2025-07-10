@@ -20,7 +20,6 @@ package uk.blankaspect.crosswordeditor;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -83,7 +82,7 @@ class FieldSelectionDialog
 	private static final	Color	FOCUSED_BORDER_COLOUR1		= Color.WHITE;
 	private static final	Color	FOCUSED_BORDER_COLOUR2		= Color.BLACK;
 
-	private static final	ImageIcon	CROSS_ICON	= new ImageIcon(ImageData.CROSS);
+	private static final	ImageIcon	CROSS_ICON	= new ImageIcon(ImgData.CROSS);
 
 	// Commands
 	private interface Command
@@ -178,29 +177,126 @@ class FieldSelectionDialog
 		)
 	};
 
-	// Image data
-	private interface ImageData
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	boolean									accepted;
+	private	Map<Direction, List<ClueDialog.Field>>	fieldMap;
+	private	FieldSelectionPanel						selectionPanel;
+
+////////////////////////////////////////////////////////////////////////
+//  Constructors
+////////////////////////////////////////////////////////////////////////
+
+	private FieldSelectionDialog(Component                              parent,
+								 int                                    xOffset,
+								  Map<Direction, List<ClueDialog.Field>> fieldMap,
+								  Grid.Field.Id                          selectedId)
 	{
-		// cross-black-9x9.png
-		byte[]	CROSS	=
-		{
-			(byte)0x89, (byte)0x50, (byte)0x4E, (byte)0x47, (byte)0x0D, (byte)0x0A, (byte)0x1A, (byte)0x0A,
-			(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x0D, (byte)0x49, (byte)0x48, (byte)0x44, (byte)0x52,
-			(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x09, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x09,
-			(byte)0x08, (byte)0x06, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0xE0, (byte)0x91, (byte)0x06,
-			(byte)0x10, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x3D, (byte)0x49, (byte)0x44, (byte)0x41,
-			(byte)0x54, (byte)0x78, (byte)0xDA, (byte)0x63, (byte)0x60, (byte)0x60, (byte)0x60, (byte)0x38,
-			(byte)0x0B, (byte)0xC4, (byte)0xD1, (byte)0xFF, (byte)0xFF, (byte)0xFF, (byte)0x67, (byte)0x40,
-			(byte)0xC7, (byte)0x20, (byte)0x71, (byte)0xA8, (byte)0x3C, (byte)0x98, (byte)0xF1, (byte)0x13,
-			(byte)0x5D, (byte)0x21, (byte)0xB2, (byte)0x38, (byte)0x86, (byte)0x00, (byte)0x56, (byte)0x3E,
-			(byte)0x16, (byte)0x9D, (byte)0xD3, (byte)0xD0, (byte)0x4D, (byte)0x46, (byte)0x77, (byte)0x03,
-			(byte)0x48, (byte)0x01, (byte)0x88, (byte)0x31, (byte)0x0D, (byte)0x45, (byte)0x9C, (byte)0x68,
-			(byte)0x93, (byte)0x08, (byte)0xBA, (byte)0x89, (byte)0x28, (byte)0xDF, (byte)0x11, (byte)0x13,
-			(byte)0x4E, (byte)0x00, (byte)0x71, (byte)0x0D, (byte)0x86, (byte)0x54, (byte)0x49, (byte)0xE8,
-			(byte)0xBD, (byte)0x9A, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x49, (byte)0x45,
-			(byte)0x4E, (byte)0x44, (byte)0xAE, (byte)0x42, (byte)0x60, (byte)0x82
-		};
+		// Call superclass constructor
+		super(GuiUtils.getWindow(parent), ModalityType.APPLICATION_MODAL);
+
+		// Initialise instance variables
+		this.fieldMap = fieldMap;
+
+
+		//----  Field selection panel
+
+		selectionPanel = new FieldSelectionPanel(selectedId);
+
+		// Add commands to action map
+		KeyAction.create(selectionPanel, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, this,
+						 KEY_COMMANDS);
+
+
+		//----  Window
+
+		// Set content pane
+		setContentPane(selectionPanel);
+
+		// Omit frame from dialog
+		setUndecorated(true);
+
+		// Dispose of window when it is closed
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+		// Prevent dialog from being resized
+		setResizable(false);
+
+		// Resize dialog to its preferred size
+		pack();
+
+		// Set location of dialog
+		Point location = parent.getLocationOnScreen();
+		int x1 = location.x;
+		int x2 = x1 + parent.getWidth();
+		location.x = Math.max(x1, Math.min(x1 + xOffset, x2 - getWidth()));
+		location.y += parent.getHeight() - 1;
+		setLocation(GuiUtils.getComponentLocation(this, location));
+
+		// Show dialog
+		setVisible(true);
 	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Class methods
+////////////////////////////////////////////////////////////////////////
+
+	public static Grid.Field.Id showDialog(Component                              parent,
+										   int                                    xOffset,
+											Map<Direction, List<ClueDialog.Field>> fieldMap,
+											Grid.Field.Id                          selectedId)
+	{
+		return new FieldSelectionDialog(parent, xOffset, fieldMap, selectedId).getId();
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods : ActionListener interface
+////////////////////////////////////////////////////////////////////////
+
+	public void actionPerformed(ActionEvent event)
+	{
+		String command = event.getActionCommand();
+
+		if (command.equals(Command.ACCEPT))
+			onAccept();
+
+		else if (command.equals(Command.CLOSE))
+			onClose();
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods
+////////////////////////////////////////////////////////////////////////
+
+	private Grid.Field.Id getId()
+	{
+		return (accepted ? selectionPanel.selectedId : null);
+	}
+
+	//------------------------------------------------------------------
+
+	private void onAccept()
+	{
+		accepted = true;
+		onClose();
+	}
+
+	//------------------------------------------------------------------
+
+	private void onClose()
+	{
+		dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+	}
+
+	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
 //  Member classes : inner classes
@@ -226,6 +322,17 @@ class FieldSelectionDialog
 		private static final	int	COLUMNS_PER_ROW	= 12;
 
 		private static final	String	NONE_STR	= "None";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	int						numColumns;
+		private	int						numColumnsNone;
+		private	Map<Direction, Integer>	numRows;
+		private	int						columnWidth;
+		private	int						rowHeight;
+		private	Grid.Field.Id			selectedId;
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
@@ -286,7 +393,7 @@ class FieldSelectionDialog
 			setPreferredSize(new Dimension(numColumns * columnWidth + GRID_LINE_WIDTH,
 										   totalNumRows * rowHeight + GRID_LINE_WIDTH));
 
-			// Set component attributes
+			// Set properties
 			setOpaque(true);
 			setFocusable(true);
 
@@ -716,143 +823,42 @@ class FieldSelectionDialog
 
 		//--------------------------------------------------------------
 
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	int						numColumns;
-		private	int						numColumnsNone;
-		private	Map<Direction, Integer>	numRows;
-		private	int						columnWidth;
-		private	int						rowHeight;
-		private	Grid.Field.Id			selectedId;
-
 	}
 
 	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
-//  Constructors
+//  Image data
 ////////////////////////////////////////////////////////////////////////
 
-	private FieldSelectionDialog(Component                              parent,
-								 int                                    xOffset,
-								  Map<Direction, List<ClueDialog.Field>> fieldMap,
-								  Grid.Field.Id                          selectedId)
+	/**
+	 * PNG image data.
+	 */
+
+	private interface ImgData
 	{
-
-		// Call superclass constructor
-		super(GuiUtils.getWindow(parent), Dialog.ModalityType.APPLICATION_MODAL);
-
-		// Initialise instance variables
-		this.fieldMap = fieldMap;
-
-
-		//----  Field selection panel
-
-		selectionPanel = new FieldSelectionPanel(selectedId);
-
-		// Add commands to action map
-		KeyAction.create(selectionPanel, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, this,
-						 KEY_COMMANDS);
-
-
-		//----  Window
-
-		// Set content pane
-		setContentPane(selectionPanel);
-
-		// Omit frame from dialog box
-		setUndecorated(true);
-
-		// Dispose of window when it is closed
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-
-		// Prevent dialog from being resized
-		setResizable(false);
-
-		// Resize dialog to its preferred size
-		pack();
-
-		// Set location of dialog box
-		Point location = parent.getLocationOnScreen();
-		int x1 = location.x;
-		int x2 = x1 + parent.getWidth();
-		location.x = Math.max(x1, Math.min(x1 + xOffset, x2 - getWidth()));
-		location.y += parent.getHeight() - 1;
-		setLocation(GuiUtils.getComponentLocation(this, location));
-
-		// Show dialog
-		setVisible(true);
-
+		// cross-black-9x9
+		byte[]	CROSS	=
+		{
+			(byte)0x89, (byte)0x50, (byte)0x4E, (byte)0x47, (byte)0x0D, (byte)0x0A, (byte)0x1A, (byte)0x0A,
+			(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x0D, (byte)0x49, (byte)0x48, (byte)0x44, (byte)0x52,
+			(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x09, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x09,
+			(byte)0x08, (byte)0x06, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0xE0, (byte)0x91, (byte)0x06,
+			(byte)0x10, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x3D, (byte)0x49, (byte)0x44, (byte)0x41,
+			(byte)0x54, (byte)0x78, (byte)0xDA, (byte)0x63, (byte)0x60, (byte)0x60, (byte)0x60, (byte)0x38,
+			(byte)0x0B, (byte)0xC4, (byte)0xD1, (byte)0xFF, (byte)0xFF, (byte)0xFF, (byte)0x67, (byte)0x40,
+			(byte)0xC7, (byte)0x20, (byte)0x71, (byte)0xA8, (byte)0x3C, (byte)0x98, (byte)0xF1, (byte)0x13,
+			(byte)0x5D, (byte)0x21, (byte)0xB2, (byte)0x38, (byte)0x86, (byte)0x00, (byte)0x56, (byte)0x3E,
+			(byte)0x16, (byte)0x9D, (byte)0xD3, (byte)0xD0, (byte)0x4D, (byte)0x46, (byte)0x77, (byte)0x03,
+			(byte)0x48, (byte)0x01, (byte)0x88, (byte)0x31, (byte)0x0D, (byte)0x45, (byte)0x9C, (byte)0x68,
+			(byte)0x93, (byte)0x08, (byte)0xBA, (byte)0x89, (byte)0x28, (byte)0xDF, (byte)0x11, (byte)0x13,
+			(byte)0x4E, (byte)0x00, (byte)0x71, (byte)0x0D, (byte)0x86, (byte)0x54, (byte)0x49, (byte)0xE8,
+			(byte)0xBD, (byte)0x9A, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x49, (byte)0x45,
+			(byte)0x4E, (byte)0x44, (byte)0xAE, (byte)0x42, (byte)0x60, (byte)0x82
+		};
 	}
 
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Class methods
-////////////////////////////////////////////////////////////////////////
-
-	public static Grid.Field.Id showDialog(Component                              parent,
-										   int                                    xOffset,
-											Map<Direction, List<ClueDialog.Field>> fieldMap,
-											Grid.Field.Id                          selectedId)
-	{
-		return new FieldSelectionDialog(parent, xOffset, fieldMap, selectedId).getId();
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods : ActionListener interface
-////////////////////////////////////////////////////////////////////////
-
-	public void actionPerformed(ActionEvent event)
-	{
-		String command = event.getActionCommand();
-
-		if (command.equals(Command.ACCEPT))
-			onAccept();
-
-		else if (command.equals(Command.CLOSE))
-			onClose();
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods
-////////////////////////////////////////////////////////////////////////
-
-	private Grid.Field.Id getId()
-	{
-		return (accepted ? selectionPanel.selectedId : null);
-	}
-
-	//------------------------------------------------------------------
-
-	private void onAccept()
-	{
-		accepted = true;
-		onClose();
-	}
-
-	//------------------------------------------------------------------
-
-	private void onClose()
-	{
-		dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	boolean									accepted;
-	private	Map<Direction, List<ClueDialog.Field>>	fieldMap;
-	private	FieldSelectionPanel						selectionPanel;
+	//==================================================================
 
 }
 

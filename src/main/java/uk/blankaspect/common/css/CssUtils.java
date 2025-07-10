@@ -12,6 +12,12 @@ Class: CSS utility methods.
 
 package uk.blankaspect.common.css;
 
+//----------------------------------------------------------------------
+
+
+// IMPORTS
+
+
 import uk.blankaspect.common.net.PercentCodec;
 
 //----------------------------------------------------------------------

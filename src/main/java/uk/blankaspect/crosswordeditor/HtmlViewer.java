@@ -19,7 +19,6 @@ package uk.blankaspect.crosswordeditor;
 
 
 import java.io.File;
-import java.io.IOException;
 
 import java.nio.file.Path;
 
@@ -50,58 +49,10 @@ class HtmlViewer
 	private static final	String	THREAD_NAME_PREFIX	= "viewer-";
 
 ////////////////////////////////////////////////////////////////////////
-//  Enumerated types
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// ERROR IDENTIFIERS
-
-
-	private enum ErrorId
-		implements AppException.IId
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		MALFORMED_VIEWER_COMMAND
-		("The HTML viewer command is malformed."),
-
-		FAILED_TO_EXECUTE_VIEWER_COMMAND
-		("Failed to execute the HTML viewer command.");
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ErrorId(String message)
-		{
-			this.message = message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : AppException.IId interface
-	////////////////////////////////////////////////////////////////////
-
-		public String getMessage()
-		{
-			return message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	message;
-
-	}
-
-	//==================================================================
+	private static	int	threadIndex;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -117,45 +68,47 @@ class HtmlViewer
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static void viewHtmlFile(String command,
-									File   file)
+	public static void viewHtmlFile(
+		String	command,
+		File	file)
 		throws AppException
 	{
 		// Parse command to create list of arguments
-		List<String> arguments = null;
+		List<String> args = null;
 		try
 		{
-			arguments = parseCommand(command, file.getPath());
+			args = parseCommand(command, file.getPath());
 		}
 		catch (IllegalArgumentException e)
 		{
 			throw new AppException(ErrorId.MALFORMED_VIEWER_COMMAND);
 		}
+		List<String> arguments = args;
 
 		// Execute viewer command
-		List<String> arguments0 = arguments;
 		DaemonFactory.create(THREAD_NAME_PREFIX + ++threadIndex, () ->
 		{
 			try
 			{
-				// Create process and start it
-				ProcessBuilder processBuilder = new ProcessBuilder(arguments0);
-				processBuilder.inheritIO();
-				processBuilder.start();
+				// Start process
+				new ProcessBuilder(arguments).inheritIO().start();
 			}
-			catch (IOException e)
+			catch (Exception e)
 			{
 				SwingUtilities.invokeLater(() ->
-						App.INSTANCE.showErrorMessage(App.SHORT_NAME,
-													  new AppException(ErrorId.FAILED_TO_EXECUTE_VIEWER_COMMAND, e)));
+						CrosswordEditorApp.INSTANCE
+								.showErrorMessage(CrosswordEditorApp.SHORT_NAME,
+												  new AppException(ErrorId.FAILED_TO_EXECUTE_VIEWER_COMMAND, e)));
 			}
-		}).start();
+		})
+		.start();
 	}
 
 	//------------------------------------------------------------------
 
-	private static List<String> parseCommand(String str,
-											 String pathname)
+	private static List<String> parseCommand(
+		String	str,
+		String	pathname)
 	{
 		final	char	ESCAPE_CHAR					= '%';
 		final	char	PATHNAME_PLACEHOLDER_CHAR	= 'f';
@@ -204,10 +157,60 @@ class HtmlViewer
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class variables
+//  Enumerated types
 ////////////////////////////////////////////////////////////////////////
 
-	private static	int	threadIndex;
+
+	// ENUMERATION: ERROR IDENTIFIERS
+
+
+	private enum ErrorId
+		implements AppException.IId
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		MALFORMED_VIEWER_COMMAND
+		("The HTML viewer command is malformed."),
+
+		FAILED_TO_EXECUTE_VIEWER_COMMAND
+		("Failed to execute the HTML viewer command.");
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	message;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ErrorId(
+			String	message)
+		{
+			this.message = message;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : AppException.IId interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getMessage()
+		{
+			return message;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

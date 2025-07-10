@@ -121,9 +121,9 @@ enum Direction
 	public static Direction forKey(String key)
 	{
 		return Stream.of(values())
-						.filter(value -> value.key.equals(key))
-						.findFirst()
-						.orElse(null);
+				.filter(value -> value.key.equals(key))
+				.findFirst()
+				.orElse(null);
 	}
 
 	//------------------------------------------------------------------
@@ -131,9 +131,9 @@ enum Direction
 	public static Direction forSuffix(String suffix)
 	{
 		return Stream.of(values())
-						.filter(value -> value.suffix.equals(suffix))
-						.findFirst()
-						.orElse(null);
+				.filter(value -> value.suffix.equals(suffix))
+				.findFirst()
+				.orElse(null);
 	}
 
 	//------------------------------------------------------------------

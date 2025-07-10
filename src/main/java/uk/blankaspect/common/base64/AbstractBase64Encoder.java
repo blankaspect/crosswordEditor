@@ -166,7 +166,7 @@ public abstract class AbstractBase64Encoder
 
 	public void setLineSeparator(String lineSeparator)
 	{
-		this.lineSeparator = (lineSeparator == null) ? SystemUtils.getLineSeparator() : lineSeparator;
+		this.lineSeparator = (lineSeparator == null) ? SystemUtils.lineSeparator() : lineSeparator;
 	}
 
 	//------------------------------------------------------------------

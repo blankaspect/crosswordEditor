@@ -19,7 +19,6 @@ package uk.blankaspect.common.css;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -27,7 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import uk.blankaspect.common.exception.UnexpectedRuntimeException;
+import uk.blankaspect.common.exception2.UnexpectedRuntimeException;
 
 import uk.blankaspect.common.string.StringUtils;
 
@@ -47,7 +46,13 @@ public class CssRuleSet
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	private static final	String	INDENT_STR	= " ".repeat(CssConstants.INDENT_INCREMENT);
+	private static final	String	INDENT_STR				= " ".repeat(CssConstants.INDENT_INCREMENT);
+	private static final	String	NULL_SELECTOR_STR		= "Null selector";
+	private static final	String	NULL_SELECTORS_STR		= "Null selectors";
+	private static final	String	NO_SELECTORS_STR		= "No selectors";
+	private static final	String	NULL_PROPERTIES_STR		= "Null properties";
+	private static final	String	NULL_PROPERTY_NAME_STR	= "Null property name";
+	private static final	String	NULL_PROPERTY_VALUE_STR	= "Null property value";
 
 ////////////////////////////////////////////////////////////////////////
 //  Instance variables
@@ -100,12 +105,12 @@ public class CssRuleSet
 	{
 		// Validate argument
 		if (selectors == null)
-			throw new IllegalArgumentException("Null selectors");
+			throw new IllegalArgumentException(NULL_SELECTORS_STR);
 		if (selectors.length == 0)
-			throw new IllegalArgumentException("No selectors");
+			throw new IllegalArgumentException(NO_SELECTORS_STR);
 
 		// Create and return rule set
-		return new CssRuleSet(Arrays.asList(selectors), Collections.emptyMap());
+		return new CssRuleSet(List.of(selectors), Collections.emptyMap());
 	}
 
 	//------------------------------------------------------------------
@@ -115,9 +120,9 @@ public class CssRuleSet
 	{
 		// Validate argument
 		if (selectors == null)
-			throw new IllegalArgumentException("Null selectors");
+			throw new IllegalArgumentException(NULL_SELECTORS_STR);
 		if (selectors.isEmpty())
-			throw new IllegalArgumentException("No selectors");
+			throw new IllegalArgumentException(NO_SELECTORS_STR);
 
 		// Create and return rule set
 		return new CssRuleSet(selectors, Collections.emptyMap());
@@ -131,13 +136,13 @@ public class CssRuleSet
 	{
 		// Validate arguments
 		if (selector == null)
-			throw new IllegalArgumentException("Null selector");
+			throw new IllegalArgumentException(NULL_SELECTOR_STR);
 		if (properties == null)
-			throw new IllegalArgumentException("Null properties");
+			throw new IllegalArgumentException(NULL_PROPERTIES_STR);
 		if (properties.containsKey(null))
-			throw new IllegalArgumentException("Null property name");
+			throw new IllegalArgumentException(NULL_PROPERTY_NAME_STR);
 		if (properties.containsValue(null))
-			throw new IllegalArgumentException("Null property value");
+			throw new IllegalArgumentException(NULL_PROPERTY_VALUE_STR);
 
 		// Create and return rule set
 		return new CssRuleSet(List.of(selector), properties);
@@ -151,15 +156,15 @@ public class CssRuleSet
 	{
 		// Validate arguments
 		if (selectors == null)
-			throw new IllegalArgumentException("Null selectors");
+			throw new IllegalArgumentException(NULL_SELECTORS_STR);
 		if (selectors.isEmpty())
-			throw new IllegalArgumentException("No selectors");
+			throw new IllegalArgumentException(NO_SELECTORS_STR);
 		if (properties == null)
-			throw new IllegalArgumentException("Null properties");
+			throw new IllegalArgumentException(NULL_PROPERTIES_STR);
 		if (properties.containsKey(null))
-			throw new IllegalArgumentException("Null property name");
+			throw new IllegalArgumentException(NULL_PROPERTY_NAME_STR);
 		if (properties.containsValue(null))
-			throw new IllegalArgumentException("Null property value");
+			throw new IllegalArgumentException(NULL_PROPERTY_VALUE_STR);
 
 		// Create and return rule set
 		return new CssRuleSet(selectors, properties);
@@ -173,18 +178,18 @@ public class CssRuleSet
 	{
 		// Validate arguments
 		if (properties == null)
-			throw new IllegalArgumentException("Null properties");
+			throw new IllegalArgumentException(NULL_PROPERTIES_STR);
 		if (properties.containsKey(null))
-			throw new IllegalArgumentException("Null property name");
+			throw new IllegalArgumentException(NULL_PROPERTY_NAME_STR);
 		if (properties.containsValue(null))
-			throw new IllegalArgumentException("Null property value");
+			throw new IllegalArgumentException(NULL_PROPERTY_VALUE_STR);
 		if (selectors == null)
-			throw new IllegalArgumentException("Null selectors");
+			throw new IllegalArgumentException(NULL_SELECTORS_STR);
 		if (selectors.length == 0)
-			throw new IllegalArgumentException("No selectors");
+			throw new IllegalArgumentException(NO_SELECTORS_STR);
 
 		// Create and return rule set
-		return new CssRuleSet(Arrays.asList(selectors), properties);
+		return new CssRuleSet(List.of(selectors), properties);
 	}
 
 	//------------------------------------------------------------------
@@ -195,7 +200,7 @@ public class CssRuleSet
 	{
 		// Validate arguments
 		if (selector == null)
-			throw new IllegalArgumentException("Null selector");
+			throw new IllegalArgumentException(NULL_SELECTOR_STR);
 
 		// Create and return rule set
 		return of(List.of(selector), properties);
@@ -209,11 +214,11 @@ public class CssRuleSet
 	{
 		// Validate arguments
 		if (selectors == null)
-			throw new IllegalArgumentException("Null selectors");
+			throw new IllegalArgumentException(NULL_SELECTORS_STR);
 		if (selectors.isEmpty())
-			throw new IllegalArgumentException("No selectors");
+			throw new IllegalArgumentException(NO_SELECTORS_STR);
 		if (properties == null)
-			throw new IllegalArgumentException("Null properties");
+			throw new IllegalArgumentException(NULL_PROPERTIES_STR);
 
 		// Create rule set
 		CssRuleSet ruleSet = new CssRuleSet(selectors, Collections.emptyMap());
@@ -242,12 +247,12 @@ public class CssRuleSet
 	{
 		// Validate arguments
 		if (selectors == null)
-			throw new IllegalArgumentException("Null selectors");
+			throw new IllegalArgumentException(NULL_SELECTORS_STR);
 		if (selectors.length == 0)
-			throw new IllegalArgumentException("No selectors");
+			throw new IllegalArgumentException(NO_SELECTORS_STR);
 
 		// Create and return rule set
-		return of(Arrays.asList(selectors), properties);
+		return of(List.of(selectors), properties);
 	}
 
 	//------------------------------------------------------------------
@@ -258,12 +263,12 @@ public class CssRuleSet
 	{
 		// Validate arguments
 		if (selector == null)
-			throw new IllegalArgumentException("Null selector");
+			throw new IllegalArgumentException(NULL_SELECTOR_STR);
 		if (properties == null)
-			throw new IllegalArgumentException("Null properties");
+			throw new IllegalArgumentException(NULL_PROPERTIES_STR);
 
 		// Create and return rule set
-		return of(List.of(selector), Arrays.asList(properties));
+		return of(List.of(selector), List.of(properties));
 	}
 
 	//------------------------------------------------------------------
@@ -274,14 +279,14 @@ public class CssRuleSet
 	{
 		// Validate arguments
 		if (selectors == null)
-			throw new IllegalArgumentException("Null selectors");
+			throw new IllegalArgumentException(NULL_SELECTORS_STR);
 		if (selectors.isEmpty())
-			throw new IllegalArgumentException("No selectors");
+			throw new IllegalArgumentException(NO_SELECTORS_STR);
 		if (properties == null)
-			throw new IllegalArgumentException("Null properties");
+			throw new IllegalArgumentException(NULL_PROPERTIES_STR);
 
 		// Create and return rule set
-		return of(selectors, Arrays.asList(properties));
+		return of(selectors, List.of(properties));
 	}
 
 	//------------------------------------------------------------------
@@ -290,7 +295,8 @@ public class CssRuleSet
 		String	name,
 		String	value)
 	{
-		return name + CssConstants.PROPERTY_NAME_VALUE_SEPARATOR_CHAR + " " + value + CssConstants.PROPERTY_SEPARATOR_CHAR;
+		return name + CssConstants.PROPERTY_NAME_VALUE_SEPARATOR_CHAR + " " + value
+				+ CssConstants.PROPERTY_SEPARATOR_CHAR;
 	}
 
 	//------------------------------------------------------------------
@@ -327,7 +333,7 @@ public class CssRuleSet
 			return true;
 
 		return (obj instanceof CssRuleSet other) && selectors.equals(other.selectors)
-					&& properties.equals(other.properties);
+				&& properties.equals(other.properties);
 	}
 
 	//------------------------------------------------------------------
@@ -335,7 +341,7 @@ public class CssRuleSet
 	@Override
 	public int hashCode()
 	{
-		return selectors.hashCode() * 31 + properties.hashCode();
+		return 31 * selectors.hashCode() + properties.hashCode();
 	}
 
 	//------------------------------------------------------------------
@@ -527,7 +533,7 @@ public class CssRuleSet
 		{
 			// Validate argument
 			if (selector == null)
-				throw new IllegalArgumentException("Null selector");
+				throw new IllegalArgumentException(NULL_SELECTOR_STR);
 
 			// Add selector to list
 			ruleSet.selectors.add(selector);
@@ -544,9 +550,9 @@ public class CssRuleSet
 		{
 			// Validate arguments
 			if (name == null)
-				throw new IllegalArgumentException("Null property name");
+				throw new IllegalArgumentException(NULL_PROPERTY_NAME_STR);
 			if (value == null)
-				throw new IllegalArgumentException("Null property value");
+				throw new IllegalArgumentException(NULL_PROPERTY_VALUE_STR);
 
 			// Add property to map
 			ruleSet.properties.put(name, value);

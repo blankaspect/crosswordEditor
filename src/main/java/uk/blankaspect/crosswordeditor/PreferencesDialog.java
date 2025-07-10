@@ -20,7 +20,6 @@ package uk.blankaspect.crosswordeditor;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
@@ -77,6 +76,8 @@ import uk.blankaspect.common.misc.MaxValueMap;
 
 import uk.blankaspect.common.string.StringUtils;
 
+import uk.blankaspect.common.tuple.StringPair;
+
 import uk.blankaspect.ui.swing.action.KeyAction;
 
 import uk.blankaspect.ui.swing.border.TitledBorder;
@@ -125,6 +126,83 @@ class PreferencesDialog
 	extends JDialog
 	implements ActionListener, ChangeListener, ListSelectionListener
 {
+
+////////////////////////////////////////////////////////////////////////
+//  Class variables
+////////////////////////////////////////////////////////////////////////
+
+	private static	Point	location;
+	private static	int		tabIndex;
+
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	// Main panel
+	private	boolean									accepted;
+	private	JTabbedPane								tabbedPanel;
+
+	// General panel
+	private	BooleanComboBox							showUnixPathnamesComboBox;
+	private	BooleanComboBox							selectTextOnFocusGainedComboBox;
+	private	BooleanComboBox							saveMainWindowLocationComboBox;
+	private	FIntegerSpinner							maxEditListLengthSpinner;
+	private	BooleanComboBox							clearEditListOnSaveComboBox;
+
+	// Appearance panel
+	private	FComboBox<String>						lookAndFeelComboBox;
+	private	FComboBox<TextRendering.Antialiasing>	textAntialiasingComboBox;
+	private	ColourButton							statusTextColourButton;
+
+	// View panel
+	private	FIntegerSpinner							selClueNumColumnsSpinner;
+	private	Map<CrosswordView.Colour, Color>		viewColours;
+	private	SelectionList<CrosswordView.Colour>		viewColoursList;
+	private	ColourButton							viewColourButton;
+
+	// Grid panel
+	private	EntryCharsField							gridEntryCharsField;
+	private	BooleanComboBox							navigateOverSeparatorsComboBox;
+	private	DimensionsSpinnerPanel					gridImageViewportSizePanel;
+	private	Map<Grid.Separator, FIntegerSpinner>	gridCellSizeSpinners;
+	private	FIntegerSpinner							gridBarWidthSpinner;
+
+	// Clues panel
+	private	Map<Direction, StringListField>			clueDirectionKeywordsFields;
+	private	FTextField								clueReferenceKeywordField;
+	private	BooleanComboBox							implicitFieldDirectionComboBox;
+	private	BooleanComboBox							allowMultipleFieldUseComboBox;
+
+	// Text sections panel
+	private	FTextField								lineBreakField;
+
+	// HTML panel
+	private	FTextField								htmlViewerCommandField;
+	private	StringListField							htmlFontNamesField;
+	private	FIntegerSpinner							htmlFontSizeSpinner;
+	private	FDoubleSpinner							htmlFieldNumFontSizeFactorSpinner;
+	private	FIntegerSpinner							htmlFieldNumOffsetTopSpinner;
+	private	FIntegerSpinner							htmlFieldNumOffsetLeftSpinner;
+	private	FIntegerSpinner							htmlCellOffsetTopSpinner;
+	private	FIntegerSpinner							htmlCellOffsetLeftSpinner;
+	private	ColourButton							htmlGridColourButton;
+	private	ColourButton							htmlEntryColourButton;
+	private	Map<Grid.Separator, FIntegerSpinner>	htmlCellSizeSpinners;
+	private	FIntegerSpinner							blockImageNumLinesSpinner;
+	private	FDoubleSpinner							blockImageLineWidthSpinner;
+	private	ColourButton							blockImageColourButton;
+	private	BooleanComboBox							blockImagePrintOnlyComboBox;
+	private	ImagePanel								blockImagePanel;
+	private	FIntegerSpinner							htmlBarWidthSpinner;
+	private	ColourButton							htmlBarColourButton;
+
+	// Files panel
+	private	FilenameSuffixField						filenameSuffixField;
+	private	FPathnameField							parameterSetPathnameField;
+	private	JFileChooser							parameterSetFileChooser;
+
+	// Fonts panel
+	private	FontPanel[]								fontPanels;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constants
@@ -259,977 +337,13 @@ class PreferencesDialog
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Enumerated types
-////////////////////////////////////////////////////////////////////////
-
-
-	// TABS
-
-
-	private enum Tab
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		GENERAL
-		(
-			"General"
-		)
-		{
-			@Override
-			protected JPanel createPanel(PreferencesDialog dialog)
-			{
-				return dialog.createPanelGeneral();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void validatePreferences(PreferencesDialog dialog)
-				throws AppException
-			{
-				dialog.validatePreferencesGeneral();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void setPreferences(PreferencesDialog dialog)
-			{
-				dialog.setPreferencesGeneral();
-			}
-
-			//----------------------------------------------------------
-		},
-
-		APPEARANCE
-		(
-			"Appearance"
-		)
-		{
-			@Override
-			protected JPanel createPanel(PreferencesDialog dialog)
-			{
-				return dialog.createPanelAppearance();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void validatePreferences(PreferencesDialog dialog)
-				throws AppException
-			{
-				dialog.validatePreferencesAppearance();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void setPreferences(PreferencesDialog dialog)
-			{
-				dialog.setPreferencesAppearance();
-			}
-
-			//----------------------------------------------------------
-		},
-
-		VIEW
-		(
-			"View"
-		)
-		{
-			@Override
-			protected JPanel createPanel(PreferencesDialog dialog)
-			{
-				return dialog.createPanelView();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void validatePreferences(PreferencesDialog dialog)
-				throws AppException
-			{
-				dialog.validatePreferencesView();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void setPreferences(PreferencesDialog dialog)
-			{
-				dialog.setPreferencesView();
-			}
-
-			//----------------------------------------------------------
-		},
-
-		GRID
-		(
-			"Grid"
-		)
-		{
-			@Override
-			protected JPanel createPanel(PreferencesDialog dialog)
-			{
-				return dialog.createPanelGrid();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void validatePreferences(PreferencesDialog dialog)
-				throws AppException
-			{
-				dialog.validatePreferencesGrid();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void setPreferences(PreferencesDialog dialog)
-			{
-				dialog.setPreferencesGrid();
-			}
-
-			//----------------------------------------------------------
-		},
-
-		CLUES
-		(
-			"Clues"
-		)
-		{
-			@Override
-			protected JPanel createPanel(PreferencesDialog dialog)
-			{
-				return dialog.createPanelClues();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void validatePreferences(PreferencesDialog dialog)
-				throws AppException
-			{
-				dialog.validatePreferencesClues();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void setPreferences(PreferencesDialog dialog)
-			{
-				dialog.setPreferencesClues();
-			}
-
-			//----------------------------------------------------------
-		},
-
-		TEXT_SECTIONS
-		(
-			"Text sections"
-		)
-		{
-			@Override
-			protected JPanel createPanel(PreferencesDialog dialog)
-			{
-				return dialog.createPanelTextSections();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void validatePreferences(PreferencesDialog dialog)
-				throws AppException
-			{
-				dialog.validatePreferencesTextSections();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void setPreferences(PreferencesDialog dialog)
-			{
-				dialog.setPreferencesTextSections();
-			}
-
-			//----------------------------------------------------------
-		},
-
-		HTML
-		(
-			"HTML"
-		)
-		{
-			@Override
-			protected JPanel createPanel(PreferencesDialog dialog)
-			{
-				return dialog.createPanelHtml();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void validatePreferences(PreferencesDialog dialog)
-				throws AppException
-			{
-				dialog.validatePreferencesHtml();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void setPreferences(PreferencesDialog dialog)
-			{
-				dialog.setPreferencesHtml();
-			}
-
-			//----------------------------------------------------------
-		},
-
-		FILES
-		(
-			"Files"
-		)
-		{
-			@Override
-			protected JPanel createPanel(PreferencesDialog dialog)
-			{
-				return dialog.createPanelFiles();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void validatePreferences(PreferencesDialog dialog)
-				throws AppException
-			{
-				dialog.validatePreferencesFiles();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void setPreferences(PreferencesDialog dialog)
-			{
-				dialog.setPreferencesFiles();
-			}
-
-			//----------------------------------------------------------
-		},
-
-		FONTS
-		(
-			"Fonts"
-		)
-		{
-			@Override
-			protected JPanel createPanel(PreferencesDialog dialog)
-			{
-				return dialog.createPanelFonts();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void validatePreferences(PreferencesDialog dialog)
-				throws AppException
-			{
-				dialog.validatePreferencesFonts();
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void setPreferences(PreferencesDialog dialog)
-			{
-				dialog.setPreferencesFonts();
-			}
-
-			//----------------------------------------------------------
-		};
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Tab(String text)
-		{
-			this.text = text;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Abstract methods
-	////////////////////////////////////////////////////////////////////
-
-		protected abstract JPanel createPanel(PreferencesDialog dialog);
-
-		//--------------------------------------------------------------
-
-		protected abstract void validatePreferences(PreferencesDialog dialog)
-			throws AppException;
-
-		//--------------------------------------------------------------
-
-		protected abstract void setPreferences(PreferencesDialog dialog);
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	text;
-
-	}
-
-	//==================================================================
-
-
-	// ERROR IDENTIFIERS
-
-
-	private enum ErrorId
-		implements AppException.IId
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		NO_LINE_BREAK_SEQUENCE
-		("No line-break sequence was specified."),
-
-		NO_FILENAME_SUFFIX
-		("No filename suffix was specified."),
-
-		NOT_A_FILE
-		("The pathname does not denote a normal file."),
-
-		FILE_ACCESS_NOT_PERMITTED
-		("Access to the file was not permitted.");
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ErrorId(String message)
-		{
-			this.message = message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : AppException.IId interface
-	////////////////////////////////////////////////////////////////////
-
-		public String getMessage()
-		{
-			return message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	message;
-
-	}
-
-	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
-////////////////////////////////////////////////////////////////////////
-
-
-	// GRID PANEL LABEL CLASS
-
-
-	private static class GridPanelLabel
-		extends FixedWidthLabel
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	KEY	= GridPanelLabel.class.getCanonicalName();
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private GridPanelLabel(String text)
-		{
-			super(text);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		private static void reset()
-		{
-			MaxValueMap.removeAll(KEY);
-		}
-
-		//--------------------------------------------------------------
-
-		private static void update()
-		{
-			MaxValueMap.update(KEY);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		protected String getKey()
-		{
-			return KEY;
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
-
-
-	// CLUES PANEL LABEL CLASS
-
-
-	private static class CluesPanelLabel
-		extends FixedWidthLabel
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	KEY	= CluesPanelLabel.class.getCanonicalName();
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private CluesPanelLabel(String text)
-		{
-			super(text);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		private static void reset()
-		{
-			MaxValueMap.removeAll(KEY);
-		}
-
-		//--------------------------------------------------------------
-
-		private static void update()
-		{
-			MaxValueMap.update(KEY);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		protected String getKey()
-		{
-			return KEY;
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
-
-
-	// HTML PANEL LABEL CLASS
-
-
-	private static class HtmlPanelLabel
-		extends FixedWidthLabel
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	KEY	= HtmlPanelLabel.class.getCanonicalName();
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private HtmlPanelLabel(String text)
-		{
-			super(text);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		private static void reset()
-		{
-			MaxValueMap.removeAll(KEY);
-		}
-
-		//--------------------------------------------------------------
-
-		private static void update()
-		{
-			MaxValueMap.update(KEY);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		protected String getKey()
-		{
-			return KEY;
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
-
-
-	// COLOUR BUTTON CLASS
-
-
-	private static class ColourButton
-		extends JButton
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	int		ICON_WIDTH	= 40;
-		private static final	int		ICON_HEIGHT	= 16;
-		private static final	Insets	MARGINS		= new Insets(2, 2, 2, 2);
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ColourButton(Color colour)
-		{
-			super(new ColourSampleIcon(ICON_WIDTH, ICON_HEIGHT));
-			setMargin(MARGINS);
-			setForeground(colour);
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
-
-
-	// GRID-ENTRY CHARACTERS FIELD CLASS
-
-
-	private static class EntryCharsField
-		extends ConstrainedTextField
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	int	NUM_COLUMNS	= 40;
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private EntryCharsField(String text)
-		{
-			super(0, NUM_COLUMNS, text);
-			AppFont.TEXT_FIELD.apply(this);
-			GuiUtils.setTextComponentMargins(this);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		protected int getColumnWidth()
-		{
-			return FontUtils.getCharWidth('0', getFontMetrics(getFont()));
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected String translateInsertString(String str,
-											   int    offset)
-		{
-			return str.toUpperCase();
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected boolean acceptCharacter(char ch,
-										  int  index)
-		{
-			return (getText().indexOf(Character.toUpperCase(ch)) < 0) && !Character.isISOControl(ch);
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
-
-
-	// FILENAME-SUFFIX FIELD CLASS
-
-
-	private static class FilenameSuffixField
-		extends ConstrainedTextField
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	int		LENGTH			= 32;
-		private static final	int		NUM_COLUMNS		= 8;
-		private static final	String	VALID_SYMBOLS	= "-._";
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private FilenameSuffixField(String text)
-		{
-			super(LENGTH, NUM_COLUMNS, text);
-			AppFont.TEXT_FIELD.apply(this);
-			GuiUtils.setTextComponentMargins(this);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		protected boolean acceptCharacter(char ch,
-										  int  index)
-		{
-			return (Character.isAlphabetic(ch) || Character.isDigit(ch) ||
-					 (VALID_SYMBOLS.indexOf(ch) >= 0));
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
-
-
-	// STRING-LIST FIELD CLASS
-
-
-	private static class StringListField
-		extends InformationField
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private StringListField(int        numColumns,
-								StringList strings)
-		{
-			super(numColumns);
-			setStrings(strings);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public void setStrings(StringList strings)
-		{
-			this.strings = strings;
-			setText(strings.toQuotedString());
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	StringList	strings;
-
-	}
-
-	//==================================================================
-
-
-	// IMAGE PANEL CLASS
-
-
-	private static class ImagePanel
-		extends JComponent
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	int	WIDTH	= Grid.MAX_HTML_CELL_SIZE + 2;
-		private static final	int	HEIGHT	= WIDTH;
-
-		private static final	Color	IMAGE_BACKGROUND_COLOUR	= Color.WHITE;
-		private static final	Color	IMAGE_BORDER_COLOUR		= new Color(208, 208, 208);
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ImagePanel()
-		{
-			// Set component attributes
-			setPreferredSize(new Dimension(WIDTH, HEIGHT));
-			setOpaque(true);
-			setFocusable(false);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		protected void paintComponent(Graphics gr)
-		{
-			// Fill background
-			Rectangle rect = gr.getClipBounds();
-			gr.setColor(getBackground());
-			gr.fillRect(rect.x, rect.y, rect.width, rect.height);
-
-			// Draw image
-			if (image != null)
-			{
-				int width = image.getWidth();
-				int height = image.getHeight();
-
-				// Fill image background
-				gr.setColor(IMAGE_BACKGROUND_COLOUR);
-				gr.fillRect(1, 1, width, height);
-
-				// Draw image
-				gr.drawImage(image, 1, 1, null);
-
-				// Draw image border
-				gr.setColor(IMAGE_BORDER_COLOUR);
-				gr.drawRect(0, 0, width + 1, height + 1);
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private void updateImage(int    size,
-								 int    numLines,
-								 double lineWidth,
-								 Color  colour)
-		{
-			image = BlockGrid.createBlockImage(size, numLines, (float)lineWidth, colour);
-			repaint();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	BufferedImage	image;
-
-	}
-
-	//==================================================================
-
-
-	// FONT PANEL CLASS
-
-
-	private static class FontPanel
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	int	MIN_SIZE	= 0;
-		private static final	int	MAX_SIZE	= 99;
-
-		private static final	int	SIZE_FIELD_LENGTH	= 2;
-
-		private static final	String	DEFAULT_FONT_STR	= "<default font>";
-
-	////////////////////////////////////////////////////////////////////
-	//  Member classes : non-inner classes
-	////////////////////////////////////////////////////////////////////
-
-
-		// SIZE SPINNER CLASS
-
-
-		private static class SizeSpinner
-			extends IntegerSpinner
-		{
-
-		////////////////////////////////////////////////////////////////
-		//  Constructors
-		////////////////////////////////////////////////////////////////
-
-			private SizeSpinner(int value)
-			{
-				super(value, MIN_SIZE, MAX_SIZE, SIZE_FIELD_LENGTH);
-				AppFont.TEXT_FIELD.apply(this);
-			}
-
-			//----------------------------------------------------------
-
-		////////////////////////////////////////////////////////////////
-		//  Instance methods : overriding methods
-		////////////////////////////////////////////////////////////////
-
-			/**
-			 * @throws NumberFormatException
-			 */
-
-			@Override
-			protected int getEditorValue()
-			{
-				IntegerValueField field = (IntegerValueField)getEditor();
-				return (field.isEmpty() ? 0 : field.getValue());
-			}
-
-			//----------------------------------------------------------
-
-			@Override
-			protected void setEditorValue(int value)
-			{
-				IntegerValueField field = (IntegerValueField)getEditor();
-				if (value == 0)
-					field.setText(null);
-				else
-					field.setValue(value);
-			}
-
-			//----------------------------------------------------------
-
-		}
-
-		//==============================================================
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private FontPanel(FontEx   font,
-						  String[] fontNames)
-		{
-			nameComboBox = new FComboBox<>();
-			nameComboBox.addItem(DEFAULT_FONT_STR);
-			for (String fontName : fontNames)
-				nameComboBox.addItem(fontName);
-			nameComboBox.setSelectedIndex(Utils.indexOf(font.getName(), fontNames) + 1);
-
-			styleComboBox = new FComboBox<>(FontStyle.values());
-			styleComboBox.setSelectedValue(font.getStyle());
-
-			sizeSpinner = new SizeSpinner(font.getSize());
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public FontEx getFont()
-		{
-			String name = (nameComboBox.getSelectedIndex() <= 0) ? null : nameComboBox.getSelectedValue();
-			return new FontEx(name, styleComboBox.getSelectedValue(), sizeSpinner.getIntValue());
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	FComboBox<String>		nameComboBox;
-		private	FComboBox<FontStyle>	styleComboBox;
-		private	SizeSpinner				sizeSpinner;
-
-	}
-
-	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
 	private PreferencesDialog(Window owner)
 	{
-
 		// Call superclass constructor
-		super(owner, TITLE_STR, Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, TITLE_STR, ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		setIconImages(owner.getIconImages());
@@ -1366,7 +480,7 @@ class PreferencesDialog
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
@@ -1376,7 +490,6 @@ class PreferencesDialog
 
 		// Show dialog
 		setVisible(true);
-
 	}
 
 	//------------------------------------------------------------------
@@ -1617,7 +730,7 @@ class PreferencesDialog
 		}
 		catch (AppException e)
 		{
-			JOptionPane.showMessageDialog(this, e, App.SHORT_NAME, JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this, e, CrosswordEditorApp.SHORT_NAME, JOptionPane.ERROR_MESSAGE);
 		}
 		if (accepted)
 			onClose();
@@ -1636,7 +749,7 @@ class PreferencesDialog
 		}
 		catch (AppException e)
 		{
-			JOptionPane.showMessageDialog(this, e, App.SHORT_NAME, JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this, e, CrosswordEditorApp.SHORT_NAME, JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -2265,15 +1378,13 @@ class PreferencesDialog
 
 		// Panel: image viewport size
 		gridImageViewportSizePanel =
-								new DimensionsSpinnerPanel(config.getGridImageViewportSize().width,
-														   CaptureDialog.MIN_GRID_IMAGE_VIEWPORT_WIDTH,
-														   CaptureDialog.MAX_GRID_IMAGE_VIEWPORT_WIDTH,
-														   GRID_IMAGE_VIEWPORT_FIELD_LENGTH,
-														   config.getGridImageViewportSize().height,
-														   CaptureDialog.MIN_GRID_IMAGE_VIEWPORT_HEIGHT,
-														   CaptureDialog.MAX_GRID_IMAGE_VIEWPORT_HEIGHT,
-														   GRID_IMAGE_VIEWPORT_FIELD_LENGTH,
-														   new String[] { WIDTH_STR, HEIGHT_STR });
+				new DimensionsSpinnerPanel(config.getGridImageViewportSize().width,
+										   CaptureDialog.MIN_GRID_IMAGE_VIEWPORT_WIDTH,
+										   CaptureDialog.MAX_GRID_IMAGE_VIEWPORT_WIDTH,
+										   GRID_IMAGE_VIEWPORT_FIELD_LENGTH, config.getGridImageViewportSize().height,
+										   CaptureDialog.MIN_GRID_IMAGE_VIEWPORT_HEIGHT,
+										   CaptureDialog.MAX_GRID_IMAGE_VIEWPORT_HEIGHT,
+										   GRID_IMAGE_VIEWPORT_FIELD_LENGTH, StringPair.of(WIDTH_STR, HEIGHT_STR));
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -2415,7 +1526,7 @@ class PreferencesDialog
 
 		// Spinner: bar width
 		gridBarWidthSpinner = new FIntegerSpinner(config.getBarGridBarWidth(),
-												  GridPanel.Bar.MIN_BAR_WIDTH, GridPanel.Bar.MAX_BAR_WIDTH,
+												  GridPane.Bar.MIN_BAR_WIDTH, GridPane.Bar.MAX_BAR_WIDTH,
 												  BAR_WIDTH_FIELD_LENGTH);
 
 		gbc.gridx = 1;
@@ -2435,10 +1546,6 @@ class PreferencesDialog
 
 	private JPanel createPanelClues()
 	{
-		// Reset fixed-width labels
-		CluesPanelLabel.reset();
-
-
 		//----  Direction keywords panel
 
 		GridBagLayout gridBag = new GridBagLayout();
@@ -2455,7 +1562,7 @@ class PreferencesDialog
 		for (Direction direction : Direction.DEFINED_DIRECTIONS)
 		{
 			// Label: direction
-			JLabel label = new CluesPanelLabel(direction.toString());
+			JLabel label = new FLabel(direction.toString());
 
 			gbc.gridx = 0;
 			gbc.gridy = gridY;
@@ -2529,7 +1636,7 @@ class PreferencesDialog
 		gridY = 0;
 
 		// Label: clue-reference keyword
-		JLabel clueReferenceKeywordLabel = new CluesPanelLabel(CLUE_REFERENCE_KEYWORD_STR);
+		JLabel clueReferenceKeywordLabel = new FLabel(CLUE_REFERENCE_KEYWORD_STR);
 
 		gbc.gridx = 0;
 		gbc.gridy = gridY;
@@ -2551,7 +1658,7 @@ class PreferencesDialog
 		gbc.gridy = gridY++;
 		gbc.gridwidth = 1;
 		gbc.gridheight = 1;
-		gbc.weightx = 1.0;
+		gbc.weightx = 0.0;
 		gbc.weighty = 0.0;
 		gbc.anchor = GridBagConstraints.LINE_START;
 		gbc.fill = GridBagConstraints.NONE;
@@ -2560,7 +1667,7 @@ class PreferencesDialog
 		controlPanel.add(clueReferenceKeywordField);
 
 		// Label: implicit field direction
-		JLabel implicitFieldDirectionLabel = new CluesPanelLabel(IMPLICIT_FIELD_DIRECTION_STR);
+		JLabel implicitFieldDirectionLabel = new FLabel(IMPLICIT_FIELD_DIRECTION_STR);
 
 		gbc.gridx = 0;
 		gbc.gridy = gridY;
@@ -2590,7 +1697,7 @@ class PreferencesDialog
 		controlPanel.add(implicitFieldDirectionComboBox);
 
 		// Label: allow multiple field use
-		JLabel allowMultipleFieldUseLabel = new CluesPanelLabel(ALLOW_MULTIPLE_FIELD_USE_STR);
+		JLabel allowMultipleFieldUseLabel = new FLabel(ALLOW_MULTIPLE_FIELD_USE_STR);
 
 		gbc.gridx = 0;
 		gbc.gridy = gridY;
@@ -2618,9 +1725,6 @@ class PreferencesDialog
 		gbc.insets = AppConstants.COMPONENT_INSETS;
 		gridBag.setConstraints(allowMultipleFieldUseComboBox, gbc);
 		controlPanel.add(allowMultipleFieldUseComboBox);
-
-		// Update widths of labels
-		CluesPanelLabel.update();
 
 
 		//----  Outer panel
@@ -3378,7 +2482,7 @@ class PreferencesDialog
 		blockImageOuterPanel.add(blockImagePanel);
 
 		// Filler
-		Box.Filler filler = GuiUtils.createFiller();
+		Box.Filler filler = GuiUtils.spacer();
 
 		gbc.gridx = 2;
 		gbc.gridy = 0;
@@ -3453,8 +2557,8 @@ class PreferencesDialog
 		barPanel.add(barWidthLabel);
 
 		// Spinner: bar width
-		htmlBarWidthSpinner = new FIntegerSpinner(config.getHtmlBarGridBarWidth(), GridPanel.Bar.MIN_BAR_WIDTH,
-												  GridPanel.Bar.MAX_BAR_WIDTH, BAR_WIDTH_FIELD_LENGTH);
+		htmlBarWidthSpinner = new FIntegerSpinner(config.getHtmlBarGridBarWidth(), GridPane.Bar.MIN_BAR_WIDTH,
+												  GridPane.Bar.MAX_BAR_WIDTH, BAR_WIDTH_FIELD_LENGTH);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -3742,7 +2846,7 @@ class PreferencesDialog
 			gridBag.setConstraints(fontPanels[i].sizeSpinner, gbc);
 			sizePanel.add(fontPanels[i].sizeSpinner);
 
-			// Label: "pt"
+			// Label: 'pt'
 			JLabel ptLabel = new FLabel(PT_STR);
 
 			gbc.gridx = 1;
@@ -3944,8 +3048,8 @@ class PreferencesDialog
 			config.setClueDirectionKeywords(direction,
 											names.isEmpty() ? new StringList(direction.getKeywords()) : names);
 		}
-		config.setClueReferenceKeyword(clueReferenceKeywordField.isEmpty() ? null
-																		   : clueReferenceKeywordField.getText());
+		config.setClueReferenceKeyword(
+				clueReferenceKeywordField.isEmpty() ? null : clueReferenceKeywordField.getText());
 		config.setImplicitFieldDirection(implicitFieldDirectionComboBox.getSelectedValue());
 		config.setAllowMultipleFieldUse(allowMultipleFieldUseComboBox.getSelectedValue());
 	}
@@ -4006,81 +3110,908 @@ class PreferencesDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class variables
+//  Enumerated types
 ////////////////////////////////////////////////////////////////////////
 
-	private static	Point	location;
-	private static	int		tabIndex;
+
+	// TABS
+
+
+	private enum Tab
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		GENERAL
+		(
+			"General"
+		)
+		{
+			@Override
+			protected JPanel createPanel(PreferencesDialog dialog)
+			{
+				return dialog.createPanelGeneral();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void validatePreferences(PreferencesDialog dialog)
+				throws AppException
+			{
+				dialog.validatePreferencesGeneral();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void setPreferences(PreferencesDialog dialog)
+			{
+				dialog.setPreferencesGeneral();
+			}
+
+			//----------------------------------------------------------
+		},
+
+		APPEARANCE
+		(
+			"Appearance"
+		)
+		{
+			@Override
+			protected JPanel createPanel(PreferencesDialog dialog)
+			{
+				return dialog.createPanelAppearance();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void validatePreferences(PreferencesDialog dialog)
+				throws AppException
+			{
+				dialog.validatePreferencesAppearance();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void setPreferences(PreferencesDialog dialog)
+			{
+				dialog.setPreferencesAppearance();
+			}
+
+			//----------------------------------------------------------
+		},
+
+		VIEW
+		(
+			"View"
+		)
+		{
+			@Override
+			protected JPanel createPanel(PreferencesDialog dialog)
+			{
+				return dialog.createPanelView();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void validatePreferences(PreferencesDialog dialog)
+				throws AppException
+			{
+				dialog.validatePreferencesView();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void setPreferences(PreferencesDialog dialog)
+			{
+				dialog.setPreferencesView();
+			}
+
+			//----------------------------------------------------------
+		},
+
+		GRID
+		(
+			"Grid"
+		)
+		{
+			@Override
+			protected JPanel createPanel(PreferencesDialog dialog)
+			{
+				return dialog.createPanelGrid();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void validatePreferences(PreferencesDialog dialog)
+				throws AppException
+			{
+				dialog.validatePreferencesGrid();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void setPreferences(PreferencesDialog dialog)
+			{
+				dialog.setPreferencesGrid();
+			}
+
+			//----------------------------------------------------------
+		},
+
+		CLUES
+		(
+			"Clues"
+		)
+		{
+			@Override
+			protected JPanel createPanel(PreferencesDialog dialog)
+			{
+				return dialog.createPanelClues();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void validatePreferences(PreferencesDialog dialog)
+				throws AppException
+			{
+				dialog.validatePreferencesClues();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void setPreferences(PreferencesDialog dialog)
+			{
+				dialog.setPreferencesClues();
+			}
+
+			//----------------------------------------------------------
+		},
+
+		TEXT_SECTIONS
+		(
+			"Text sections"
+		)
+		{
+			@Override
+			protected JPanel createPanel(PreferencesDialog dialog)
+			{
+				return dialog.createPanelTextSections();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void validatePreferences(PreferencesDialog dialog)
+				throws AppException
+			{
+				dialog.validatePreferencesTextSections();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void setPreferences(PreferencesDialog dialog)
+			{
+				dialog.setPreferencesTextSections();
+			}
+
+			//----------------------------------------------------------
+		},
+
+		HTML
+		(
+			"HTML"
+		)
+		{
+			@Override
+			protected JPanel createPanel(PreferencesDialog dialog)
+			{
+				return dialog.createPanelHtml();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void validatePreferences(PreferencesDialog dialog)
+				throws AppException
+			{
+				dialog.validatePreferencesHtml();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void setPreferences(PreferencesDialog dialog)
+			{
+				dialog.setPreferencesHtml();
+			}
+
+			//----------------------------------------------------------
+		},
+
+		FILES
+		(
+			"Files"
+		)
+		{
+			@Override
+			protected JPanel createPanel(PreferencesDialog dialog)
+			{
+				return dialog.createPanelFiles();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void validatePreferences(PreferencesDialog dialog)
+				throws AppException
+			{
+				dialog.validatePreferencesFiles();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void setPreferences(PreferencesDialog dialog)
+			{
+				dialog.setPreferencesFiles();
+			}
+
+			//----------------------------------------------------------
+		},
+
+		FONTS
+		(
+			"Fonts"
+		)
+		{
+			@Override
+			protected JPanel createPanel(PreferencesDialog dialog)
+			{
+				return dialog.createPanelFonts();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void validatePreferences(PreferencesDialog dialog)
+				throws AppException
+			{
+				dialog.validatePreferencesFonts();
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void setPreferences(PreferencesDialog dialog)
+			{
+				dialog.setPreferencesFonts();
+			}
+
+			//----------------------------------------------------------
+		};
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	text;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Tab(String text)
+		{
+			this.text = text;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Abstract methods
+	////////////////////////////////////////////////////////////////////
+
+		protected abstract JPanel createPanel(PreferencesDialog dialog);
+
+		//--------------------------------------------------------------
+
+		protected abstract void validatePreferences(PreferencesDialog dialog)
+			throws AppException;
+
+		//--------------------------------------------------------------
+
+		protected abstract void setPreferences(PreferencesDialog dialog);
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// ERROR IDENTIFIERS
+
+
+	private enum ErrorId
+		implements AppException.IId
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		NO_LINE_BREAK_SEQUENCE
+		("No line-break sequence was specified."),
+
+		NO_FILENAME_SUFFIX
+		("No filename suffix was specified."),
+
+		NOT_A_FILE
+		("The pathname does not denote a normal file."),
+
+		FILE_ACCESS_NOT_PERMITTED
+		("Access to the file was not permitted.");
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	message;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ErrorId(String message)
+		{
+			this.message = message;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : AppException.IId interface
+	////////////////////////////////////////////////////////////////////
+
+		public String getMessage()
+		{
+			return message;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	// Main panel
-	private	boolean									accepted;
-	private	JTabbedPane								tabbedPanel;
 
-	// General panel
-	private	BooleanComboBox							showUnixPathnamesComboBox;
-	private	BooleanComboBox							selectTextOnFocusGainedComboBox;
-	private	BooleanComboBox							saveMainWindowLocationComboBox;
-	private	FIntegerSpinner							maxEditListLengthSpinner;
-	private	BooleanComboBox							clearEditListOnSaveComboBox;
+	// GRID PANEL LABEL CLASS
 
-	// Appearance panel
-	private	FComboBox<String>						lookAndFeelComboBox;
-	private	FComboBox<TextRendering.Antialiasing>	textAntialiasingComboBox;
-	private	ColourButton							statusTextColourButton;
 
-	// View panel
-	private	FIntegerSpinner							selClueNumColumnsSpinner;
-	private	Map<CrosswordView.Colour, Color>		viewColours;
-	private	SelectionList<CrosswordView.Colour>		viewColoursList;
-	private	ColourButton							viewColourButton;
+	private static class GridPanelLabel
+		extends FixedWidthLabel
+	{
 
-	// Grid panel
-	private	EntryCharsField							gridEntryCharsField;
-	private	BooleanComboBox							navigateOverSeparatorsComboBox;
-	private	DimensionsSpinnerPanel					gridImageViewportSizePanel;
-	private	Map<Grid.Separator, FIntegerSpinner>	gridCellSizeSpinners;
-	private	FIntegerSpinner							gridBarWidthSpinner;
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
 
-	// Clues panel
-	private	Map<Direction, StringListField>			clueDirectionKeywordsFields;
-	private	FTextField								clueReferenceKeywordField;
-	private	BooleanComboBox							implicitFieldDirectionComboBox;
-	private	BooleanComboBox							allowMultipleFieldUseComboBox;
+		private static final	String	KEY	= GridPanelLabel.class.getCanonicalName();
 
-	// Text sections panel
-	private	FTextField								lineBreakField;
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
 
-	// HTML panel
-	private	FTextField								htmlViewerCommandField;
-	private	StringListField							htmlFontNamesField;
-	private	FIntegerSpinner							htmlFontSizeSpinner;
-	private	FDoubleSpinner							htmlFieldNumFontSizeFactorSpinner;
-	private	FIntegerSpinner							htmlFieldNumOffsetTopSpinner;
-	private	FIntegerSpinner							htmlFieldNumOffsetLeftSpinner;
-	private	FIntegerSpinner							htmlCellOffsetTopSpinner;
-	private	FIntegerSpinner							htmlCellOffsetLeftSpinner;
-	private	ColourButton							htmlGridColourButton;
-	private	ColourButton							htmlEntryColourButton;
-	private	Map<Grid.Separator, FIntegerSpinner>	htmlCellSizeSpinners;
-	private	FIntegerSpinner							blockImageNumLinesSpinner;
-	private	FDoubleSpinner							blockImageLineWidthSpinner;
-	private	ColourButton							blockImageColourButton;
-	private	BooleanComboBox							blockImagePrintOnlyComboBox;
-	private	ImagePanel								blockImagePanel;
-	private	FIntegerSpinner							htmlBarWidthSpinner;
-	private	ColourButton							htmlBarColourButton;
+		private GridPanelLabel(String text)
+		{
+			super(text);
+		}
 
-	// Files panel
-	private	FilenameSuffixField						filenameSuffixField;
-	private	FPathnameField							parameterSetPathnameField;
-	private	JFileChooser							parameterSetFileChooser;
+		//--------------------------------------------------------------
 
-	// Fonts panel
-	private	FontPanel[]								fontPanels;
+	////////////////////////////////////////////////////////////////////
+	//  Class methods
+	////////////////////////////////////////////////////////////////////
+
+		private static void reset()
+		{
+			MaxValueMap.removeAll(KEY);
+		}
+
+		//--------------------------------------------------------------
+
+		private static void update()
+		{
+			MaxValueMap.update(KEY);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		protected String getKey()
+		{
+			return KEY;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// HTML PANEL LABEL CLASS
+
+
+	private static class HtmlPanelLabel
+		extends FixedWidthLabel
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	KEY	= HtmlPanelLabel.class.getCanonicalName();
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private HtmlPanelLabel(String text)
+		{
+			super(text);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Class methods
+	////////////////////////////////////////////////////////////////////
+
+		private static void reset()
+		{
+			MaxValueMap.removeAll(KEY);
+		}
+
+		//--------------------------------------------------------------
+
+		private static void update()
+		{
+			MaxValueMap.update(KEY);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		protected String getKey()
+		{
+			return KEY;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// COLOUR BUTTON CLASS
+
+
+	private static class ColourButton
+		extends JButton
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	int		ICON_WIDTH	= 40;
+		private static final	int		ICON_HEIGHT	= 16;
+		private static final	Insets	MARGINS		= new Insets(2, 2, 2, 2);
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ColourButton(Color colour)
+		{
+			super(new ColourSampleIcon(ICON_WIDTH, ICON_HEIGHT));
+			setMargin(MARGINS);
+			setForeground(colour);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// GRID-ENTRY CHARACTERS FIELD CLASS
+
+
+	private static class EntryCharsField
+		extends ConstrainedTextField
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	int	NUM_COLUMNS	= 40;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private EntryCharsField(String text)
+		{
+			super(0, NUM_COLUMNS, text);
+			AppFont.TEXT_FIELD.apply(this);
+			GuiUtils.setTextComponentMargins(this);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		protected int getColumnWidth()
+		{
+			return FontUtils.getCharWidth('0', getFontMetrics(getFont()));
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected String translateInsertString(String str,
+											   int    offset)
+		{
+			return str.toUpperCase();
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected boolean acceptCharacter(char ch,
+										  int  index)
+		{
+			return (getText().indexOf(Character.toUpperCase(ch)) < 0) && !Character.isISOControl(ch);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// FILENAME-SUFFIX FIELD CLASS
+
+
+	private static class FilenameSuffixField
+		extends ConstrainedTextField
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	int		LENGTH			= 32;
+		private static final	int		NUM_COLUMNS		= 8;
+		private static final	String	VALID_SYMBOLS	= "-._";
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private FilenameSuffixField(String text)
+		{
+			super(LENGTH, NUM_COLUMNS, text);
+			AppFont.TEXT_FIELD.apply(this);
+			GuiUtils.setTextComponentMargins(this);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		protected boolean acceptCharacter(char ch,
+										  int  index)
+		{
+			return (Character.isAlphabetic(ch) || Character.isDigit(ch) ||
+					 (VALID_SYMBOLS.indexOf(ch) >= 0));
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// STRING-LIST FIELD CLASS
+
+
+	private static class StringListField
+		extends InformationField
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	StringList	strings;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private StringListField(int        numColumns,
+								StringList strings)
+		{
+			super(numColumns);
+			setStrings(strings);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public void setStrings(StringList strings)
+		{
+			this.strings = strings;
+			setText(strings.toQuotedString());
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// IMAGE PANEL CLASS
+
+
+	private static class ImagePanel
+		extends JComponent
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	int		WIDTH	= Grid.MAX_HTML_CELL_SIZE + 2;
+		private static final	int		HEIGHT	= WIDTH;
+
+		private static final	Color	IMAGE_BACKGROUND_COLOUR	= Color.WHITE;
+		private static final	Color	IMAGE_BORDER_COLOUR		= new Color(208, 208, 208);
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	BufferedImage	image;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ImagePanel()
+		{
+			// Set properties
+			setPreferredSize(new Dimension(WIDTH, HEIGHT));
+			setOpaque(true);
+			setFocusable(false);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		protected void paintComponent(Graphics gr)
+		{
+			// Fill background
+			Rectangle rect = gr.getClipBounds();
+			gr.setColor(getBackground());
+			gr.fillRect(rect.x, rect.y, rect.width, rect.height);
+
+			// Draw image
+			if (image != null)
+			{
+				int width = image.getWidth();
+				int height = image.getHeight();
+
+				// Fill image background
+				gr.setColor(IMAGE_BACKGROUND_COLOUR);
+				gr.fillRect(1, 1, width, height);
+
+				// Draw image
+				gr.drawImage(image, 1, 1, null);
+
+				// Draw image border
+				gr.setColor(IMAGE_BORDER_COLOUR);
+				gr.drawRect(0, 0, width + 1, height + 1);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private void updateImage(int    size,
+								 int    numLines,
+								 double lineWidth,
+								 Color  colour)
+		{
+			image = BlockGrid.createBlockImage(size, numLines, (float)lineWidth, colour);
+			repaint();
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// FONT PANEL CLASS
+
+
+	private static class FontPanel
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	int	MIN_SIZE	= 0;
+		private static final	int	MAX_SIZE	= 99;
+
+		private static final	int	SIZE_FIELD_LENGTH	= 2;
+
+		private static final	String	DEFAULT_FONT_STR	= "<default font>";
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	FComboBox<String>		nameComboBox;
+		private	FComboBox<FontStyle>	styleComboBox;
+		private	SizeSpinner				sizeSpinner;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private FontPanel(FontEx   font,
+						  String[] fontNames)
+		{
+			nameComboBox = new FComboBox<>();
+			nameComboBox.addItem(DEFAULT_FONT_STR);
+			for (String fontName : fontNames)
+				nameComboBox.addItem(fontName);
+			nameComboBox.setSelectedIndex(Utils.indexOf(font.getName(), fontNames) + 1);
+
+			styleComboBox = new FComboBox<>(FontStyle.values());
+			styleComboBox.setSelectedValue(font.getStyle());
+
+			sizeSpinner = new SizeSpinner(font.getSize());
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public FontEx getFont()
+		{
+			String name = (nameComboBox.getSelectedIndex() <= 0) ? null : nameComboBox.getSelectedValue();
+			return new FontEx(name, styleComboBox.getSelectedValue(), sizeSpinner.getIntValue());
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Member classes : non-inner classes
+	////////////////////////////////////////////////////////////////////
+
+
+		// SIZE SPINNER CLASS
+
+
+		private static class SizeSpinner
+			extends IntegerSpinner
+		{
+
+		////////////////////////////////////////////////////////////////
+		//  Constructors
+		////////////////////////////////////////////////////////////////
+
+			private SizeSpinner(int value)
+			{
+				super(value, MIN_SIZE, MAX_SIZE, SIZE_FIELD_LENGTH);
+				AppFont.TEXT_FIELD.apply(this);
+			}
+
+			//----------------------------------------------------------
+
+		////////////////////////////////////////////////////////////////
+		//  Instance methods : overriding methods
+		////////////////////////////////////////////////////////////////
+
+			/**
+			 * @throws NumberFormatException
+			 */
+
+			@Override
+			protected int getEditorValue()
+			{
+				IntegerValueField field = (IntegerValueField)getEditor();
+				return (field.isEmpty() ? 0 : field.getValue());
+			}
+
+			//----------------------------------------------------------
+
+			@Override
+			protected void setEditorValue(int value)
+			{
+				IntegerValueField field = (IntegerValueField)getEditor();
+				if (value == 0)
+					field.setText(null);
+				else
+					field.setValue(value);
+			}
+
+			//----------------------------------------------------------
+
+		}
+
+		//==============================================================
+
+	}
+
+	//==================================================================
 
 }
 

@@ -100,7 +100,7 @@ public class InformationField
 			int width = 2 * HORIZONTAL_MARGIN + getFontMetrics(getFont()).stringWidth(text);
 			setPreferredSize(new Dimension(width, InformationField.this.getHeight()));
 
-			// Set component attributes
+			// Set properties
 			setOpaque(true);
 			setFocusable(false);
 		}
@@ -177,7 +177,7 @@ public class InformationField
 		int height = 2 * VERTICAL_MARGIN + fontMetrics.getAscent() + fontMetrics.getDescent();
 		setPreferredSize(new Dimension(width, height));
 
-		// Set component attributes
+		// Set properties
 		setOpaque(true);
 		setFocusable(false);
 		setBackground(BACKGROUND_COLOUR);

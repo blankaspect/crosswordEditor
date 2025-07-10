@@ -121,8 +121,7 @@ class BarGrid
 			char ch = definition.charAt(i);
 			int index = GRID_DEF_CHARS.indexOf(Character.toUpperCase(ch));
 			if (index < 0)
-				throw new AppException(ErrorId.ILLEGAL_CHARACTER_IN_GRID_DEFINITION,
-									   new String[] { Character.toString(ch) });
+				throw new AppException(ErrorId.ILLEGAL_CHARACTER_IN_GRID_DEFINITION, Character.toString(ch));
 			barSets.add(SECONDARY_BAR_SETS.get(index));
 		}
 		int[] dimensions = symmetry.getPrincipalDimensions(numColumns, numRows);
@@ -170,8 +169,8 @@ class BarGrid
 			for (int column = 0; column < numColumns; column++)
 			{
 				int imageX = (int)Math.round(x + dx);
-				if ((prevImageX >= 0) &&
-					isBar(prevImageX, imageX, iy, true, image, brightnessThreshold, barWidthThreshold))
+				if ((prevImageX >= 0)
+						&& isBar(prevImageX, imageX, iy, true, image, brightnessThreshold, barWidthThreshold))
 					cells[row][column].addBar(Edge.LEFT);
 				prevImageX = imageX;
 				x += cellWidth;
@@ -189,8 +188,8 @@ class BarGrid
 			for (int row = 0; row < numRows; row++)
 			{
 				int imageY = (int)Math.round(y + dy);
-				if ((prevImageY >= 0) && isBar(prevImageY, imageY, ix, false, image, brightnessThreshold,
-											   barWidthThreshold))
+				if ((prevImageY >= 0)
+						&& isBar(prevImageY, imageY, ix, false, image, brightnessThreshold, barWidthThreshold))
 					cells[row][column].addBar(Edge.TOP);
 				prevImageY = imageY;
 				y += cellHeight;
@@ -353,10 +352,10 @@ class BarGrid
 
 		// Generate the rule sets for the base cell style
 		int fieldNumOffsetBase = (barWidth - 1) / 2;
-		List<CssRuleSet> ruleSets = Cell.getStyleRuleSets(cellSize, cellOffsetTop, cellOffsetLeft, gridColour,
-														  entryColour, fieldNumOffsetBase + fieldNumOffsetTop,
-														  fieldNumOffsetBase + fieldNumOffsetLeft,
-														  fieldNumberFontSizeFactor);
+		List<CssRuleSet> ruleSets =
+				Cell.getStyleRuleSets(cellSize, cellOffsetTop, cellOffsetLeft, gridColour, entryColour,
+									  fieldNumOffsetBase + fieldNumOffsetTop, fieldNumOffsetBase + fieldNumOffsetLeft,
+									  fieldNumberFontSizeFactor);
 
 		// Get rule set for barred cell
 		CssRuleSet ruleSet = Cell.RULE_SET.clone();
@@ -454,10 +453,10 @@ class BarGrid
 		{
 			for (int column = 0; column < numColumns; column++)
 			{
-				if (((column == 0) || cells[row][column].hasBar(Edge.LEFT)) &&
-					 ((column == numColumns - 1) || cells[row][column + 1].hasBar(Edge.LEFT)) &&
-					 ((row == 0) || cells[row][column].hasBar(Edge.TOP)) &&
-					 ((row == numRows - 1) || cells[row + 1][column].hasBar(Edge.TOP)))
+				if (((column == 0) || cells[row][column].hasBar(Edge.LEFT))
+						&& ((column == numColumns - 1) || cells[row][column + 1].hasBar(Edge.LEFT))
+						&& ((row == 0) || cells[row][column].hasBar(Edge.TOP))
+						&& ((row == numRows - 1) || cells[row + 1][column].hasBar(Edge.TOP)))
 					isolatedCells.add(new IndexPair(row, column));
 			}
 		}
@@ -630,9 +629,9 @@ class BarGrid
 						break;
 
 					case ROTATION_QUARTER:
-						if (!cells[c1][r2].bars.equals(Edge.rotateQuarter(bars, 1)) ||
-							 !cells[r2][c2].bars.equals(Edge.rotateQuarter(bars, 2)) ||
-							 !cells[c2][r1].bars.equals(Edge.rotateQuarter(bars, 3)))
+						if (!cells[c1][r2].bars.equals(Edge.rotateQuarter(bars, 1))
+								|| !cells[r2][c2].bars.equals(Edge.rotateQuarter(bars, 2))
+								|| !cells[c2][r1].bars.equals(Edge.rotateQuarter(bars, 3)))
 							return false;
 						break;
 
@@ -647,9 +646,9 @@ class BarGrid
 						break;
 
 					case REFLECTION_VERTICAL_HORIZONTAL_AXES:
-						if (!cells[r1][c2].bars.equals(Edge.reflectVAxis(bars)) ||
-							 !cells[r2][c1].bars.equals(Edge.reflectHAxis(bars)) ||
-							 !cells[r2][c2].bars.equals(Edge.rotateQuarter(bars, 2)))
+						if (!cells[r1][c2].bars.equals(Edge.reflectVAxis(bars))
+								|| !cells[r2][c1].bars.equals(Edge.reflectHAxis(bars))
+								|| !cells[r2][c2].bars.equals(Edge.rotateQuarter(bars, 2)))
 							return false;
 						break;
 				}
@@ -978,8 +977,7 @@ class BarGrid
 			Sets	edgeSets,
 			int		numQuarters)
 		{
-			return new Sets(rotateQuarter(edgeSets.remove, numQuarters),
-							rotateQuarter(edgeSets.add, numQuarters));
+			return new Sets(rotateQuarter(edgeSets.remove, numQuarters), rotateQuarter(edgeSets.add, numQuarters));
 		}
 
 		//--------------------------------------------------------------
@@ -1144,8 +1142,8 @@ class BarGrid
 
 		private static final	String	CLASS_PREFIX	= "bar-";
 
-		private static final	String	STYLE_SELECTOR	= HtmlConstants.ElementName.DIV + CssSelector.CLASS
-																							+ HtmlConstants.Class.BARS;
+		private static final	String	STYLE_SELECTOR	=
+				HtmlConstants.ElementName.DIV + CssSelector.CLASS + HtmlConstants.Class.BARS;
 		private static final	CssRuleSet	RULE_SET	= CssRuleSet.of
 		(
 			STYLE_SELECTOR,

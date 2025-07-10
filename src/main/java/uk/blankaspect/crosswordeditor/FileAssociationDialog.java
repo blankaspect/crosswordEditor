@@ -19,7 +19,6 @@ package uk.blankaspect.crosswordeditor;
 
 
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -57,6 +56,7 @@ import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.FileException;
 
 import uk.blankaspect.common.filesystem.PathnameUtils;
+import uk.blankaspect.common.filesystem.PathUtils;
 
 import uk.blankaspect.common.misc.FilenameSuffixFilter;
 
@@ -97,12 +97,9 @@ class FileAssociationDialog
 
 	private static final	String	KEY	= FileAssociationDialog.class.getCanonicalName();
 
-	private static final	String	JAVA_HOME_KEY	= "java.home";
-	private static final	String	USER_DIR_KEY	= "user.dir";
-
 	private static final	String	JAVA_LAUNCHER_PATHNAME	= "bin\\javaw.exe";
 
-	private static final	String	TITLE_STR				= "Windows file association";
+	private static final	String	TITLE_STR				= "Windows file associations";
 	private static final	String	ACTION_STR				= "Action";
 	private static final	String	JAVA_LAUNCHER_STR		= "Java launcher";
 	private static final	String	JAR_STR					= "JAR";
@@ -129,6 +126,13 @@ class FileAssociationDialog
 		String	CLOSE								= "close";
 	}
 
+	// Keys of system properties
+	private interface SystemPropertyKey
+	{
+		String	JAVA_HOME_DIR	= "java.home";
+		String	WORKING_DIR		= "user.dir";
+	}
+
 ////////////////////////////////////////////////////////////////////////
 //  Class variables
 ////////////////////////////////////////////////////////////////////////
@@ -141,8 +145,8 @@ class FileAssociationDialog
 	private static	boolean								filesMustExist	= true;
 	private static	FileAssociations.ScriptLifeCycle	scriptLifeCycle	=
 			FileAssociations.ScriptLifeCycle.WRITE_EXECUTE_DELETE;
-	private static	Path								defaultJavaLauncherPath;
-	private static	Path								defaultJarPath;
+	private static	Path								defaultJavaLauncherLocation;
+	private static	Path								defaultJarLocation;
 
 ////////////////////////////////////////////////////////////////////////
 //  Instance variables
@@ -168,15 +172,15 @@ class FileAssociationDialog
 
 	static
 	{
-		// Java launcher path
-		String pathname = System.getProperty(JAVA_HOME_KEY);
+		// Location of Java launcher
+		String pathname = System.getProperty(SystemPropertyKey.JAVA_HOME_DIR);
 		if (pathname != null)
 		{
 			try
 			{
-				Path path = Path.of(pathname, JAVA_LAUNCHER_PATHNAME);
-				if (Files.exists(path))
-					defaultJavaLauncherPath = path.toAbsolutePath();
+				Path location = Path.of(pathname, JAVA_LAUNCHER_PATHNAME);
+				if (Files.exists(location))
+					defaultJavaLauncherLocation = PathUtils.abs(location);
 			}
 			catch (Exception e)
 			{
@@ -184,13 +188,14 @@ class FileAssociationDialog
 			}
 		}
 
-		// JAR path
+		// Location of JAR
 		try
 		{
-			Path path = Path.of(FileAssociationDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-			if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)
-					&& PathnameUtils.suffixMatches(path, AppConstants.JAR_FILENAME_EXTENSION))
-				defaultJarPath = path.toAbsolutePath();
+			Path location =
+					Path.of(FileAssociationDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+			if (Files.isRegularFile(location, LinkOption.NOFOLLOW_LINKS)
+					&& PathnameUtils.suffixMatches(location, AppConstants.JAR_FILENAME_EXTENSION))
+				defaultJarLocation = PathUtils.abs(location);
 		}
 		catch (Exception e)
 		{
@@ -202,17 +207,17 @@ class FileAssociationDialog
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	private FileAssociationDialog(Window owner)
+	private FileAssociationDialog(
+		Window	owner)
 	{
-
 		// Call superclass constructor
-		super(owner, TITLE_STR, Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, TITLE_STR, ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		setIconImages(owner.getIconImages());
 
 		// Initialise instance variables
-		javaLauncherFileChooser = new JFileChooser(System.getProperty(JAVA_HOME_KEY));
+		javaLauncherFileChooser = new JFileChooser(System.getProperty(SystemPropertyKey.JAVA_HOME_DIR));
 		javaLauncherFileChooser.setDialogTitle(JAVA_LAUNCHER_FILE_STR);
 		javaLauncherFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		javaLauncherFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
@@ -220,7 +225,7 @@ class FileAssociationDialog
 		javaLauncherFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.EXE_FILES_STR,
 																	   AppConstants.EXE_FILENAME_EXTENSION));
 
-		jarFileChooser = new JFileChooser(System.getProperty(USER_DIR_KEY));
+		jarFileChooser = new JFileChooser(System.getProperty(SystemPropertyKey.WORKING_DIR));
 		jarFileChooser.setDialogTitle(JAR_FILE_STR);
 		jarFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		jarFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
@@ -228,7 +233,7 @@ class FileAssociationDialog
 		jarFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.JAR_FILES_STR,
 															  AppConstants.JAR_FILENAME_EXTENSION));
 
-		iconFileChooser = new JFileChooser(System.getProperty(USER_DIR_KEY));
+		iconFileChooser = new JFileChooser(System.getProperty(SystemPropertyKey.WORKING_DIR));
 		iconFileChooser.setDialogTitle(ICON_FILE_STR);
 		iconFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		iconFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
@@ -581,7 +586,7 @@ class FileAssociationDialog
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
@@ -591,7 +596,6 @@ class FileAssociationDialog
 
 		// Show dialog
 		setVisible(true);
-
 	}
 
 	//------------------------------------------------------------------
@@ -600,7 +604,8 @@ class FileAssociationDialog
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static Result showDialog(Component parent)
+	public static Result showDialog(
+		Component	parent)
 	{
 		return new FileAssociationDialog(GuiUtils.getWindow(parent)).getResult();
 	}
@@ -611,7 +616,9 @@ class FileAssociationDialog
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
-	public void actionPerformed(ActionEvent event)
+	@Override
+	public void actionPerformed(
+		ActionEvent	event)
 	{
 		String command = event.getActionCommand();
 
@@ -662,8 +669,8 @@ class FileAssociationDialog
 			GuiUtils.setAllEnabled(component, enabled);
 		if (enabled)
 		{
-			javaLauncherDefaultButton.setEnabled(defaultJavaLauncherPath != null);
-			jarDefaultButton.setEnabled(defaultJarPath != null);
+			javaLauncherDefaultButton.setEnabled(defaultJavaLauncherLocation != null);
+			jarDefaultButton.setEnabled(defaultJarLocation != null);
 		}
 	}
 
@@ -797,14 +804,14 @@ class FileAssociationDialog
 
 	private void onSetDefaultJavaLauncherPathname()
 	{
-		javaLauncherPathnameField.setText(defaultJavaLauncherPath.toString());
+		javaLauncherPathnameField.setText(defaultJavaLauncherLocation.toString());
 	}
 
 	//------------------------------------------------------------------
 
 	private void onSetDefaultJarPathname()
 	{
-		jarPathnameField.setText(defaultJarPath.toString());
+		jarPathnameField.setText(defaultJarLocation.toString());
 	}
 
 	//------------------------------------------------------------------
@@ -877,7 +884,8 @@ class FileAssociationDialog
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private Action(String text)
+		private Action(
+			String	text)
 		{
 			this.text = text;
 		}
@@ -938,7 +946,8 @@ class FileAssociationDialog
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private ErrorId(String message)
+		private ErrorId(
+			String	message)
 		{
 			this.message = message;
 		}
@@ -996,11 +1005,12 @@ class FileAssociationDialog
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private Result(String                           javaLauncherPathname,
-					   String                           jarPathname,
-					   String                           iconPathname,
-					   boolean                          removeEntries,
-					   FileAssociations.ScriptLifeCycle scriptLifeCycle)
+		private Result(
+			String								javaLauncherPathname,
+			String								jarPathname,
+			String								iconPathname,
+			boolean								removeEntries,
+			FileAssociations.ScriptLifeCycle	scriptLifeCycle)
 		{
 			this.javaLauncherPathname = processPathname(javaLauncherPathname);
 			this.jarPathname = processPathname(jarPathname);
@@ -1015,21 +1025,22 @@ class FileAssociationDialog
 	//  Class methods
 	////////////////////////////////////////////////////////////////////
 
-		private static String processPathname(String pathname)
+		private static String processPathname(
+			String	pathname)
 		{
 			StringBuilder buffer = new StringBuilder(256);
 			for (PropertyString.Span span : PropertyString.getSpans(pathname))
 			{
-				if (span.getValue() != null)
+				if (span.text() != null)
 				{
-					if (span.getKind() == PropertyString.Span.Kind.ENVIRONMENT)
+					if (span.kind() == PropertyString.SpanKind.ENVIRONMENT)
 					{
 						buffer.append(ENV_VAR_PREFIX);
-						buffer.append(span.getKey());
+						buffer.append(span.key());
 						buffer.append(ENV_VAR_SUFFIX);
 					}
 					else
-						buffer.append(span.getValue().replace(UNIX_FILE_SEPARATOR, WINDOWS_FILE_SEPARATOR));
+						buffer.append(span.text().replace(UNIX_FILE_SEPARATOR, WINDOWS_FILE_SEPARATOR));
 				}
 			}
 			return buffer.toString();

@@ -19,7 +19,6 @@ package uk.blankaspect.crosswordeditor;
 
 
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -108,18 +107,37 @@ class StringSelectionDialog
 	}
 
 ////////////////////////////////////////////////////////////////////////
+//  Class variables
+////////////////////////////////////////////////////////////////////////
+
+	private static	Point	location;
+
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	boolean						accepted;
+	private	String						elementName;
+	private	SingleSelectionList<String>	selectionList;
+	private	JScrollPane					selectionListScrollPane;
+	private	JTextField					elementField;
+	private	FComboBox<String>			elementComboBox;
+	private	JButton						addButton;
+	private	JButton						editButton;
+	private	JButton						deleteButton;
+
+////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
 	private StringSelectionDialog(Window       owner,
-								  String       titleStr,
+								  String       title,
 								  String       elementName,
 								  StringList   strings,
 								  List<String> candidates)
 	{
-
 		// Call superclass constructor
-		super(owner, titleStr, Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, title, ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		setIconImages(owner.getIconImages());
@@ -350,14 +368,13 @@ class StringSelectionDialog
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
 
 		// Show dialog
 		setVisible(true);
-
 	}
 
 	//------------------------------------------------------------------
@@ -367,13 +384,13 @@ class StringSelectionDialog
 ////////////////////////////////////////////////////////////////////////
 
 	public static StringList showDialog(Component    parent,
-										String       titleStr,
+										String       title,
 										String       elementName,
 										StringList   strings,
 										List<String> candidates)
 	{
-		return new StringSelectionDialog(GuiUtils.getWindow(parent), titleStr, elementName, strings, candidates)
-																										.getStrings();
+		return new StringSelectionDialog(GuiUtils.getWindow(parent), title, elementName, strings, candidates)
+				.getStrings();
 	}
 
 	//------------------------------------------------------------------
@@ -430,8 +447,7 @@ class StringSelectionDialog
 
 	public void stateChanged(ChangeEvent event)
 	{
-		if (!selectionListScrollPane.getVerticalScrollBar().getValueIsAdjusting() &&
-			 !selectionList.isDragging())
+		if (!selectionListScrollPane.getVerticalScrollBar().getValueIsAdjusting() && !selectionList.isDragging())
 			selectionList.snapViewPosition();
 	}
 
@@ -480,15 +496,14 @@ class StringSelectionDialog
 
 	private StringList getStrings()
 	{
-		return (accepted ? new StringList(selectionList.getElements()) : null);
+		return accepted ? new StringList(selectionList.getElements()) : null;
 	}
 
 	//------------------------------------------------------------------
 
 	private JTextField getElementField()
 	{
-		return ((elementField == null) ? (JTextField)elementComboBox.getEditor().getEditorComponent()
-									   : elementField);
+		return (elementField == null) ? (JTextField)elementComboBox.getEditor().getEditorComponent() : elementField;
 	}
 
 	//------------------------------------------------------------------
@@ -532,9 +547,8 @@ class StringSelectionDialog
 	private void onConfirmDelete()
 	{
 		String[] optionStrs = Utils.getOptionStrings(DELETE_STR);
-		if (JOptionPane.showOptionDialog(this, DELETE_MESSAGE_STR + elementName + "?",
-										 DELETE_STR + " " + elementName, JOptionPane.OK_CANCEL_OPTION,
-										 JOptionPane.QUESTION_MESSAGE, null, optionStrs,
+		if (JOptionPane.showOptionDialog(this, DELETE_MESSAGE_STR + elementName + "?", DELETE_STR + " " + elementName,
+										 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, optionStrs,
 										 optionStrs[1]) == JOptionPane.OK_OPTION)
 			onDelete();
 	}
@@ -592,26 +606,6 @@ class StringSelectionDialog
 	}
 
 	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Class variables
-////////////////////////////////////////////////////////////////////////
-
-	private static	Point	location;
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	boolean						accepted;
-	private	String						elementName;
-	private	SingleSelectionList<String>	selectionList;
-	private	JScrollPane					selectionListScrollPane;
-	private	JTextField					elementField;
-	private	FComboBox<String>			elementComboBox;
-	private	JButton						addButton;
-	private	JButton						editButton;
-	private	JButton						deleteButton;
 
 }
 

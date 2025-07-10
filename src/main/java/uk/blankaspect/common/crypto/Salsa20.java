@@ -25,7 +25,7 @@ import java.security.NoSuchAlgorithmException;
 
 import java.util.Arrays;
 
-import uk.blankaspect.common.exception.UnexpectedRuntimeException;
+import uk.blankaspect.common.exception2.UnexpectedRuntimeException;
 
 //----------------------------------------------------------------------
 

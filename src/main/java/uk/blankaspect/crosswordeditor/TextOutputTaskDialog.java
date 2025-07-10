@@ -19,7 +19,6 @@ package uk.blankaspect.crosswordeditor;
 
 
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FontMetrics;
@@ -40,7 +39,6 @@ import java.awt.event.WindowEvent;
 
 import java.io.File;
 
-import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -95,7 +93,7 @@ class TextOutputTaskDialog
 
 	private static final	String	COPY_STR	= "Copy";
 
-	private static final	List<String>	CLOSE_STRS	= Arrays.asList
+	private static final	List<String>	CLOSE_STRS	= List.of
 	(
 		AppConstants.CANCEL_STR,
 		AppConstants.CLOSE_STR
@@ -109,195 +107,39 @@ class TextOutputTaskDialog
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Enumerated types
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// ERROR IDENTIFIERS
-
-
-	private enum ErrorId
-		implements AppException.IId
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		CLIPBOARD_IS_UNAVAILABLE
-		("The clipboard is currently unavailable.");
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ErrorId(String message)
-		{
-			this.message = message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : AppException.IId interface
-	////////////////////////////////////////////////////////////////////
-
-		public String getMessage()
-		{
-			return message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	message;
-
-	}
-
-	//==================================================================
+	private static	Point	location;
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : inner classes
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
+	private volatile	boolean				stopped;
 
-	// TEXT WRITER CLASS
-
-
-	public class TextWriter
-		implements IProcessOutputWriter
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private TextWriter()
-		{
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : FileAssociations.ScriptOutputWriter interface
-	////////////////////////////////////////////////////////////////////
-
-		public boolean isClosed()
-		{
-			return cancelled;
-		}
-
-		//--------------------------------------------------------------
-
-		public void write(final String str)
-		{
-			textLength += str.length();
-			SwingUtilities.invokeLater(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					textArea.append(str);
-				}
-			});
-		}
-
-		//--------------------------------------------------------------
-
-		public void close()
-		{
-			if (!cancelled)
-			{
-				if (textLength == 0)
-					onClose();
-				else
-					closeButton.setAlternative(AppConstants.CLOSE_STR);
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
-
-
-	// WINDOW EVENT HANDLER CLASS
-
-
-	private class WindowEventHandler
-		extends WindowAdapter
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private WindowEventHandler()
-		{
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public void windowActivated(WindowEvent event)
-		{
-			if (!started)
-			{
-				started = true;
-				Task.setProgressView((TextOutputTaskDialog)event.getWindow());
-				Task.setException(null, true);
-				Task.setCancelled(false);
-				task.start();
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void windowClosing(WindowEvent event)
-		{
-			location = getLocation();
-			if (stopped)
-				dispose();
-			else
-			{
-				cancelled = true;
-				Task.setCancelled(true);
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
+	private	boolean							started;
+	private	boolean							cancelled;
+	private	int								textLength;
+	private	TextWriter						textWriter;
+	private	FTextArea						textArea;
+	private	JButton							copyButton;
+	private	AlternativeTextButton<String>	closeButton;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
 	private TextOutputTaskDialog(Window owner,
-								 String titleStr,
+								 String title,
 								 Task   task)
 		throws AppException
 	{
-
 		// Call superclass constructor
-		super(owner, titleStr, Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, title, ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		setIconImages(owner.getIconImages());
-
-		// Initialise instance variables
-		this.task = task;
 
 
 		//----  Text area scroll pane
@@ -387,7 +229,34 @@ class TextOutputTaskDialog
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
 		// Handle window events
-		addWindowListener(new WindowEventHandler());
+		addWindowListener(new WindowAdapter()
+		{
+			@Override
+			public void windowActivated(WindowEvent event)
+			{
+				if (!started)
+				{
+					started = true;
+					Task.setProgressView((TextOutputTaskDialog)event.getWindow());
+					Task.setException(null, true);
+					Task.setCancelled(false);
+					task.start();
+				}
+			}
+
+			@Override
+			public void windowClosing(WindowEvent event)
+			{
+				location = getLocation();
+				if (stopped)
+					dispose();
+				else
+				{
+					cancelled = true;
+					Task.setCancelled(true);
+				}
+			}
+		});
 
 		// Prevent dialog from being resized
 		setResizable(false);
@@ -395,7 +264,7 @@ class TextOutputTaskDialog
 		// Resize dialog to its preferred size
 		pack();
 
-		// Set location of dialog box
+		// Set location of dialog
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
@@ -408,7 +277,6 @@ class TextOutputTaskDialog
 
 		// Throw any exception from task thread
 		Task.throwIfException();
-
 	}
 
 	//------------------------------------------------------------------
@@ -418,11 +286,11 @@ class TextOutputTaskDialog
 ////////////////////////////////////////////////////////////////////////
 
 	public static void showDialog(Component parent,
-								  String    titleStr,
+								  String    title,
 								  Task      task)
 		throws AppException
 	{
-		new TextOutputTaskDialog(GuiUtils.getWindow(parent), titleStr, task);
+		new TextOutputTaskDialog(GuiUtils.getWindow(parent), title, task);
 	}
 
 	//------------------------------------------------------------------
@@ -431,6 +299,7 @@ class TextOutputTaskDialog
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void actionPerformed(ActionEvent event)
 	{
 		String command = event.getActionCommand();
@@ -448,6 +317,7 @@ class TextOutputTaskDialog
 //  Instance methods : DocumentListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void changedUpdate(DocumentEvent event)
 	{
 		// do nothing
@@ -455,6 +325,7 @@ class TextOutputTaskDialog
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void insertUpdate(DocumentEvent event)
 	{
 		updateComponents();
@@ -462,6 +333,7 @@ class TextOutputTaskDialog
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void removeUpdate(DocumentEvent event)
 	{
 		updateComponents();
@@ -473,6 +345,7 @@ class TextOutputTaskDialog
 //  Instance methods : IProgressView interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void setInfo(String str)
 	{
 		// do nothing
@@ -480,6 +353,7 @@ class TextOutputTaskDialog
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void setInfo(String str,
 						File   file)
 	{
@@ -488,6 +362,15 @@ class TextOutputTaskDialog
 
 	//------------------------------------------------------------------
 
+	@Override
+	public int getNumProgressIndicators()
+	{
+		return 0;
+	}
+
+	//------------------------------------------------------------------
+
+	@Override
 	public void setProgress(int    index,
 							double value)
 	{
@@ -496,6 +379,7 @@ class TextOutputTaskDialog
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void waitForIdle()
 	{
 		EventQueue eventQueue = getToolkit().getSystemEventQueue();
@@ -507,6 +391,7 @@ class TextOutputTaskDialog
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void close()
 	{
 		stopped = true;
@@ -566,25 +451,117 @@ class TextOutputTaskDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class variables
+//  Enumerated types
 ////////////////////////////////////////////////////////////////////////
 
-	private static	Point	location;
+
+	// ERROR IDENTIFIERS
+
+
+	private enum ErrorId
+		implements AppException.IId
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		CLIPBOARD_IS_UNAVAILABLE
+		("The clipboard is currently unavailable.");
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	message;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ErrorId(String message)
+		{
+			this.message = message;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : AppException.IId interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getMessage()
+		{
+			return message;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Member classes : inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	private volatile	boolean				stopped;
 
-	private	Task							task;
-	private	boolean							started;
-	private	boolean							cancelled;
-	private	int								textLength;
-	private	TextWriter						textWriter;
-	private	FTextArea						textArea;
-	private	JButton							copyButton;
-	private	AlternativeTextButton<String>	closeButton;
+	// TEXT WRITER CLASS
+
+
+	public class TextWriter
+		implements IProcessOutputWriter
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private TextWriter()
+		{
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : FileAssociations.ScriptOutputWriter interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public boolean isClosed()
+		{
+			return cancelled;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void write(final String str)
+		{
+			textLength += str.length();
+			SwingUtilities.invokeLater(() -> textArea.append(str));
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void close()
+		{
+			if (!cancelled)
+			{
+				if (textLength == 0)
+					onClose();
+				else
+					closeButton.setAlternative(AppConstants.CLOSE_STR);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 
