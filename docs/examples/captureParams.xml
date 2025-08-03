@@ -145,4 +145,74 @@
        value="10"/>
   </parameterSet>
 
+  <parameterSet
+     name="Gemelo">
+    <property
+       key="answerLengthPattern"
+       value="\((\d[^\(]*?)\)$"/>
+    <property
+       key="answerLengthSubstitution.000"
+       value="/, *\d+ +words//"/>
+    <property
+       key="automaticGridDetection"
+       value="true"/>
+    <property
+       key="barBrightnessThreshold"
+       value="60"/>
+    <property
+       key="barWidthThreshold"
+       value="4"/>
+    <property
+       key="blockBrightnessThreshold"
+       value="60"/>
+    <property
+       key="clueReferenceKeyword"
+       value="See"/>
+    <property
+       key="clueSubstitution.000"
+       value="/–/—/l"/>
+    <property
+       key="clueSubstitution.001"
+       value="/——/––––/l"/>
+    <property
+       key="filename"
+       value="gemelo%n"/>
+    <property
+       key="gridLine.brightnessThreshold"
+       value="60"/>
+    <property
+       key="gridLine.endpointTolerance"
+       value="1"/>
+    <property
+       key="gridLine.minLength"
+       value="200"/>
+    <property
+       key="gridLine.minSeparation"
+       value="16"/>
+    <property
+       key="gridSeparator"
+       value="bar"/>
+    <property
+       key="multipleFieldClueIdSeparator"
+       value=","/>
+    <property
+       key="numColumns"
+       value="12"/>
+    <property
+       key="numRows"
+       value="12"/>
+    <property
+       key="sampleSize"
+       value="1"/>
+    <property
+       key="title"
+       value="Gemelo %n"/>
+    <property
+       key="xOffset"
+       value="10"/>
+    <property
+       key="yOffset"
+       value="10"/>
+  </parameterSet>
+
 </parameterSetList>

@@ -1717,7 +1717,7 @@
         href="https://github.com/blankaspect/crosswordEditor/blob/master/docs/examples/captureParams.xml">A
         file</a> in the CrosswordEditor repository contains <a href="#section6-1-8">sets of
         parameters</a> for capturing the following cryptic crosswords published by British
-        newspapers on their websites, which were free to access at the beginning of July 2025:
+        newspapers on their websites, which were free to access in early August 2025:
       </p>
       <ul class="list">
         <li class="spaced">
@@ -1736,10 +1736,22 @@
             <i>The Observer</i></a>
           </div>
           <div class="wrap">
-            Published each Sunday.  The capture parameters are for the downloadable PDF version
-            of the crossword.  The grid parameters assume a 12&times;12 grid.  A 13&times;11
-            grid is also common.  The bar-width threshold may need to be adjusted to suit the
-            layout of a particular crossword.
+            Published on the first Sunday of each month.  The capture parameters are for the
+            downloadable PDF version of the crossword.  The grid parameters assume a 12&times;12
+            grid.  (A 13&times;11 grid is also common.)  The bar-width threshold may need to be
+            adjusted to suit the layout of a particular crossword.
+          </div>
+        </li>
+        <li class="spaced">
+          <div class="wrap">
+            <a class="external" href="https://observer.co.uk/topics/gemelo">The Gemelo crossword
+            in <i>The Observer</i></a>
+          </div>
+          <div class="wrap">
+            Published on Sundays except for the first Sunday of each month.  The capture
+            parameters are for the downloadable PDF version of the crossword.  The grid
+            parameters assume a 12&times;12 grid.  The bar-width threshold may need to be
+            adjusted to suit the layout of a particular crossword.
           </div>
         </li>
       </ul>
@@ -1747,19 +1759,31 @@
         The example parameters may become out of date if the publishers change the layout of the
         crosswords.
       </p>
-      <p class="wrap">
-        The examples illustrate the use of a placeholder for a crossword number.  In both
+      <p class="noBottomMargin wrap">
+        The examples illustrate the use of a placeholder for a crossword number.  In all the
         examples, the number placeholder, <code>%n</code>, appears in the <span
         class="component">Title</span> field of the <a class="component"
         href="#section6-1-5">Text</a> tab and the <span class="component">Filename stem</span>
         field of the <a class="component" href="#section6-1-6">File</a> tab of the <span
-        class="component">Capture crossword</span> dialog.  It takes the place of the two least
-        significant digits of the crossword&apos;s serial number, which you would enter in the
-        <span class="component">Number</span> field of the <a class="component"
-        href="#section6-1-5">Text</a> tab.  When the two-digit number rolled over to zero, you
-        would need to increment the 100s&apos; digit in the <span class="component">Title</span>
-        and <span class="component">Filename stem</span> fields, then update the parameter set.
+        class="component">Capture crossword</span> dialog.
       </p>
+      <ul class="continuationList">
+        <li class="wrap">
+          In the first two examples, the number placeholder takes the place of the two least
+          significant digits of the crossword&apos;s serial number, which you would enter in the
+          <span class="component">Number</span> field of the <a class="component"
+          href="#section6-1-5">Text</a> tab.  When the two-digit number rolled over to zero, you
+          would need to increment the 100s&apos; digit in the <span
+          class="component">Title</span> and <span class="component">Filename stem</span>
+          fields, then update the parameter set.
+        </li>
+        <li class="wrap">
+          In the third example, the number placeholder takes the place of the crossword&apos;s
+          serial number, which you would enter in the <span class="component">Number</span>
+          field of the <a class="component" href="#section6-1-5">Text</a> tab.
+        </li>
+      </ul>
+        
       <p class="wrap">
         You can load the parameter sets in the <span class="component">Capture crossword</span>
         dialog by setting the <a class="configProperty"
@@ -4612,7 +4636,7 @@
     <div id="lastModified">
       <div>
         <div>
-          Last modified: 2025-07-14
+          Last modified: 2025-08-03
         </div>
         <div class="image">
           <a class="hideHover" href="http://validator.w3.org/check?uri=referer">
