@@ -44,9 +44,8 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
-import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -70,6 +69,8 @@ import uk.blankaspect.ui.swing.font.FontUtils;
 
 import uk.blankaspect.ui.swing.misc.GuiConstants;
 import uk.blankaspect.ui.swing.misc.GuiUtils;
+
+import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
 
 //----------------------------------------------------------------------
 
@@ -106,6 +107,7 @@ public class ImageRegionSelectionDialog
 	private	Selection		result;
 	private	int				viewWidth;
 	private	int				viewHeight;
+	private	Point			location;
 	private	double			scaleFactor;
 	private	boolean			allSelected;
 	private	Anchor			anchor;
@@ -307,12 +309,10 @@ public class ImageRegionSelectionDialog
 
 					// Convert scaled image to buffered image
 					scaledImage = new BufferedImage(viewWidth, viewHeight, BufferedImage.TYPE_INT_RGB);
-					Graphics2D gr2d = scaledImage.createGraphics();
-					gr2d.setRenderingHint(RenderingHints.KEY_RENDERING,
-										  RenderingHints.VALUE_RENDER_QUALITY);
-					gr2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-										  RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-					gr2d.drawImage(scaledImage0, 0, 0, null);
+					Graphics2D gr = scaledImage.createGraphics();
+					gr.setRenderingHint(RenderingHints.KEY_RENDERING,     RenderingHints.VALUE_RENDER_QUALITY);
+					gr.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+					gr.drawImage(scaledImage0, 0, 0, null);
 
 					// Scale selection
 					if ((selection != null) && (scaleFactor > 0.0))
@@ -347,6 +347,11 @@ public class ImageRegionSelectionDialog
 
 				// Update buttons
 				updateButtons();
+
+				// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced downwards
+				// when its location is set.  The error in the y coordinate is the height of the title bar of the
+				// window.  The workaround is to set the location of the window again with an adjustment for the error.
+				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
 			}
 
 			@Override
@@ -373,6 +378,7 @@ public class ImageRegionSelectionDialog
 		int y = (screenBounds.height - height) / 2;
 
 		// Set location and size of dialog
+		location = new Point(x, y);
 		setBounds(x, y, width, height);
 
 		// Set default button
@@ -1609,7 +1615,7 @@ public class ImageRegionSelectionDialog
 			if (selectedRegion != null)
 			{
 				Point point = event.getPoint();
-				handle = Stream.of(ResizeHandle.values())
+				handle = Arrays.stream(ResizeHandle.values())
 						.filter(h ->
 						{
 							Rectangle bounds = h.bounds(selectedRegion);

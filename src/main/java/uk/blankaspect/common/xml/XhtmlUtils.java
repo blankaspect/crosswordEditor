@@ -313,52 +313,14 @@ public class XhtmlUtils
 	private static final	String	ENTITY_VALUE_PREFIX	= "#x";
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Static initialiser
 ////////////////////////////////////////////////////////////////////////
 
-
-	// STRING MAP ENTRY CLASS
-
-
-	private static class StringMapEntry
-		implements Comparable<StringMapEntry>
+	static
 	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private StringMapEntry(int    key,
-							   String value)
-		{
-			this.key = key;
-			this.value = value;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : Comparable interface
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public int compareTo(StringMapEntry other)
-		{
-			return Integer.compare(key, other.key);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		int		key;
-		String	value;
-
+		if (CHAR_ENTITIES_LATIN1.length != LATIN1_LAST_CHAR - LATIN1_FIRST_CHAR + 1)
+			throw new UnexpectedRuntimeException();
 	}
-
-	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -449,14 +411,52 @@ public class XhtmlUtils
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Static initialiser
+//  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	static
+
+	// STRING-MAP ENTRY CLASS
+
+
+	private static class StringMapEntry
+		implements Comparable<StringMapEntry>
 	{
-		if (CHAR_ENTITIES_LATIN1.length != LATIN1_LAST_CHAR - LATIN1_FIRST_CHAR + 1)
-			throw new UnexpectedRuntimeException();
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		int		key;
+		String	value;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private StringMapEntry(int    key,
+							   String value)
+		{
+			this.key = key;
+			this.value = value;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : Comparable interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public int compareTo(StringMapEntry other)
+		{
+			return Integer.compare(key, other.key);
+		}
+
+		//--------------------------------------------------------------
+
 	}
+
+	//==================================================================
 
 }
 

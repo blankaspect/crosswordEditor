@@ -24,6 +24,8 @@ import java.awt.Window;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -36,6 +38,8 @@ import javax.swing.KeyStroke;
 import uk.blankaspect.ui.swing.button.FButton;
 
 import uk.blankaspect.ui.swing.misc.GuiUtils;
+
+import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
 
 //----------------------------------------------------------------------
 
@@ -119,6 +123,20 @@ class GridPreviewDialog
 
 		// Dispose of window when it is closed
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+		// Fix y coordinate of window when window is opened
+		addWindowListener(new WindowAdapter()
+		{
+			@Override
+			public void windowOpened(
+				WindowEvent	event)
+			{
+				// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced downwards
+				// when its location is set.  The error in the y coordinate is the height of the title bar of the
+				// window.  The workaround is to set the location of the window again with an adjustment for the error.
+				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+			}
+		});
 
 		// Prevent dialog from being resized
 		setResizable(false);

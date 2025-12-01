@@ -2,7 +2,7 @@
 
 AppConstants.java
 
-Application constants interface.
+Interface: application constants.
 
 \*====================================================================*/
 
@@ -22,10 +22,12 @@ import java.awt.Insets;
 
 import java.text.DecimalFormat;
 
+import uk.blankaspect.common.misc.FilenameSuffixFilter;
+
 //----------------------------------------------------------------------
 
 
-// APPLICATION CONSTANTS INTERFACE
+// INTERFACE: APPLICATION CONSTANTS
 
 
 interface AppConstants
@@ -60,18 +62,25 @@ interface AppConstants
 
 	// Filename extensions
 	String	EXE_FILENAME_EXTENSION	= ".exe";
-	String	ICON_FILENAME_EXTENSION	= ".ico";
 	String	HTML_FILENAME_EXTENSION	= ".html";
+	String	ICON_FILENAME_EXTENSION	= ".ico";
 	String	JAR_FILENAME_EXTENSION	= ".jar";
 	String	XML_FILENAME_EXTENSION	= ".xml";
 
 	// File-filter descriptions
 	String	CROSSWORD_FILES_STR	= "Crossword files";
-	String	EXE_FILES_STR		= "Windows executable files";
-	String	ICON_FILES_STR		= "Windows icon files";
-	String	HTML_FILES_STR		= "HTML files";
-	String	JAR_FILES_STR		= "JAR files";
-	String	XML_FILES_STR		= "XML files";
+
+	// Filters for file choosers
+	FilenameSuffixFilter EXE_FILE_FILTER	=
+			new FilenameSuffixFilter("Windows executable files", EXE_FILENAME_EXTENSION);
+	FilenameSuffixFilter HTML_FILE_FILTER	=
+			new FilenameSuffixFilter("HTML files", HTML_FILENAME_EXTENSION);
+	FilenameSuffixFilter ICON_FILE_FILTER	=
+			new FilenameSuffixFilter("Windows icon files", ICON_FILENAME_EXTENSION);
+	FilenameSuffixFilter JAR_FILE_FILTER	=
+			new FilenameSuffixFilter("JAR files", JAR_FILENAME_EXTENSION);
+	FilenameSuffixFilter XML_FILE_FILTER	=
+			new FilenameSuffixFilter("XML files", XML_FILENAME_EXTENSION);
 
 }
 

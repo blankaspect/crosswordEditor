@@ -35,7 +35,6 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +77,8 @@ import uk.blankaspect.ui.swing.misc.GuiConstants;
 import uk.blankaspect.ui.swing.misc.GuiUtils;
 
 import uk.blankaspect.ui.swing.textfield.FTextField;
+
+import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
 
 //----------------------------------------------------------------------
 
@@ -149,7 +150,15 @@ public class ParameterSetDialog<E extends ParameterSet>
 		String	CLOSE					= "close";
 	}
 
-	private static final	Map<String, String>	COMMAND_MAP;
+	private static final	Map<String, String>	COMMAND_MAP	= Map.of
+	(
+		SingleSelectionList.Command.EDIT_ELEMENT,      Command.LOAD_ACCEPT,
+		SingleSelectionList.Command.DELETE_ELEMENT,    Command.DELETE,
+		SingleSelectionList.Command.DELETE_EX_ELEMENT, Command.DELETE,
+		SingleSelectionList.Command.MOVE_ELEMENT_UP,   Command.MOVE_PARAMETER_SET_UP,
+		SingleSelectionList.Command.MOVE_ELEMENT_DOWN, Command.MOVE_PARAMETER_SET_DOWN,
+		SingleSelectionList.Command.DRAG_ELEMENT,      Command.MOVE_PARAMETER_SET
+	);
 
 ////////////////////////////////////////////////////////////////////////
 //  Class variables
@@ -169,6 +178,7 @@ public class ParameterSetDialog<E extends ParameterSet>
 	private	File					file;
 	private	File					dtdDirectory;
 	private	boolean					writeDtd;
+	private	Point					location;
 	private	SingleSelectionList<E>	selectionList;
 	private	JScrollPane				selectionListScrollPane;
 	private	JTextField				nameField;
@@ -176,21 +186,6 @@ public class ParameterSetDialog<E extends ParameterSet>
 	private	JButton					deleteButton;
 	private	JButton					loadButton;
 	private	JButton					updateButton;
-
-////////////////////////////////////////////////////////////////////////
-//  Static initialiser
-////////////////////////////////////////////////////////////////////////
-
-	static
-	{
-		COMMAND_MAP = new HashMap<>();
-		COMMAND_MAP.put(SingleSelectionList.Command.EDIT_ELEMENT,      Command.LOAD_ACCEPT);
-		COMMAND_MAP.put(SingleSelectionList.Command.DELETE_ELEMENT,    Command.DELETE);
-		COMMAND_MAP.put(SingleSelectionList.Command.DELETE_EX_ELEMENT, Command.DELETE);
-		COMMAND_MAP.put(SingleSelectionList.Command.MOVE_ELEMENT_UP,   Command.MOVE_PARAMETER_SET_UP);
-		COMMAND_MAP.put(SingleSelectionList.Command.MOVE_ELEMENT_DOWN, Command.MOVE_PARAMETER_SET_DOWN);
-		COMMAND_MAP.put(SingleSelectionList.Command.DRAG_ELEMENT,      Command.MOVE_PARAMETER_SET);
-	}
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -490,6 +485,11 @@ public class ParameterSetDialog<E extends ParameterSet>
 			public void windowOpened(
 				WindowEvent	event)
 			{
+				// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced downwards
+				// when its location is set.  The error in the y coordinate is the height of the title bar of the
+				// window.  The workaround is to set the location of the window again with an adjustment for the error.
+				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+
 				// Set focus
 				nameField.requestFocusInWindow();
 
@@ -516,7 +516,7 @@ public class ParameterSetDialog<E extends ParameterSet>
 		pack();
 
 		// Set location of dialog
-		Point location = locations.get(paramSetList.getApplicationKey());
+		location = locations.get(paramSetList.getApplicationKey());
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
@@ -589,38 +589,20 @@ public class ParameterSetDialog<E extends ParameterSet>
 			if (COMMAND_MAP.containsKey(command))
 				command = COMMAND_MAP.get(command);
 
-			if (command.equals(Command.ADD))
-				onAdd();
-
-			else if (command.equals(Command.DELETE))
-				onDelete();
-
-			else if (command.equals(Command.LOAD))
-				onLoad();
-
-			else if (command.equals(Command.LOAD_ACCEPT))
-				onLoadAccept();
-
-			else if (command.equals(Command.UPDATE))
-				onUpdate();
-
-			else if (command.equals(Command.RESET))
-				onReset();
-
-			else if (command.equals(Command.MOVE_PARAMETER_SET_UP))
-				onMoveParameterSetUp();
-
-			else if (command.equals(Command.MOVE_PARAMETER_SET_DOWN))
-				onMoveParameterSetDown();
-
-			else if (command.equals(Command.MOVE_PARAMETER_SET))
-				onMoveParameterSet();
-
-			else if (command.equals(Command.ACCEPT))
-				onAccept();
-
-			else if (command.equals(Command.CLOSE))
-				onClose();
+			switch (command)
+			{
+				case Command.ADD                     -> onAdd();
+				case Command.DELETE                  -> onDelete();
+				case Command.LOAD                    -> onLoad();
+				case Command.LOAD_ACCEPT             -> onLoadAccept();
+				case Command.UPDATE                  -> onUpdate();
+				case Command.RESET                   -> onReset();
+				case Command.MOVE_PARAMETER_SET_UP   -> onMoveParameterSetUp();
+				case Command.MOVE_PARAMETER_SET_DOWN -> onMoveParameterSetDown();
+				case Command.MOVE_PARAMETER_SET      -> onMoveParameterSet();
+				case Command.ACCEPT                  -> onAccept();
+				case Command.CLOSE                   -> onClose();
+			}
 		}
 		catch (AppException e)
 		{
@@ -710,7 +692,7 @@ public class ParameterSetDialog<E extends ParameterSet>
 
 	protected E getParameterSet()
 	{
-		return (accepted ? params : null);
+		return accepted ? params : null;
 	}
 
 	//------------------------------------------------------------------

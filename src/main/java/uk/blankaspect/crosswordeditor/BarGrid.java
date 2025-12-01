@@ -411,8 +411,10 @@ class BarGrid
 
 			// Add properties: border width
 			for (Edge edge : edges)
+			{
 				ruleSet.addProperty(String.format(BORDER_WIDTH_PROPERTY, edge.text),
 									String.format(PIXEL_SIZE_STR, barWidth));
+			}
 
 			// Add rule set to list
 			ruleSets.add(ruleSet);

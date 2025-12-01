@@ -41,13 +41,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-
-import java.util.stream.Stream;
+import java.util.Set;
 
 import javax.swing.Box;
 import javax.swing.JComponent;
@@ -462,10 +461,7 @@ class CrosswordView
 		public static Colour forKey(
 			String	key)
 		{
-			return Stream.of(values())
-					.filter(value -> value.key.equals(key))
-					.findFirst()
-					.orElse(null);
+			return Arrays.stream(values()).filter(value -> value.key.equals(key)).findFirst().orElse(null);
 		}
 
 		//--------------------------------------------------------------
@@ -1131,71 +1127,32 @@ class CrosswordView
 
 		private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS	=
 		{
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
-				Command.MOVE_CARET_UP
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
-				Command.MOVE_CARET_DOWN
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
-				Command.MOVE_CARET_LEFT
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
-				Command.MOVE_CARET_RIGHT
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
-				Command.MOVE_CARET_TO_START
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_END, 0),
-				Command.MOVE_CARET_TO_END
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_UP, KeyEvent.CTRL_DOWN_MASK),
-				Command.SELECT_DOWN_CLUE
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, KeyEvent.CTRL_DOWN_MASK),
-				Command.SELECT_DOWN_CLUE
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, KeyEvent.CTRL_DOWN_MASK),
-				Command.SELECT_ACROSS_CLUE
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.CTRL_DOWN_MASK),
-				Command.SELECT_ACROSS_CLUE
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_TAB, KeyEvent.SHIFT_DOWN_MASK),
-				Command.SELECT_PREVIOUS_CLUE
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0),
-				Command.SELECT_NEXT_CLUE
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_CONTEXT_MENU, 0),
-				Command.SHOW_CONTEXT_MENU
-			)
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
+							  Command.MOVE_CARET_UP),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
+							  Command.MOVE_CARET_DOWN),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
+							  Command.MOVE_CARET_LEFT),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
+							  Command.MOVE_CARET_RIGHT),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
+							  Command.MOVE_CARET_TO_START),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0),
+							  Command.MOVE_CARET_TO_END),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_UP, KeyEvent.CTRL_DOWN_MASK),
+							  Command.SELECT_DOWN_CLUE),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, KeyEvent.CTRL_DOWN_MASK),
+							  Command.SELECT_DOWN_CLUE),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, KeyEvent.CTRL_DOWN_MASK),
+							  Command.SELECT_ACROSS_CLUE),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.CTRL_DOWN_MASK),
+							  Command.SELECT_ACROSS_CLUE),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, KeyEvent.SHIFT_DOWN_MASK),
+							  Command.SELECT_PREVIOUS_CLUE),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0),
+							  Command.SELECT_NEXT_CLUE),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_CONTEXT_MENU, 0),
+							  Command.SHOW_CONTEXT_MENU)
 		};
 
 	////////////////////////////////////////////////////////////////////
@@ -1455,10 +1412,8 @@ class CrosswordView
 			add(filler);
 
 			// Remove Tab and Shift+Tab from focus traversal keys
-			setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
-								  Collections.singleton(FOCUS_FORWARD_KEY));
-			setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
-								  Collections.singleton(FOCUS_BACKWARD_KEY));
+			setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,  Set.of(FOCUS_FORWARD_KEY));
+			setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, Set.of(FOCUS_BACKWARD_KEY));
 
 			// Add commands to action map
 			KeyAction.create(this, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, this, KEY_COMMANDS);
@@ -1481,40 +1436,20 @@ class CrosswordView
 		public void actionPerformed(
 			ActionEvent	event)
 		{
-			String command = event.getActionCommand();
-
-			if (command.equals(Command.MOVE_CARET_UP))
-				onMoveCaretUp();
-
-			else if (command.equals(Command.MOVE_CARET_DOWN))
-				onMoveCaretDown();
-
-			else if (command.equals(Command.MOVE_CARET_LEFT))
-				onMoveCaretLeft();
-
-			else if (command.equals(Command.MOVE_CARET_RIGHT))
-				onMoveCaretRight();
-
-			else if (command.equals(Command.MOVE_CARET_TO_START))
-				onMoveCaretToStart();
-
-			else if (command.equals(Command.MOVE_CARET_TO_END))
-				onMoveCaretToEnd();
-
-			else if (command.equals(Command.SELECT_ACROSS_CLUE))
-				onSelectAcrossClue();
-
-			else if (command.equals(Command.SELECT_DOWN_CLUE))
-				onSelectDownClue();
-
-			else if (command.equals(Command.SELECT_PREVIOUS_CLUE))
-				onSelectPreviousClue();
-
-			else if (command.equals(Command.SELECT_NEXT_CLUE))
-				onSelectNextClue();
-
-			else if (command.equals(Command.SHOW_CONTEXT_MENU))
-				onShowContextMenu();
+			switch (event.getActionCommand())
+			{
+				case Command.MOVE_CARET_UP        -> onMoveCaretUp();
+				case Command.MOVE_CARET_DOWN      -> onMoveCaretDown();
+				case Command.MOVE_CARET_LEFT      -> onMoveCaretLeft();
+				case Command.MOVE_CARET_RIGHT     -> onMoveCaretRight();
+				case Command.MOVE_CARET_TO_START  -> onMoveCaretToStart();
+				case Command.MOVE_CARET_TO_END    -> onMoveCaretToEnd();
+				case Command.SELECT_ACROSS_CLUE   -> onSelectAcrossClue();
+				case Command.SELECT_DOWN_CLUE     -> onSelectDownClue();
+				case Command.SELECT_PREVIOUS_CLUE -> onSelectPreviousClue();
+				case Command.SELECT_NEXT_CLUE     -> onSelectNextClue();
+				case Command.SHOW_CONTEXT_MENU    -> onShowContextMenu();
+			}
 		}
 
 		//--------------------------------------------------------------
@@ -1529,13 +1464,8 @@ class CrosswordView
 		{
 			switch (event.getKeyCode())
 			{
-				case KeyEvent.VK_DELETE:
-					setEntryChar(Grid.Entries.UNDEFINED_VALUE, 0);
-					break;
-
-				case KeyEvent.VK_BACK_SPACE:
-					setEntryChar(Grid.Entries.UNDEFINED_VALUE, -1);
-					break;
+				case KeyEvent.VK_DELETE     -> setEntryChar(Grid.Entries.UNDEFINED_VALUE, 0);
+				case KeyEvent.VK_BACK_SPACE -> setEntryChar(Grid.Entries.UNDEFINED_VALUE, -1);
 			}
 		}
 
@@ -1919,7 +1849,7 @@ class CrosswordView
 					}
 					Clue clue = document.findPrimaryClue(clueId);
 					if (clue != null)
-						selectedCluePane.setClues(document, Collections.singletonList(clue));
+						selectedCluePane.setClues(document, List.of(clue));
 					selectedClueId = clueId;
 				}
 

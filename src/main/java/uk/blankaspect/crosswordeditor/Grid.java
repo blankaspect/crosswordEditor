@@ -106,7 +106,11 @@ abstract class Grid
 
 	public static final		int		MIN_HTML_CELL_SIZE		= 8;
 	public static final		int		MAX_HTML_CELL_SIZE		= 80;
-	public static final		Map<Separator, Integer>	DEFAULT_HTML_CELL_SIZES;
+	public static final		Map<Separator, Integer>	DEFAULT_HTML_CELL_SIZES	= new EnumMap<>(Map.of
+	(
+		Separator.BLOCK, 20,
+		Separator.BAR,   20
+	));
 
 	public static final		int		MIN_HTML_FONT_SIZE		= 6;
 	public static final		int		MAX_HTML_FONT_SIZE		= 128;
@@ -202,17 +206,6 @@ abstract class Grid
 	protected	Entries						entries;
 	protected	Entries						solution;
 	protected	boolean[][]					incorrectEntries;
-
-////////////////////////////////////////////////////////////////////////
-//  Static initialiser
-////////////////////////////////////////////////////////////////////////
-
-	static
-	{
-		DEFAULT_HTML_CELL_SIZES = new EnumMap<>(Separator.class);
-		DEFAULT_HTML_CELL_SIZES.put(Separator.BLOCK, 20);
-		DEFAULT_HTML_CELL_SIZES.put(Separator.BAR,   20);
-	}
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -2458,7 +2451,7 @@ abstract class Grid
 				return true;
 
 			return (obj instanceof Field other) && (row == other.row) && (column == other.column)
-						&& (direction == other.direction);
+					&& (direction == other.direction);
 		}
 
 		//--------------------------------------------------------------
@@ -2741,7 +2734,7 @@ abstract class Grid
 						break;
 					for (String keyword : AppConfig.INSTANCE.getClueDirectionKeywords(direction))
 					{
-						keyword = StringUtils.stripBefore(keyword);
+						keyword = keyword.stripLeading();
 						if (keyword.equals(directionStr))
 						{
 							this.direction = direction;
@@ -2824,9 +2817,9 @@ abstract class Grid
 			public boolean matches(
 				Id	other)
 			{
-				return (number == other.number) &&
-							((direction == Direction.NONE) || (other.direction == Direction.NONE) ||
-								(direction == other.direction));
+				return (number == other.number)
+						&& ((direction == Direction.NONE) || (other.direction == Direction.NONE)
+								|| (direction == other.direction));
 			}
 
 			//----------------------------------------------------------

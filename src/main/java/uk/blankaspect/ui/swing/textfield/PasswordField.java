@@ -183,7 +183,7 @@ public class PasswordField
 	public boolean isEmpty()
 	{
 		Document document = getDocument();
-		return ((document == null) ? true : (document.getLength() == 0));
+		return (document == null) ? true : (document.getLength() == 0);
 	}
 
 	//------------------------------------------------------------------

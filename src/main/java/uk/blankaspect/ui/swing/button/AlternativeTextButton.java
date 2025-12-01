@@ -2,7 +2,7 @@
 
 AlternativeTextButton.java
 
-Alternative text button class.
+Class: alternative-text button.
 
 \*====================================================================*/
 
@@ -22,13 +22,12 @@ import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Insets;
 
-import java.util.Collection;
 import java.util.EnumSet;
 
 //----------------------------------------------------------------------
 
 
-// ALTERNATIVE TEXT BUTTON CLASS
+// CLASS: ALTERNATIVE-TEXT BUTTON
 
 
 public class AlternativeTextButton<T>
@@ -36,41 +35,51 @@ public class AlternativeTextButton<T>
 {
 
 ////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	T	alternative;
+	private	int	width;
+
+////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	public AlternativeTextButton(Collection<T> alternatives)
+	public AlternativeTextButton(
+		Iterable<? extends T>	alternatives)
 	{
 		this(alternatives, null, -1, -1);
 	}
 
 	//------------------------------------------------------------------
 
-	public AlternativeTextButton(Collection<T> alternatives,
-								 T             alternative)
+	public AlternativeTextButton(
+		Iterable<? extends T>	alternatives,
+		T						alternative)
 	{
 		this(alternatives, alternative, -1, -1);
 	}
 
 	//------------------------------------------------------------------
 
-	public AlternativeTextButton(Collection<T> alternatives,
-								 int           verticalMargin,
-								 int           horizontalMargin)
+	public AlternativeTextButton(
+		Iterable<? extends T>	alternatives,
+		int						verticalMargin,
+		int						horizontalMargin)
 	{
 		this(alternatives, null, verticalMargin, horizontalMargin);
 	}
 
 	//------------------------------------------------------------------
 
-	public AlternativeTextButton(Collection<T> alternatives,
-								 T             alternative,
-								 int           verticalMargin,
-								 int           horizontalMargin)
+	public AlternativeTextButton(
+		Iterable<? extends T>	alternatives,
+		T						alternative,
+		int						verticalMargin,
+		int						horizontalMargin)
 	{
 		// Call superclass constructor
-		super((alternative == null) ? alternatives.iterator().next().toString()
-									: alternative.toString());
+		super((alternative == null) ? alternatives.iterator().next().toString() : alternative.toString());
 
 		// Initialise instance variables
 		this.alternative = alternative;
@@ -93,7 +102,7 @@ public class AlternativeTextButton<T>
 		FontMetrics fontMetrics = getFontMetrics(getFont());
 		for (T alt : alternatives)
 		{
-			int strWidth = fontMetrics.stringWidth(alt.toString());
+			int strWidth = fontMetrics.stringWidth(alt.toString()) + 1;
 			if (width < strWidth)
 				width = strWidth;
 		}
@@ -106,37 +115,40 @@ public class AlternativeTextButton<T>
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static <E extends Enum<E>> AlternativeTextButton<E> create(Class<E> enumClass)
+	public static <E extends Enum<E>> AlternativeTextButton<E> create(
+		Class<E>	enumClass)
 	{
 		return create(enumClass, null, -1, -1);
 	}
 
 	//------------------------------------------------------------------
 
-	public static <E extends Enum<E>> AlternativeTextButton<E> create(Class<E> enumClass,
-																	  E        alternative)
+	public static <E extends Enum<E>> AlternativeTextButton<E> create(
+		Class<E>	enumClass,
+		E			alternative)
 	{
 		return create(enumClass, alternative, -1, -1);
 	}
 
 	//------------------------------------------------------------------
 
-	public static <E extends Enum<E>> AlternativeTextButton<E> create(Class<E> enumClass,
-																	  int      verticalMargin,
-																	  int      horizontalMargin)
+	public static <E extends Enum<E>> AlternativeTextButton<E> create(
+		Class<E>	enumClass,
+		int			verticalMargin,
+		int			horizontalMargin)
 	{
 		return create(enumClass, null, verticalMargin, horizontalMargin);
 	}
 
 	//------------------------------------------------------------------
 
-	public static <E extends Enum<E>> AlternativeTextButton<E> create(Class<E> enumClass,
-																	  E        alternative,
-																	  int      verticalMargin,
-																	  int      horizontalMargin)
+	public static <E extends Enum<E>> AlternativeTextButton<E> create(
+		Class<E>	enumClass,
+		E			alternative,
+		int			verticalMargin,
+		int			horizontalMargin)
 	{
-		return new AlternativeTextButton<>(EnumSet.allOf(enumClass), alternative, verticalMargin,
-										   horizontalMargin);
+		return new AlternativeTextButton<>(EnumSet.allOf(enumClass), alternative, verticalMargin, horizontalMargin);
 	}
 
 	//------------------------------------------------------------------
@@ -164,7 +176,8 @@ public class AlternativeTextButton<T>
 
 	//------------------------------------------------------------------
 
-	public void setAlternative(T alternative)
+	public void setAlternative(
+		T	alternative)
 	{
 		if ((alternative == null) ? (this.alternative != null) : !alternative.equals(this.alternative))
 		{
@@ -174,13 +187,6 @@ public class AlternativeTextButton<T>
 	}
 
 	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	T	alternative;
-	private	int	width;
 
 }
 

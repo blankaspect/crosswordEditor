@@ -301,7 +301,7 @@ public class InformationField
 
 	public String getText()
 	{
-		return ((text == null) ? "" : text);
+		return (text == null) ? "" : text;
 	}
 
 	//------------------------------------------------------------------

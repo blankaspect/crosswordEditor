@@ -101,80 +101,38 @@ class FieldSelectionDialog
 
 	private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS	=
 	{
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
-			Command.ACCEPT
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-			Command.CLOSE
-		)
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+						  Command.ACCEPT),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+						  Command.CLOSE)
 	};
 
 	private static final	KeyAction.KeyCommandPair[]	SELECTION_KEY_COMMANDS	=
 	{
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
-			Command.SELECT_UP_UNIT
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
-			Command.SELECT_DOWN_UNIT
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0),
-			Command.SELECT_UP_MAX
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0),
-			Command.SELECT_DOWN_MAX
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_HOME, KeyEvent.CTRL_DOWN_MASK),
-			Command.SELECT_UP_MAX
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_END, KeyEvent.CTRL_DOWN_MASK),
-			Command.SELECT_DOWN_MAX
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
-			Command.SELECT_LEFT_UNIT
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
-			Command.SELECT_RIGHT_UNIT
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, KeyEvent.CTRL_DOWN_MASK),
-			Command.SELECT_LEFT_MAX
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.CTRL_DOWN_MASK),
-			Command.SELECT_RIGHT_MAX
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
-			Command.SELECT_LEFT_MAX
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_END, 0),
-			Command.SELECT_RIGHT_MAX
-		)
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
+						  Command.SELECT_UP_UNIT),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
+						  Command.SELECT_DOWN_UNIT),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0),
+						  Command.SELECT_UP_MAX),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0),
+						  Command.SELECT_DOWN_MAX),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, KeyEvent.CTRL_DOWN_MASK),
+						  Command.SELECT_UP_MAX),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_END, KeyEvent.CTRL_DOWN_MASK),
+						  Command.SELECT_DOWN_MAX),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
+						  Command.SELECT_LEFT_UNIT),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
+						  Command.SELECT_RIGHT_UNIT),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, KeyEvent.CTRL_DOWN_MASK),
+						  Command.SELECT_LEFT_MAX),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.CTRL_DOWN_MASK),
+						  Command.SELECT_RIGHT_MAX),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
+						  Command.SELECT_LEFT_MAX),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0),
+						  Command.SELECT_RIGHT_MAX)
 	};
 
 ////////////////////////////////////////////////////////////////////////
@@ -189,10 +147,11 @@ class FieldSelectionDialog
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	private FieldSelectionDialog(Component                              parent,
-								 int                                    xOffset,
-								  Map<Direction, List<ClueDialog.Field>> fieldMap,
-								  Grid.Field.Id                          selectedId)
+	private FieldSelectionDialog(
+		Component								parent,
+		int										xOffset,
+		Map<Direction, List<ClueDialog.Field>>	fieldMap,
+		Grid.Field.Id							selectedId)
 	{
 		// Call superclass constructor
 		super(GuiUtils.getWindow(parent), ModalityType.APPLICATION_MODAL);
@@ -206,8 +165,7 @@ class FieldSelectionDialog
 		selectionPanel = new FieldSelectionPanel(selectedId);
 
 		// Add commands to action map
-		KeyAction.create(selectionPanel, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, this,
-						 KEY_COMMANDS);
+		KeyAction.create(selectionPanel, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, this, KEY_COMMANDS);
 
 
 		//----  Window
@@ -245,10 +203,11 @@ class FieldSelectionDialog
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static Grid.Field.Id showDialog(Component                              parent,
-										   int                                    xOffset,
-											Map<Direction, List<ClueDialog.Field>> fieldMap,
-											Grid.Field.Id                          selectedId)
+	public static Grid.Field.Id showDialog(
+		Component								parent,
+		int										xOffset,
+		Map<Direction, List<ClueDialog.Field>>	fieldMap,
+		Grid.Field.Id							selectedId)
 	{
 		return new FieldSelectionDialog(parent, xOffset, fieldMap, selectedId).getId();
 	}
@@ -259,15 +218,15 @@ class FieldSelectionDialog
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
-	public void actionPerformed(ActionEvent event)
+	@Override
+	public void actionPerformed(
+		ActionEvent	event)
 	{
-		String command = event.getActionCommand();
-
-		if (command.equals(Command.ACCEPT))
-			onAccept();
-
-		else if (command.equals(Command.CLOSE))
-			onClose();
+		switch (event.getActionCommand())
+		{
+			case Command.ACCEPT -> onAccept();
+			case Command.CLOSE  -> onClose();
+		}
 	}
 
 	//------------------------------------------------------------------
@@ -278,7 +237,7 @@ class FieldSelectionDialog
 
 	private Grid.Field.Id getId()
 	{
-		return (accepted ? selectionPanel.selectedId : null);
+		return accepted ? selectionPanel.selectedId : null;
 	}
 
 	//------------------------------------------------------------------
@@ -315,11 +274,11 @@ class FieldSelectionDialog
 	//  Constants
 	////////////////////////////////////////////////////////////////////
 
-		private static final	int	GRID_LINE_WIDTH		= 1;
-		private static final	int	HORIZONTAL_MARGIN	= 2;
-		private static final	int	VERTICAL_MARGIN		= 1;
+		private static final	int		GRID_LINE_WIDTH		= 1;
+		private static final	int		HORIZONTAL_MARGIN	= 2;
+		private static final	int		VERTICAL_MARGIN		= 1;
 
-		private static final	int	COLUMNS_PER_ROW	= 12;
+		private static final	int		COLUMNS_PER_ROW	= 12;
 
 		private static final	String	NONE_STR	= "None";
 
@@ -338,7 +297,8 @@ class FieldSelectionDialog
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private FieldSelectionPanel(Grid.Field.Id selectedId)
+		private FieldSelectionPanel(
+			Grid.Field.Id	selectedId)
 		{
 			// Initialise instance variables
 			this.selectedId = selectedId;
@@ -412,33 +372,21 @@ class FieldSelectionDialog
 	//  Instance methods : ActionListener interface
 	////////////////////////////////////////////////////////////////////
 
-		public void actionPerformed(ActionEvent event)
+		@Override
+		public void actionPerformed(
+			ActionEvent	event)
 		{
-			String command = event.getActionCommand();
-
-			if (command.equals(Command.SELECT_UP_UNIT))
-				onSelectUpUnit();
-
-			else if (command.equals(Command.SELECT_DOWN_UNIT))
-				onSelectDownUnit();
-
-			else if (command.equals(Command.SELECT_UP_MAX))
-				onSelectUpMax();
-
-			else if (command.equals(Command.SELECT_DOWN_MAX))
-				onSelectDownMax();
-
-			else if (command.equals(Command.SELECT_LEFT_UNIT))
-				onSelectLeftUnit();
-
-			else if (command.equals(Command.SELECT_RIGHT_UNIT))
-				onSelectRightUnit();
-
-			else if (command.equals(Command.SELECT_LEFT_MAX))
-				onSelectLeftMax();
-
-			else if (command.equals(Command.SELECT_RIGHT_MAX))
-				onSelectRightMax();
+			switch (event.getActionCommand())
+			{
+				case Command.SELECT_UP_UNIT    -> onSelectUpUnit();
+				case Command.SELECT_DOWN_UNIT  -> onSelectDownUnit();
+				case Command.SELECT_UP_MAX     -> onSelectUpMax();
+				case Command.SELECT_DOWN_MAX   -> onSelectDownMax();
+				case Command.SELECT_LEFT_UNIT  -> onSelectLeftUnit();
+				case Command.SELECT_RIGHT_UNIT -> onSelectRightUnit();
+				case Command.SELECT_LEFT_MAX   -> onSelectLeftMax();
+				case Command.SELECT_RIGHT_MAX  -> onSelectRightMax();
+			}
 		}
 
 		//--------------------------------------------------------------
@@ -447,14 +395,18 @@ class FieldSelectionDialog
 	//  Instance methods : FocusListener interface
 	////////////////////////////////////////////////////////////////////
 
-		public void focusGained(FocusEvent event)
+		@Override
+		public void focusGained(
+			FocusEvent	event)
 		{
 			repaint();
 		}
 
 		//--------------------------------------------------------------
 
-		public void focusLost(FocusEvent event)
+		@Override
+		public void focusLost(
+			FocusEvent	event)
 		{
 			repaint();
 		}
@@ -465,28 +417,36 @@ class FieldSelectionDialog
 	//  Instance methods : MouseListener interface
 	////////////////////////////////////////////////////////////////////
 
-		public void mouseClicked(MouseEvent event)
+		@Override
+		public void mouseClicked(
+			MouseEvent	event)
 		{
 			// do nothing
 		}
 
 		//--------------------------------------------------------------
 
-		public void mouseEntered(MouseEvent event)
+		@Override
+		public void mouseEntered(
+			MouseEvent	event)
 		{
 			// do nothing
 		}
 
 		//--------------------------------------------------------------
 
-		public void mouseExited(MouseEvent event)
+		@Override
+		public void mouseExited(
+			MouseEvent	event)
 		{
 			// do nothing
 		}
 
 		//--------------------------------------------------------------
 
-		public void mousePressed(MouseEvent event)
+		@Override
+		public void mousePressed(
+			MouseEvent	event)
 		{
 			if (SwingUtilities.isLeftMouseButton(event))
 				setSelectedId(getId(event));
@@ -494,7 +454,9 @@ class FieldSelectionDialog
 
 		//--------------------------------------------------------------
 
-		public void mouseReleased(MouseEvent event)
+		@Override
+		public void mouseReleased(
+			MouseEvent	event)
 		{
 			if (SwingUtilities.isLeftMouseButton(event))
 			{
@@ -509,7 +471,9 @@ class FieldSelectionDialog
 	//  Instance methods : MouseMotionListener interface
 	////////////////////////////////////////////////////////////////////
 
-		public void mouseDragged(MouseEvent event)
+		@Override
+		public void mouseDragged(
+			MouseEvent	event)
 		{
 			if (SwingUtilities.isLeftMouseButton(event))
 				setSelectedId(getId(event));
@@ -517,7 +481,9 @@ class FieldSelectionDialog
 
 		//--------------------------------------------------------------
 
-		public void mouseMoved(MouseEvent event)
+		@Override
+		public void mouseMoved(
+			MouseEvent	event)
 		{
 			// do nothing
 		}
@@ -529,7 +495,8 @@ class FieldSelectionDialog
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		protected void paintComponent(Graphics gr)
+		protected void paintComponent(
+			Graphics	gr)
 		{
 			// Create copy of graphics context
 			Graphics2D gr2d = GuiUtils.copyGraphicsContext(gr);
@@ -645,11 +612,12 @@ class FieldSelectionDialog
 	//  Instance methods
 	////////////////////////////////////////////////////////////////////
 
-		private Grid.Field.Id getId(int row,
-									int column)
+		private Grid.Field.Id getId(
+			int	row,
+			int	column)
 		{
 			if (row == 0)
-				return ((column < numColumnsNone) ? ClueDialog.Field.NO_ID : null);
+				return (column < numColumnsNone) ? ClueDialog.Field.NO_ID : null;
 			int rowOffset = 0;
 			for (Direction direction : numRows.keySet())
 			{
@@ -658,7 +626,7 @@ class FieldSelectionDialog
 				{
 					int index = (row - rowOffset) * numColumns + column;
 					List<ClueDialog.Field> fields = fieldMap.get(direction);
-					return ((index < fields.size()) ? fields.get(index).id : null);
+					return (index < fields.size()) ? fields.get(index).id : null;
 				}
 				rowOffset += rows;
 			}
@@ -667,18 +635,20 @@ class FieldSelectionDialog
 
 		//--------------------------------------------------------------
 
-		private Grid.Field.Id getId(MouseEvent event)
+		private Grid.Field.Id getId(
+			MouseEvent	event)
 		{
 			int column = event.getX() / columnWidth;
 			int row = event.getY() / rowHeight;
-			return (((column >= 0) && (column < numColumns) && (row >= 0) && (row < getRowOffset(null)))
-																					? getId(row, column)
-																					: null);
+			return ((column >= 0) && (column < numColumns) && (row >= 0) && (row < getRowOffset(null)))
+					? getId(row, column)
+					: null;
 		}
 
 		//--------------------------------------------------------------
 
-		private int getRowOffset(Direction direction)
+		private int getRowOffset(
+			Direction	direction)
 		{
 			int offset = 0;
 			for (Direction d : numRows.keySet())
@@ -692,30 +662,33 @@ class FieldSelectionDialog
 
 		//--------------------------------------------------------------
 
-		private int getRow(Grid.Field.Id id)
+		private int getRow(
+			Grid.Field.Id	id)
 		{
 			if (id == null)
 				return -1;
 			if (id.equals(ClueDialog.Field.NO_ID))
 				return 0;
 			int index = fieldMap.get(id.direction).indexOf(new ClueDialog.Field(id));
-			return (getRowOffset(id.direction) + index / numColumns);
+			return getRowOffset(id.direction) + index / numColumns;
 		}
 
 		//--------------------------------------------------------------
 
-		private int getColumn(Grid.Field.Id id)
+		private int getColumn(
+			Grid.Field.Id	id)
 		{
 			if (id == null)
 				return -1;
 			if (id.equals(ClueDialog.Field.NO_ID))
 				return 0;
-			return (fieldMap.get(id.direction).indexOf(new ClueDialog.Field(id)) % numColumns);
+			return fieldMap.get(id.direction).indexOf(new ClueDialog.Field(id)) % numColumns;
 		}
 
 		//--------------------------------------------------------------
 
-		private void incrementSelectionColumn(int increment)
+		private void incrementSelectionColumn(
+			int	increment)
 		{
 			Grid.Field.Id id = (selectedId == null) ? ClueDialog.Field.NO_ID : selectedId;
 			int row = getRow(id);
@@ -736,7 +709,8 @@ class FieldSelectionDialog
 
 		//--------------------------------------------------------------
 
-		private void incrementSelectionRow(int increment)
+		private void incrementSelectionRow(
+			int	increment)
 		{
 			Grid.Field.Id id = (selectedId == null) ? ClueDialog.Field.NO_ID : selectedId;
 			int row = Math.min(Math.max(0, getRow(id) + increment), getRowOffset(null) - 1);
@@ -756,7 +730,8 @@ class FieldSelectionDialog
 
 		//--------------------------------------------------------------
 
-		private void setSelectedId(Grid.Field.Id id)
+		private void setSelectedId(
+			Grid.Field.Id	id)
 		{
 			if ((id == null) ? (selectedId != null) : !id.equals(selectedId))
 			{

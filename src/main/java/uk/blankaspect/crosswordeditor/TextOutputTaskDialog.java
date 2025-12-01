@@ -71,6 +71,8 @@ import uk.blankaspect.ui.swing.misc.GuiUtils;
 
 import uk.blankaspect.ui.swing.textarea.FTextArea;
 
+import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
+
 //----------------------------------------------------------------------
 
 
@@ -86,10 +88,10 @@ class TextOutputTaskDialog
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	private static final	int	TEXT_AREA_NUM_COLUMNS		= 80;
-	private static final	int	TEXT_AREA_NUM_ROWS			= 8;
-	private static final	int	TEXT_AREA_VERTICAL_MARGIN	= 2;
-	private static final	int	TEXT_AREA_HORIZONTAL_MARGIN	= 4;
+	private static final	int		TEXT_AREA_NUM_COLUMNS		= 80;
+	private static final	int		TEXT_AREA_NUM_ROWS			= 8;
+	private static final	int		TEXT_AREA_VERTICAL_MARGIN	= 2;
+	private static final	int		TEXT_AREA_HORIZONTAL_MARGIN	= 4;
 
 	private static final	String	COPY_STR	= "Copy";
 
@@ -232,7 +234,18 @@ class TextOutputTaskDialog
 		addWindowListener(new WindowAdapter()
 		{
 			@Override
-			public void windowActivated(WindowEvent event)
+			public void windowOpened(
+				WindowEvent	event)
+			{
+				// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced downwards
+				// when its location is set.  The error in the y coordinate is the height of the title bar of the
+				// window.  The workaround is to set the location of the window again with an adjustment for the error.
+				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+			}
+
+			@Override
+			public void windowActivated(
+				WindowEvent	event)
 			{
 				if (!started)
 				{
@@ -245,7 +258,8 @@ class TextOutputTaskDialog
 			}
 
 			@Override
-			public void windowClosing(WindowEvent event)
+			public void windowClosing(
+				WindowEvent	event)
 			{
 				location = getLocation();
 				if (stopped)
@@ -302,13 +316,11 @@ class TextOutputTaskDialog
 	@Override
 	public void actionPerformed(ActionEvent event)
 	{
-		String command = event.getActionCommand();
-
-		if (command.equals(Command.COPY))
-			onCopy();
-
-		else if (command.equals(Command.CLOSE))
-			onClose();
+		switch (event.getActionCommand())
+		{
+			case Command.COPY  -> onCopy();
+			case Command.CLOSE -> onClose();
+		}
 	}
 
 	//------------------------------------------------------------------

@@ -20,7 +20,6 @@ package uk.blankaspect.crosswordeditor;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -81,6 +80,8 @@ import uk.blankaspect.ui.swing.misc.PropertyKeys;
 import uk.blankaspect.ui.swing.text.TextRendering;
 
 import uk.blankaspect.ui.swing.textfield.FTextField;
+
+import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
 
 //----------------------------------------------------------------------
 
@@ -224,36 +225,23 @@ class SubstitutionSelectionPanel
 	@Override
 	public void actionPerformed(ActionEvent event)
 	{
-		String command = event.getActionCommand();
-
-		if (command.equals(Command.ADD))
-			onAdd();
-
-		else if (command.equals(Command.EDIT))
-			onEdit();
-
-		else if (command.equals(Command.DELETE))
+		switch (event.getActionCommand())
 		{
-			if ((event.getModifiers() & MODIFIERS_MASK) == ActionEvent.SHIFT_MASK)
-				onDelete();
-			else
-				onConfirmDelete();
+			case Command.ADD                                   -> onAdd();
+			case Command.EDIT                                  -> onEdit();
+			case Command.DELETE                                ->
+			{
+				if ((event.getModifiers() & MODIFIERS_MASK) == ActionEvent.SHIFT_MASK)
+					onDelete();
+				else
+					onConfirmDelete();
+			}
+			case SingleSelectionList.Command.DELETE_ELEMENT    -> onConfirmDelete();
+			case SingleSelectionList.Command.DELETE_EX_ELEMENT -> onDelete();
+			case SingleSelectionList.Command.MOVE_ELEMENT_UP   -> onMoveUp();
+			case SingleSelectionList.Command.MOVE_ELEMENT_DOWN -> onMoveDown();
+			case SingleSelectionList.Command.DRAG_ELEMENT      -> onMove();
 		}
-
-		else if (command.equals(SingleSelectionList.Command.DELETE_ELEMENT))
-			onConfirmDelete();
-
-		else if (command.equals(SingleSelectionList.Command.DELETE_EX_ELEMENT))
-			onDelete();
-
-		else if (command.equals(SingleSelectionList.Command.MOVE_ELEMENT_UP))
-			onMoveUp();
-
-		else if (command.equals(SingleSelectionList.Command.MOVE_ELEMENT_DOWN))
-			onMoveDown();
-
-		else if (command.equals(SingleSelectionList.Command.DRAG_ELEMENT))
-			onMove();
 	}
 
 	//------------------------------------------------------------------
@@ -445,30 +433,30 @@ class SubstitutionSelectionPanel
 								   int      index)
 		{
 			// Create copy of graphics context
-			gr = gr.create();
+			Graphics2D gr2d = GuiUtils.copyGraphicsContext(gr);
 
 			// Set rendering hints for text antialiasing and fractional metrics
-			TextRendering.setHints((Graphics2D)gr);
+			TextRendering.setHints(gr2d);
 
 			// Get substitution
 			Substitution substitution = getElement(index);
 
 			// Draw regex indicator
-			FontMetrics fontMetrics = gr.getFontMetrics();
+			FontMetrics fontMetrics = gr2d.getFontMetrics();
 			int rowHeight = getRowHeight();
 			int x = getHorizontalMargin();
 			int y = index * rowHeight;
 			int textY = y + DEFAULT_VERTICAL_MARGIN + fontMetrics.getAscent();
 			if (!substitution.isLiteral())
 			{
-				gr.setColor(RE_TEXT_COLOUR);
-				gr.drawString(REGEX_STR, x, textY);
+				gr2d.setColor(RE_TEXT_COLOUR);
+				gr2d.drawString(REGEX_STR, x, textY);
 			}
 
 			// Draw first separator
 			x += regexStrWidth + getHorizontalMargin();
-			gr.setColor(SEPARATOR_COLOUR);
-			gr.drawLine(x, y, x, y + rowHeight - 1);
+			gr2d.setColor(SEPARATOR_COLOUR);
+			gr2d.drawLine(x, y, x, y + rowHeight - 1);
 
 			// Get target text and truncate it if it is too wide
 			int replacementFieldWidth = REPLACEMENT_FIELD_NUM_COLUMNS * getColumnWidth();
@@ -478,26 +466,26 @@ class SubstitutionSelectionPanel
 			// Draw target text
 			x += SEPARATOR_WIDTH + getHorizontalMargin();
 			Color textColour = getForegroundColour(index);
-			gr.setColor(textColour);
-			gr.drawString(text, x, textY);
+			gr2d.setColor(textColour);
+			gr2d.drawString(text, x, textY);
 
 			// Draw second separator
 			x += targetFieldWidth + getHorizontalMargin();
-			gr.setColor(SEPARATOR_COLOUR);
-			gr.drawLine(x, y, x, y + rowHeight - 1);
+			gr2d.setColor(SEPARATOR_COLOUR);
+			gr2d.drawLine(x, y, x, y + rowHeight - 1);
 
 			// Get replacement text and truncate it if it is too wide
 			text = truncateText(substitution.getReplacement(), fontMetrics, replacementFieldWidth);
 
 			// Draw replacement text
 			x += SEPARATOR_WIDTH + getHorizontalMargin();
-			gr.setColor(textColour);
-			gr.drawString(text, x, textY);
+			gr2d.setColor(textColour);
+			gr2d.drawString(text, x, textY);
 
 			// Draw bottom border
 			y += rowHeight - 1;
-			gr.setColor(SEPARATOR_COLOUR);
-			gr.drawLine(0, y, getWidth() - 1, y);
+			gr2d.setColor(SEPARATOR_COLOUR);
+			gr2d.drawLine(0, y, getWidth() - 1, y);
 		}
 
 		//--------------------------------------------------------------
@@ -564,7 +552,7 @@ class SubstitutionSelectionPanel
 								   Substitution substitution)
 		{
 			// Call superclass constructor
-			super(owner, title, Dialog.ModalityType.APPLICATION_MODAL);
+			super(owner, title, ModalityType.APPLICATION_MODAL);
 
 			// Set icons
 			setIconImages(owner.getIconImages());
@@ -725,11 +713,23 @@ class SubstitutionSelectionPanel
 			// Dispose of window explicitly
 			setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-			// Handle window closing
+			// Handle window events
 			addWindowListener(new WindowAdapter()
 			{
 				@Override
-				public void windowClosing(WindowEvent event)
+				public void windowOpened(
+					WindowEvent	event)
+				{
+					// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced
+					// downwards when its location is set.  The error in the y coordinate is the height of the title bar
+					// of the window.  The workaround is to set the location of the window again with an adjustment for
+					// the error.
+					LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+				}
+
+				@Override
+				public void windowClosing(
+					WindowEvent	event)
 				{
 					onClose();
 				}
@@ -769,9 +769,26 @@ class SubstitutionSelectionPanel
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
+	//  Instance methods : ActionListener interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void actionPerformed(ActionEvent event)
+		{
+			switch (event.getActionCommand())
+			{
+				case Command.ACCEPT -> onAccept();
+				case Command.CLOSE  -> onClose();
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
 	//  Instance methods : DocumentListener interface
 	////////////////////////////////////////////////////////////////////
 
+		@Override
 		public void changedUpdate(DocumentEvent event)
 		{
 			// do nothing
@@ -779,6 +796,7 @@ class SubstitutionSelectionPanel
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void insertUpdate(DocumentEvent event)
 		{
 			updateAcceptButton();
@@ -786,26 +804,10 @@ class SubstitutionSelectionPanel
 
 		//--------------------------------------------------------------
 
+		@Override
 		public void removeUpdate(DocumentEvent event)
 		{
 			updateAcceptButton();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : ActionListener interface
-	////////////////////////////////////////////////////////////////////
-
-		public void actionPerformed(ActionEvent event)
-		{
-			String command = event.getActionCommand();
-
-			if (command.equals(Command.ACCEPT))
-				onAccept();
-
-			else if (command.equals(Command.CLOSE))
-				onClose();
 		}
 
 		//--------------------------------------------------------------
@@ -816,9 +818,10 @@ class SubstitutionSelectionPanel
 
 		private Substitution getSubstitution()
 		{
-			return accepted ? new Substitution(targetField.getText(), replacementField.getText(),
-											   !regularExpressionCheckBox.isSelected())
-							: null;
+			return accepted
+					? new Substitution(targetField.getText(), replacementField.getText(),
+									   !regularExpressionCheckBox.isSelected())
+					: null;
 		}
 
 		//--------------------------------------------------------------

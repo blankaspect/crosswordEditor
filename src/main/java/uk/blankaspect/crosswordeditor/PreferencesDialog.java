@@ -71,7 +71,6 @@ import javax.swing.event.ListSelectionListener;
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.FileException;
 
-import uk.blankaspect.common.misc.FilenameSuffixFilter;
 import uk.blankaspect.common.misc.MaxValueMap;
 
 import uk.blankaspect.common.string.StringUtils;
@@ -89,6 +88,8 @@ import uk.blankaspect.ui.swing.combobox.FComboBox;
 
 import uk.blankaspect.ui.swing.container.DimensionsSpinnerPanel;
 import uk.blankaspect.ui.swing.container.PathnamePanel;
+
+import uk.blankaspect.ui.swing.filechooser.FileChooserUtils;
 
 import uk.blankaspect.ui.swing.font.FontEx;
 import uk.blankaspect.ui.swing.font.FontStyle;
@@ -115,6 +116,10 @@ import uk.blankaspect.ui.swing.textfield.ConstrainedTextField;
 import uk.blankaspect.ui.swing.textfield.FTextField;
 import uk.blankaspect.ui.swing.textfield.InformationField;
 import uk.blankaspect.ui.swing.textfield.IntegerValueField;
+
+import uk.blankaspect.ui.swing.window.WindowUtils;
+
+import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
 
 //----------------------------------------------------------------------
 
@@ -464,11 +469,22 @@ class PreferencesDialog
 		// Dispose of window explicitly
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-		// Handle window closing
+		// Handle window events
 		addWindowListener(new WindowAdapter()
 		{
 			@Override
-			public void windowClosing(WindowEvent event)
+			public void windowOpened(
+				WindowEvent	event)
+			{
+				// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced downwards
+				// when its location is set.  The error in the y coordinate is the height of the title bar of the
+				// window.  The workaround is to set the location of the window again with an adjustment for the error.
+				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+			}
+
+			@Override
+			public void windowClosing(
+				WindowEvent	event)
 			{
 				onClose();
 			}
@@ -509,46 +525,30 @@ class PreferencesDialog
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void actionPerformed(ActionEvent event)
 	{
 		String command = event.getActionCommand();
 
 		if (command.startsWith(Command.EDIT_DIRECTION_KEYWORDS))
-			onEditDirectionKeywords(StringUtils.removePrefix(command,
-															 Command.EDIT_DIRECTION_KEYWORDS));
-
-		else if (command.equals(Command.EDIT_HTML_FONT_NAMES))
-			onEditHtmlFontNames();
-
-		else if (command.equals(Command.CHOOSE_STATUS_TEXT_COLOUR))
-			onChooseStatusTextColour();
-
-		else if (command.equals(Command.CHOOSE_VIEW_COLOUR))
-			onChooseViewColour();
-
-		else if (command.equals(Command.CHOOSE_HTML_GRID_COLOUR))
-			onChooseHtmlGridColour();
-
-		else if (command.equals(Command.CHOOSE_HTML_ENTRY_COLOUR))
-			onChooseHtmlEntryColour();
-
-		else if (command.equals(Command.CHOOSE_BLOCK_IMAGE_COLOUR))
-			onChooseBlockImageColour();
-
-		else if (command.equals(Command.CHOOSE_BAR_COLOUR))
-			onChooseBarColour();
-
-		else if (command.equals(Command.CHOOSE_PARAMETER_SET_FILE))
-			onChooseParameterSetFile();
-
-		else if (command.equals(Command.SAVE_CONFIGURATION))
-			onSaveConfiguration();
-
-		else if (command.equals(Command.ACCEPT))
-			onAccept();
-
-		else if (command.equals(Command.CLOSE))
-			onClose();
+			onEditDirectionKeywords(StringUtils.removePrefix(command, Command.EDIT_DIRECTION_KEYWORDS));
+		else
+		{
+			switch (command)
+			{
+				case Command.EDIT_HTML_FONT_NAMES      -> onEditHtmlFontNames();
+				case Command.CHOOSE_STATUS_TEXT_COLOUR -> onChooseStatusTextColour();
+				case Command.CHOOSE_VIEW_COLOUR        -> onChooseViewColour();
+				case Command.CHOOSE_HTML_GRID_COLOUR   -> onChooseHtmlGridColour();
+				case Command.CHOOSE_HTML_ENTRY_COLOUR  -> onChooseHtmlEntryColour();
+				case Command.CHOOSE_BLOCK_IMAGE_COLOUR -> onChooseBlockImageColour();
+				case Command.CHOOSE_BAR_COLOUR         -> onChooseBarColour();
+				case Command.CHOOSE_PARAMETER_SET_FILE -> onChooseParameterSetFile();
+				case Command.SAVE_CONFIGURATION        -> onSaveConfiguration();
+				case Command.ACCEPT                    -> onAccept();
+				case Command.CLOSE                     -> onClose();
+			}
+		}
 	}
 
 	//------------------------------------------------------------------
@@ -557,6 +557,7 @@ class PreferencesDialog
 //  Instance methods : ChangeListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void stateChanged(ChangeEvent event)
 	{
 		updateBlockImage();
@@ -568,6 +569,7 @@ class PreferencesDialog
 //  Instance methods : ListSelectionListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void valueChanged(ListSelectionEvent event)
 	{
 		if (!event.getValueIsAdjusting())
@@ -693,8 +695,7 @@ class PreferencesDialog
 			parameterSetFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			parameterSetFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
 			parameterSetFileChooser.setApproveButtonToolTipText(SELECT_FILE_STR);
-			parameterSetFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.XML_FILES_STR,
-																		   AppConstants.XML_FILENAME_EXTENSION));
+			FileChooserUtils.setFilter(parameterSetFileChooser, AppConstants.XML_FILE_FILTER);
 		}
 		parameterSetFileChooser.setSelectedFile(parameterSetPathnameField.getCanonicalFile());
 		parameterSetFileChooser.rescanCurrentDirectory();
@@ -714,17 +715,16 @@ class PreferencesDialog
 			if (file != null)
 			{
 				String[] optionStrs = Utils.getOptionStrings(AppConstants.REPLACE_STR);
-				if (!file.exists() ||
-					 (JOptionPane.showOptionDialog(this, Utils.getPathname(file) +
-																			AppConstants.ALREADY_EXISTS_STR,
-												   SAVE_CONFIG_FILE_STR, JOptionPane.OK_CANCEL_OPTION,
-												   JOptionPane.WARNING_MESSAGE, null, optionStrs,
-												   optionStrs[1]) == JOptionPane.OK_OPTION))
+				if (!file.exists()
+						|| (JOptionPane.showOptionDialog(this,
+														 Utils.getPathname(file) + AppConstants.ALREADY_EXISTS_STR,
+														 SAVE_CONFIG_FILE_STR, JOptionPane.OK_CANCEL_OPTION,
+														 JOptionPane.WARNING_MESSAGE, null, optionStrs,
+														 optionStrs[1]) == JOptionPane.OK_OPTION))
 				{
 					setPreferences();
 					accepted = true;
-					TaskProgressDialog.showDialog(this, WRITE_CONFIG_FILE_STR,
-												  new Task.WriteConfig(file));
+					TaskProgressDialog.showDialog(this, WRITE_CONFIG_FILE_STR, new Task.WriteConfig(file));
 				}
 			}
 		}
@@ -1457,9 +1457,6 @@ class PreferencesDialog
 			}
 		}
 
-		// Update widths of labels
-		GridPanelLabel.update();
-
 
 		//----  Outer panel
 
@@ -1496,6 +1493,9 @@ class PreferencesDialog
 			gridBag.setConstraints(separatorPanel, gbc);
 			outerPanel.add(separatorPanel);
 		}
+
+		// Update widths of labels when outer panel is added to a window
+		WindowUtils.addRunOnAddedToWindow(outerPanel, GridPanelLabel::update);
 
 		return outerPanel;
 	}
@@ -2604,9 +2604,6 @@ class PreferencesDialog
 		gridBag.setConstraints(htmlBarColourButton, gbc);
 		barPanel.add(htmlBarColourButton);
 
-		// Update widths of labels
-		HtmlPanelLabel.update();
-
 
 		//----  Outer panel
 
@@ -2650,6 +2647,9 @@ class PreferencesDialog
 		gbc.insets = new Insets(3, 3, 0, 0);
 		gridBag.setConstraints(barPanel, gbc);
 		outerPanel.add(barPanel);
+
+		// Update widths of labels when outer panel is added to a window
+		WindowUtils.addRunOnAddedToWindow(outerPanel, HtmlPanelLabel::update);
 
 		return outerPanel;
 	}
@@ -2752,14 +2752,12 @@ class PreferencesDialog
 		outerPanel.add(controlPanel);
 
 		return outerPanel;
-
 	}
 
 	//------------------------------------------------------------------
 
 	private JPanel createPanelFonts()
 	{
-
 		//----  Control panel
 
 		GridBagLayout gridBag = new GridBagLayout();
@@ -3750,8 +3748,7 @@ class PreferencesDialog
 		protected boolean acceptCharacter(char ch,
 										  int  index)
 		{
-			return (Character.isAlphabetic(ch) || Character.isDigit(ch) ||
-					 (VALID_SYMBOLS.indexOf(ch) >= 0));
+			return Character.isAlphabetic(ch) || Character.isDigit(ch) || (VALID_SYMBOLS.indexOf(ch) >= 0);
 		}
 
 		//--------------------------------------------------------------
@@ -3988,7 +3985,7 @@ class PreferencesDialog
 			protected int getEditorValue()
 			{
 				IntegerValueField field = (IntegerValueField)getEditor();
-				return (field.isEmpty() ? 0 : field.getValue());
+				return field.isEmpty() ? 0 : field.getValue();
 			}
 
 			//----------------------------------------------------------

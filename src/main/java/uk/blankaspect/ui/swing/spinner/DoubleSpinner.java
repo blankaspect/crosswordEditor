@@ -112,7 +112,7 @@ public class DoubleSpinner
 										  int  index)
 		{
 			int i = VALID_CHARS.indexOf(ch);
-			return ((i > 0) || (signed && (i == 0)));
+			return (i > 0) || (signed && (i == 0));
 		}
 
 		//--------------------------------------------------------------

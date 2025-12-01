@@ -360,11 +360,11 @@ class BlockGrid
 		{
 			for (int column = 0; column < numColumns; column++)
 			{
-				if (!cells[row][column].blocked &&
-					 ((column == 0) || cells[row][column - 1].blocked) &&
-					 ((column == numColumns - 1) || cells[row][column + 1].blocked) &&
-					 ((row == 0) || cells[row - 1][column].blocked) &&
-					 ((row == numRows - 1) || cells[row + 1][column].blocked))
+				if (!cells[row][column].blocked
+						&& ((column == 0) || cells[row][column - 1].blocked)
+						&& ((column == numColumns - 1) || cells[row][column + 1].blocked)
+						&& ((row == 0) || cells[row - 1][column].blocked)
+						&& ((row == numRows - 1) || cells[row + 1][column].blocked))
 					isolatedCells.add(new IndexPair(row, column));
 			}
 		}
@@ -546,9 +546,8 @@ class BlockGrid
 						break;
 
 					case ROTATION_QUARTER:
-						if ((cells[c1][r2].blocked != blocked) ||
-							 (cells[r2][c2].blocked != blocked) ||
-							 (cells[c2][r1].blocked != blocked))
+						if ((cells[c1][r2].blocked != blocked) || (cells[r2][c2].blocked != blocked)
+								|| (cells[c2][r1].blocked != blocked))
 							return false;
 						break;
 
@@ -563,9 +562,8 @@ class BlockGrid
 						break;
 
 					case REFLECTION_VERTICAL_HORIZONTAL_AXES:
-						if ((cells[r1][c2].blocked != blocked) ||
-							 (cells[r2][c1].blocked != blocked) ||
-							 (cells[r2][c2].blocked != blocked))
+						if ((cells[r1][c2].blocked != blocked) || (cells[r2][c1].blocked != blocked)
+								|| (cells[r2][c2].blocked != blocked))
 							return false;
 						break;
 				}

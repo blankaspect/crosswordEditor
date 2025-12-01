@@ -214,7 +214,7 @@ public class Substitution
 				}
 			}
 		}
-		return (separator + target + separator + replacement + separator + (literal ? LITERAL_FLAG : ""));
+		return separator + target + separator + replacement + separator + (literal ? LITERAL_FLAG : "");
 	}
 
 	//------------------------------------------------------------------
@@ -258,7 +258,7 @@ public class Substitution
 	public String apply(
 		String	str)
 	{
-		return (literal ? str.replace(target, replacement) : str.replaceAll(target, replacement));
+		return literal ? str.replace(target, replacement) : str.replaceAll(target, replacement);
 	}
 
 	//------------------------------------------------------------------

@@ -86,46 +86,22 @@ abstract class GridPane
 
 	private static final	KeyAction.KeyCommandPair[]	EDIT_POSITION_KEY_COMMANDS	=
 	{
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
-			Command.MOVE_EDIT_POSITION_UP_UNIT
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
-			Command.MOVE_EDIT_POSITION_DOWN_UNIT
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
-			Command.MOVE_EDIT_POSITION_LEFT_UNIT
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
-			Command.MOVE_EDIT_POSITION_RIGHT_UNIT
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0),
-			Command.MOVE_EDIT_POSITION_UP_MAX
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0),
-			Command.MOVE_EDIT_POSITION_DOWN_MAX
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
-			Command.MOVE_EDIT_POSITION_LEFT_MAX
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_END, 0),
-			Command.MOVE_EDIT_POSITION_RIGHT_MAX
-		)
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
+						  Command.MOVE_EDIT_POSITION_UP_UNIT),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
+						  Command.MOVE_EDIT_POSITION_DOWN_UNIT),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
+						  Command.MOVE_EDIT_POSITION_LEFT_UNIT),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
+						  Command.MOVE_EDIT_POSITION_RIGHT_UNIT),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0),
+						  Command.MOVE_EDIT_POSITION_UP_MAX),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0),
+						  Command.MOVE_EDIT_POSITION_DOWN_MAX),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
+						  Command.MOVE_EDIT_POSITION_LEFT_MAX),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0),
+						  Command.MOVE_EDIT_POSITION_RIGHT_MAX)
 	};
 
 ////////////////////////////////////////////////////////////////////////
@@ -263,31 +239,17 @@ abstract class GridPane
 	public void actionPerformed(
 		ActionEvent	event)
 	{
-		String command = event.getActionCommand();
-
-		if (command.equals(Command.MOVE_EDIT_POSITION_UP_UNIT))
-			onMoveEditPositionUpUnit();
-
-		else if (command.equals(Command.MOVE_EDIT_POSITION_DOWN_UNIT))
-			onMoveEditPositionDownUnit();
-
-		else if (command.equals(Command.MOVE_EDIT_POSITION_LEFT_UNIT))
-			onMoveEditPositionLeftUnit();
-
-		else if (command.equals(Command.MOVE_EDIT_POSITION_RIGHT_UNIT))
-			onMoveEditPositionRightUnit();
-
-		else if (command.equals(Command.MOVE_EDIT_POSITION_UP_MAX))
-			onMoveEditPositionUpMax();
-
-		else if (command.equals(Command.MOVE_EDIT_POSITION_DOWN_MAX))
-			onMoveEditPositionDownMax();
-
-		else if (command.equals(Command.MOVE_EDIT_POSITION_LEFT_MAX))
-			onMoveEditPositionLeftMax();
-
-		else if (command.equals(Command.MOVE_EDIT_POSITION_RIGHT_MAX))
-			onMoveEditPositionRightMax();
+		switch (event.getActionCommand())
+		{
+			case Command.MOVE_EDIT_POSITION_UP_UNIT    -> onMoveEditPositionUpUnit();
+			case Command.MOVE_EDIT_POSITION_DOWN_UNIT  -> onMoveEditPositionDownUnit();
+			case Command.MOVE_EDIT_POSITION_LEFT_UNIT  -> onMoveEditPositionLeftUnit();
+			case Command.MOVE_EDIT_POSITION_RIGHT_UNIT -> onMoveEditPositionRightUnit();
+			case Command.MOVE_EDIT_POSITION_UP_MAX     -> onMoveEditPositionUpMax();
+			case Command.MOVE_EDIT_POSITION_DOWN_MAX   -> onMoveEditPositionDownMax();
+			case Command.MOVE_EDIT_POSITION_LEFT_MAX   -> onMoveEditPositionLeftMax();
+			case Command.MOVE_EDIT_POSITION_RIGHT_MAX  -> onMoveEditPositionRightMax();
+		}
 	}
 
 	//------------------------------------------------------------------
@@ -1283,7 +1245,7 @@ abstract class GridPane
 ////////////////////////////////////////////////////////////////////////
 
 
-	// CLASS: BLOCK GRID PANEL
+	// CLASS: BLOCK GRID PANE
 
 
 	public static class Block
@@ -1302,7 +1264,7 @@ abstract class GridPane
 
 		private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS	=
 		{
-			new KeyAction.KeyCommandPair(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), Command.TOGGLE_BLOCK)
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), Command.TOGGLE_BLOCK)
 		};
 
 	////////////////////////////////////////////////////////////////////
@@ -1352,9 +1314,7 @@ abstract class GridPane
 			super.actionPerformed(event);
 
 			// Execute command
-			String command = event.getActionCommand();
-
-			if (command.equals(Command.TOGGLE_BLOCK))
+			if (event.getActionCommand().equals(Command.TOGGLE_BLOCK))
 				onToggleBlock();
 		}
 
@@ -1455,7 +1415,7 @@ abstract class GridPane
 	//==================================================================
 
 
-	// CLASS: BAR GRID PANEL
+	// CLASS: BAR GRID PANE
 
 
 	public static class Bar
@@ -1472,7 +1432,13 @@ abstract class GridPane
 
 		private static final	int	BAR_ZONE_HALF_WIDTH	= 4;
 
-		private static final	Map<BarGrid.Edge, Integer>	EDGE_SELECTORS;
+		private static final	Map<BarGrid.Edge, Integer>	EDGE_SELECTORS	= new EnumMap<>(Map.of
+		(
+			BarGrid.Edge.TOP,    0x10,
+			BarGrid.Edge.RIGHT,  0x21,
+			BarGrid.Edge.BOTTOM, 0x12,
+			BarGrid.Edge.LEFT,   0x01
+		));
 
 		// Commands
 		private interface Command
@@ -1485,26 +1451,14 @@ abstract class GridPane
 
 		private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS	=
 		{
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_UP, KeyEvent.ALT_DOWN_MASK),
-				Command.TOGGLE_BAR_TOP
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK),
-				Command.TOGGLE_BAR_RIGHT
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, KeyEvent.ALT_DOWN_MASK),
-				Command.TOGGLE_BAR_BOTTOM
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, KeyEvent.ALT_DOWN_MASK),
-				Command.TOGGLE_BAR_LEFT
-			),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_UP, KeyEvent.ALT_DOWN_MASK),
+							  Command.TOGGLE_BAR_TOP),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK),
+							  Command.TOGGLE_BAR_RIGHT),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, KeyEvent.ALT_DOWN_MASK),
+							  Command.TOGGLE_BAR_BOTTOM),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, KeyEvent.ALT_DOWN_MASK),
+							  Command.TOGGLE_BAR_LEFT),
 		};
 
 	////////////////////////////////////////////////////////////////////
@@ -1512,19 +1466,6 @@ abstract class GridPane
 	////////////////////////////////////////////////////////////////////
 
 		private	BarGrid	grid;
-
-	////////////////////////////////////////////////////////////////////
-	//  Static initialiser
-	////////////////////////////////////////////////////////////////////
-
-		static
-		{
-			EDGE_SELECTORS = new EnumMap<>(BarGrid.Edge.class);
-			EDGE_SELECTORS.put(BarGrid.Edge.TOP,    0x10);
-			EDGE_SELECTORS.put(BarGrid.Edge.RIGHT,  0x21);
-			EDGE_SELECTORS.put(BarGrid.Edge.BOTTOM, 0x12);
-			EDGE_SELECTORS.put(BarGrid.Edge.LEFT,   0x01);
-		}
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
@@ -1584,19 +1525,13 @@ abstract class GridPane
 			super.actionPerformed(event);
 
 			// Execute command
-			String command = event.getActionCommand();
-
-			if (command.equals(Command.TOGGLE_BAR_TOP))
-				onToggleBarTop();
-
-			else if (command.equals(Command.TOGGLE_BAR_RIGHT))
-				onToggleBarRight();
-
-			else if (command.equals(Command.TOGGLE_BAR_BOTTOM))
-				onToggleBarBottom();
-
-			else if (command.equals(Command.TOGGLE_BAR_LEFT))
-				onToggleBarLeft();
+			switch (event.getActionCommand())
+			{
+				case Command.TOGGLE_BAR_TOP    -> onToggleBarTop();
+				case Command.TOGGLE_BAR_RIGHT  -> onToggleBarRight();
+				case Command.TOGGLE_BAR_BOTTOM -> onToggleBarBottom();
+				case Command.TOGGLE_BAR_LEFT   -> onToggleBarLeft();
+			}
 		}
 
 		//--------------------------------------------------------------
@@ -1729,7 +1664,7 @@ abstract class GridPane
 			int selectorY = (dy < a) ? 0
 									 : (dy < b) ? 1 : 2;
 			BarGrid.Edge edge = getEdgeForSelector((selectorX << 4) | selectorY);
-			return ((edge != null) && toggleBar(y / cellSize, x / cellSize, edge));
+			return (edge != null) && toggleBar(y / cellSize, x / cellSize, edge);
 		}
 
 		//--------------------------------------------------------------

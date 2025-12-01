@@ -89,7 +89,7 @@ public abstract class AbstractDoubleSpinner
 	@Override
 	public boolean requestFocusInWindow()
 	{
-		return ((editor == null) ? super.requestFocusInWindow() : editor.requestFocusInWindow());
+		return (editor == null) ? super.requestFocusInWindow() : editor.requestFocusInWindow();
 	}
 
 	//------------------------------------------------------------------

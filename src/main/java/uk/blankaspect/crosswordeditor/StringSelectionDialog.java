@@ -68,6 +68,8 @@ import uk.blankaspect.ui.swing.misc.GuiUtils;
 
 import uk.blankaspect.ui.swing.textfield.FTextField;
 
+import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
+
 //----------------------------------------------------------------------
 
 
@@ -83,13 +85,13 @@ class StringSelectionDialog
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	private static final	int	SELECTION_LIST_NUM_COLUMNS	= 32;
-	private static final	int	SELECTION_LIST_NUM_ROWS		= 12;
+	private static final	int		SELECTION_LIST_NUM_COLUMNS	= 32;
+	private static final	int		SELECTION_LIST_NUM_ROWS		= 12;
 
-	private static final	int	ELEMENT_FIELD_NUM_COLUMNS	= 12;
+	private static final	int		ELEMENT_FIELD_NUM_COLUMNS	= 12;
 
-	private static final	int	MODIFIERS_MASK	= ActionEvent.ALT_MASK | ActionEvent.META_MASK |
-															ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK;
+	private static final	int		MODIFIERS_MASK	=
+			ActionEvent.ALT_MASK | ActionEvent.META_MASK | ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK;
 
 	private static final	String	ADD_STR				= "Add";
 	private static final	String	EDIT_STR			= "Edit";
@@ -352,11 +354,22 @@ class StringSelectionDialog
 		// Dispose of window explicitly
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-		// Handle window closing
+		// Handle window events
 		addWindowListener(new WindowAdapter()
 		{
 			@Override
-			public void windowClosing(WindowEvent event)
+			public void windowOpened(
+				WindowEvent	event)
+			{
+				// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced downwards
+				// when its location is set.  The error in the y coordinate is the height of the title bar of the
+				// window.  The workaround is to set the location of the window again with an adjustment for the error.
+				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+			}
+
+			@Override
+			public void windowClosing(
+				WindowEvent	event)
 			{
 				onClose();
 			}
@@ -399,44 +412,33 @@ class StringSelectionDialog
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void actionPerformed(ActionEvent event)
 	{
-		String command = event.getActionCommand();
-
-		if (command.equals(Command.ADD) || (event.getSource() == getElementField()))
+		if (event.getSource() == getElementField())
 			onAdd();
-
-		else if (command.equals(Command.EDIT))
-			onEdit();
-
-		else if (command.equals(Command.DELETE))
+		else
 		{
-			if ((event.getModifiers() & MODIFIERS_MASK) == ActionEvent.SHIFT_MASK)
-				onDelete();
-			else
-				onConfirmDelete();
+			switch (event.getActionCommand())
+			{
+				case Command.ADD                                   -> onAdd();
+				case Command.EDIT                                  -> onEdit();
+				case Command.DELETE                                ->
+				{
+					if ((event.getModifiers() & MODIFIERS_MASK) == ActionEvent.SHIFT_MASK)
+						onDelete();
+					else
+						onConfirmDelete();
+				}
+				case SingleSelectionList.Command.DELETE_ELEMENT    -> onConfirmDelete();
+				case SingleSelectionList.Command.DELETE_EX_ELEMENT -> onDelete();
+				case SingleSelectionList.Command.MOVE_ELEMENT_UP   -> onMoveUp();
+				case SingleSelectionList.Command.MOVE_ELEMENT_DOWN -> onMoveDown();
+				case SingleSelectionList.Command.DRAG_ELEMENT      -> onMove();
+				case Command.ACCEPT                                -> onAccept();
+				case Command.CLOSE                                 -> onClose();
+			}
 		}
-
-		else if (command.equals(SingleSelectionList.Command.DELETE_ELEMENT))
-			onConfirmDelete();
-
-		else if (command.equals(SingleSelectionList.Command.DELETE_EX_ELEMENT))
-			onDelete();
-
-		else if (command.equals(SingleSelectionList.Command.MOVE_ELEMENT_UP))
-			onMoveUp();
-
-		else if (command.equals(SingleSelectionList.Command.MOVE_ELEMENT_DOWN))
-			onMoveDown();
-
-		else if (command.equals(SingleSelectionList.Command.DRAG_ELEMENT))
-			onMove();
-
-		if (command.equals(Command.ACCEPT))
-			onAccept();
-
-		else if (command.equals(Command.CLOSE))
-			onClose();
 	}
 
 	//------------------------------------------------------------------
@@ -445,6 +447,7 @@ class StringSelectionDialog
 //  Instance methods : ChangeListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void stateChanged(ChangeEvent event)
 	{
 		if (!selectionListScrollPane.getVerticalScrollBar().getValueIsAdjusting() && !selectionList.isDragging())
@@ -457,6 +460,7 @@ class StringSelectionDialog
 //  Instance methods : DocumentListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void changedUpdate(DocumentEvent event)
 	{
 		// do nothing
@@ -464,6 +468,7 @@ class StringSelectionDialog
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void insertUpdate(DocumentEvent event)
 	{
 		updateButtons();
@@ -471,6 +476,7 @@ class StringSelectionDialog
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void removeUpdate(DocumentEvent event)
 	{
 		updateButtons();
@@ -482,6 +488,7 @@ class StringSelectionDialog
 //  Instance methods : ListSelectionListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void valueChanged(ListSelectionEvent event)
 	{
 		if (!event.getValueIsAdjusting())

@@ -55,6 +55,8 @@ import uk.blankaspect.ui.swing.misc.GuiUtils;
 
 import uk.blankaspect.ui.swing.spinner.FIntegerSpinner;
 
+import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
+
 //----------------------------------------------------------------------
 
 
@@ -70,7 +72,7 @@ class ExportHtmlDialog
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	private static final	int	CELL_SIZE_FIELD_LENGTH	= 2;
+	private static final	int		CELL_SIZE_FIELD_LENGTH	= 2;
 
 	private static final	String	TITLE_STR				= "Export HTML";
 	private static final	String	STYLESHEET_STR			= "Stylesheet";
@@ -88,48 +90,21 @@ class ExportHtmlDialog
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
+	private static	Point	location;
 
-	// RESULT CLASS
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
 
-
-	public static class Result
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Result(StylesheetKind stylesheetKind,
-					   int            cellSize,
-					   boolean        writeStylesheet,
-					   boolean        writeBlockImage,
-					   boolean        writeEntries)
-		{
-			this.stylesheetKind = stylesheetKind;
-			this.cellSize = cellSize;
-			this.writeStylesheet = writeStylesheet;
-			this.writeBlockImage = writeBlockImage;
-			this.writeEntries = writeEntries;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		StylesheetKind	stylesheetKind;
-		int				cellSize;
-		boolean			writeStylesheet;
-		boolean			writeBlockImage;
-		boolean			writeEntries;
-
-	}
-
-	//==================================================================
+	private	boolean						accepted;
+	private	FComboBox<StylesheetKind>	stylesheetKindComboBox;
+	private	FIntegerSpinner				cellSizeSpinner;
+	private	JCheckBox					writeStylesheetCheckBox;
+	private	JCheckBox					writeBlockImageCheckBox;
+	private	JCheckBox					writeEntriesCheckBox;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -335,9 +310,19 @@ class ExportHtmlDialog
 		// Dispose of window explicitly
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-		// Handle window closing
+		// Handle window events
 		addWindowListener(new WindowAdapter()
 		{
+			@Override
+			public void windowOpened(
+				WindowEvent	event)
+			{
+				// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced downwards
+				// when its location is set.  The error in the y coordinate is the height of the title bar of the
+				// window.  The workaround is to set the location of the window again with an adjustment for the error.
+				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+			}
+
 			@Override
 			public void windowClosing(WindowEvent event)
 			{
@@ -374,8 +359,7 @@ class ExportHtmlDialog
 									StylesheetKind stylesheetKind,
 									int            cellSize)
 	{
-		return new ExportHtmlDialog(GuiUtils.getWindow(parent), separator, stylesheetKind, cellSize)
-																							.getResult();
+		return new ExportHtmlDialog(GuiUtils.getWindow(parent), separator, stylesheetKind, cellSize).getResult();
 	}
 
 	//------------------------------------------------------------------
@@ -384,18 +368,15 @@ class ExportHtmlDialog
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void actionPerformed(ActionEvent event)
 	{
-		String command = event.getActionCommand();
-
-		if (command.equals(Command.SELECT_STYLESHEET_KIND))
-			onSelectStylesheetKind();
-
-		else if (command.equals(Command.ACCEPT))
-			onAccept();
-
-		else if (command.equals(Command.CLOSE))
-			onClose();
+		switch (event.getActionCommand())
+		{
+			case Command.SELECT_STYLESHEET_KIND -> onSelectStylesheetKind();
+			case Command.ACCEPT                 -> onAccept();
+			case Command.CLOSE                  -> onClose();
+		}
 	}
 
 	//------------------------------------------------------------------
@@ -406,22 +387,21 @@ class ExportHtmlDialog
 
 	private Result getResult()
 	{
-		return (accepted
+		return accepted
 					? new Result(stylesheetKindComboBox.getSelectedValue(),
 								 cellSizeSpinner.getIntValue(), writeStylesheetCheckBox.isSelected(),
 								 (writeBlockImageCheckBox == null)
-																? false
-																: writeBlockImageCheckBox.isSelected(),
+										? false
+										: writeBlockImageCheckBox.isSelected(),
 								 writeEntriesCheckBox.isSelected())
-					: null);
+					: null;
 	}
 
 	//------------------------------------------------------------------
 
 	private void updateComponents()
 	{
-		writeStylesheetCheckBox.
-						setEnabled(stylesheetKindComboBox.getSelectedValue() == StylesheetKind.EXTERNAL);
+		writeStylesheetCheckBox.setEnabled(stylesheetKindComboBox.getSelectedValue() == StylesheetKind.EXTERNAL);
 	}
 
 	//------------------------------------------------------------------
@@ -451,21 +431,22 @@ class ExportHtmlDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class variables
+//  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	private static	Point	location;
 
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
+	// RECORD: RESULT
 
-	private	boolean						accepted;
-	private	FComboBox<StylesheetKind>	stylesheetKindComboBox;
-	private	FIntegerSpinner				cellSizeSpinner;
-	private	JCheckBox					writeStylesheetCheckBox;
-	private	JCheckBox					writeBlockImageCheckBox;
-	private	JCheckBox					writeEntriesCheckBox;
+
+	public record Result(
+		StylesheetKind	stylesheetKind,
+		int				cellSize,
+		boolean			writeStylesheet,
+		boolean			writeBlockImage,
+		boolean			writeEntries)
+	{ }
+
+	//==================================================================
 
 }
 

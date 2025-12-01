@@ -192,10 +192,11 @@ public abstract class AbstractBase64Encoder
 						 int    length)
 	{
 		List<String> lines = encodeLines(data, offset, length);
-		return ((lineLength == 0) ? lines.isEmpty()
-											? ""
-											: lines.get(0)
-								  : StringUtils.join(lineSeparator, true, lines));
+		return (lineLength == 0)
+					? lines.isEmpty()
+							? ""
+							: lines.get(0)
+					: StringUtils.join(lineSeparator, true, lines);
 	}
 
 	//------------------------------------------------------------------

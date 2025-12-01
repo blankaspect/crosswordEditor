@@ -239,8 +239,8 @@ public class Salsa20
 	public static int bytesToWord(byte[] data,
 								  int    offset)
 	{
-		return ((data[offset++] & 0xFF) | (data[offset++] & 0xFF) << 8 | (data[offset++] & 0xFF) << 16
-																				| (data[offset++] & 0xFF) << 24);
+		return (data[offset++] & 0xFF) | (data[offset++] & 0xFF) << 8 | (data[offset++] & 0xFF) << 16
+				| (data[offset++] & 0xFF) << 24;
 	}
 
 	//------------------------------------------------------------------

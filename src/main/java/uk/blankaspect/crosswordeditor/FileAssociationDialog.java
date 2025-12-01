@@ -58,8 +58,6 @@ import uk.blankaspect.common.exception.FileException;
 import uk.blankaspect.common.filesystem.PathnameUtils;
 import uk.blankaspect.common.filesystem.PathUtils;
 
-import uk.blankaspect.common.misc.FilenameSuffixFilter;
-
 import uk.blankaspect.common.platform.windows.FileAssociations;
 
 import uk.blankaspect.common.property.PropertyString;
@@ -74,9 +72,13 @@ import uk.blankaspect.ui.swing.combobox.FComboBox;
 
 import uk.blankaspect.ui.swing.container.PathnamePanel;
 
+import uk.blankaspect.ui.swing.filechooser.FileChooserUtils;
+
 import uk.blankaspect.ui.swing.label.FLabel;
 
 import uk.blankaspect.ui.swing.misc.GuiUtils;
+
+import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
 
 //----------------------------------------------------------------------
 
@@ -222,24 +224,21 @@ class FileAssociationDialog
 		javaLauncherFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		javaLauncherFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
 		javaLauncherFileChooser.setApproveButtonToolTipText(SELECT_FILE_STR);
-		javaLauncherFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.EXE_FILES_STR,
-																	   AppConstants.EXE_FILENAME_EXTENSION));
+		FileChooserUtils.setFilter(javaLauncherFileChooser, AppConstants.EXE_FILE_FILTER);
 
 		jarFileChooser = new JFileChooser(System.getProperty(SystemPropertyKey.WORKING_DIR));
 		jarFileChooser.setDialogTitle(JAR_FILE_STR);
 		jarFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		jarFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
 		jarFileChooser.setApproveButtonToolTipText(SELECT_FILE_STR);
-		jarFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.JAR_FILES_STR,
-															  AppConstants.JAR_FILENAME_EXTENSION));
+		FileChooserUtils.setFilter(jarFileChooser, AppConstants.JAR_FILE_FILTER);
 
 		iconFileChooser = new JFileChooser(System.getProperty(SystemPropertyKey.WORKING_DIR));
 		iconFileChooser.setDialogTitle(ICON_FILE_STR);
 		iconFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		iconFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
 		iconFileChooser.setApproveButtonToolTipText(SELECT_FILE_STR);
-		iconFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.ICON_FILES_STR,
-															   AppConstants.ICON_FILENAME_EXTENSION));
+		FileChooserUtils.setFilter(iconFileChooser, AppConstants.ICON_FILE_FILTER);
 
 		actionComponents = new ArrayList<>();
 
@@ -570,9 +569,19 @@ class FileAssociationDialog
 		// Dispose of window explicitly
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-		// Handle window closing
+		// Handle window events
 		addWindowListener(new WindowAdapter()
 		{
+			@Override
+			public void windowOpened(
+				WindowEvent	event)
+			{
+				// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced downwards
+				// when its location is set.  The error in the y coordinate is the height of the title bar of the
+				// window.  The workaround is to set the location of the window again with an adjustment for the error.
+				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+			}
+
 			@Override
 			public void windowClosing(WindowEvent event)
 			{
@@ -620,31 +629,17 @@ class FileAssociationDialog
 	public void actionPerformed(
 		ActionEvent	event)
 	{
-		String command = event.getActionCommand();
-
-		if (command.equals(Command.SELECT_ACTION))
-			onSelectAction();
-
-		else if (command.equals(Command.CHOOSE_JAVA_LAUNCHER_FILE))
-			onChooseJavaLauncherFile();
-
-		else if (command.equals(Command.CHOOSE_JAR_FILE))
-			onChooseJarFile();
-
-		else if (command.equals(Command.CHOOSE_ICON_FILE))
-			onChooseIconFile();
-
-		else if (command.equals(Command.SET_DEFAULT_JAVA_LAUNCHER_PATHNAME))
-			onSetDefaultJavaLauncherPathname();
-
-		else if (command.equals(Command.SET_DEFAULT_JAR_PATHNAME))
-			onSetDefaultJarPathname();
-
-		else if (command.equals(Command.ACCEPT))
-			onAccept();
-
-		else if (command.equals(Command.CLOSE))
-			onClose();
+		switch (event.getActionCommand())
+		{
+			case Command.SELECT_ACTION                      -> onSelectAction();
+			case Command.CHOOSE_JAVA_LAUNCHER_FILE          -> onChooseJavaLauncherFile();
+			case Command.CHOOSE_JAR_FILE                    -> onChooseJarFile();
+			case Command.CHOOSE_ICON_FILE                   -> onChooseIconFile();
+			case Command.SET_DEFAULT_JAVA_LAUNCHER_PATHNAME -> onSetDefaultJavaLauncherPathname();
+			case Command.SET_DEFAULT_JAR_PATHNAME           -> onSetDefaultJarPathname();
+			case Command.ACCEPT                             -> onAccept();
+			case Command.CLOSE                              -> onClose();
+		}
 	}
 
 	//------------------------------------------------------------------

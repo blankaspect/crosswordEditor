@@ -40,7 +40,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
@@ -73,6 +72,8 @@ import uk.blankaspect.ui.swing.menu.FMenuItem;
 import uk.blankaspect.ui.swing.misc.GuiUtils;
 
 import uk.blankaspect.ui.swing.text.TextRendering;
+
+import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
 
 //----------------------------------------------------------------------
 
@@ -107,30 +108,21 @@ class GridDialog
 		String	CLOSE								= "close";
 	}
 
-	private static final	Map<String, CommandAction>	COMMANDS;
+	private static final	Map<String, CommandAction>	COMMANDS	= Map.of(
+		Command.UNDO, new CommandAction(Command.UNDO, UNDO_STR),
+		Command.REDO, new CommandAction(Command.REDO, REDO_STR)
+	);
 
 	private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS	=
 	{
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK),
-			Command.UNDO
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK),
-			Command.REDO
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_CONTEXT_MENU, 0),
-			Command.SHOW_CONTEXT_MENU
-		),
-		new KeyAction.KeyCommandPair
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-			Command.CLOSE
-		)
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK),
+						  Command.UNDO),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK),
+						  Command.REDO),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_CONTEXT_MENU, 0),
+						  Command.SHOW_CONTEXT_MENU),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+						  Command.CLOSE)
 	};
 
 ////////////////////////////////////////////////////////////////////////
@@ -150,17 +142,6 @@ class GridDialog
 	private	GridPane					gridPane;
 	private	Map<Direction, NumberField>	numFieldsFields;
 	private	JPopupMenu					contextMenu;
-
-////////////////////////////////////////////////////////////////////////
-//  Static initialiser
-////////////////////////////////////////////////////////////////////////
-
-	static
-	{
-		COMMANDS = new HashMap<>();
-		COMMANDS.put(Command.UNDO, new CommandAction(Command.UNDO, UNDO_STR));
-		COMMANDS.put(Command.REDO, new CommandAction(Command.REDO, REDO_STR));
-	}
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -387,11 +368,22 @@ class GridDialog
 		// Dispose of window explicitly
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-		// Handle window closing
+		// Handle window events
 		addWindowListener(new WindowAdapter()
 		{
 			@Override
-			public void windowClosing(WindowEvent event)
+			public void windowOpened(
+				WindowEvent	event)
+			{
+				// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced downwards
+				// when its location is set.  The error in the y coordinate is the height of the title bar of the
+				// window.  The workaround is to set the location of the window again with an adjustment for the error.
+				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+			}
+
+			@Override
+			public void windowClosing(
+				WindowEvent	event)
 			{
 				onClose();
 			}
@@ -433,30 +425,19 @@ class GridDialog
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void actionPerformed(ActionEvent event)
 	{
-		String command = event.getActionCommand();
-
-		if (command.equals(Command.SELECT_SYMMETRY))
-			onSelectSymmetry();
-
-		else if (command.equals(Command.TOGGLE_HIGHLIGHT_FULLY_INTERSECTING))
-			onToggleHighlightFullyIntersecting();
-
-		else if (command.equals(Command.UNDO))
-			onUndo();
-
-		else if (command.equals(Command.REDO))
-			onRedo();
-
-		else if (command.equals(Command.SHOW_CONTEXT_MENU))
-			onShowContextMenu();
-
-		else if (command.equals(Command.ACCEPT))
-			onAccept();
-
-		else if (command.equals(Command.CLOSE))
-			onClose();
+		switch (event.getActionCommand())
+		{
+			case Command.SELECT_SYMMETRY                     -> onSelectSymmetry();
+			case Command.TOGGLE_HIGHLIGHT_FULLY_INTERSECTING -> onToggleHighlightFullyIntersecting();
+			case Command.UNDO                                -> onUndo();
+			case Command.REDO                                -> onRedo();
+			case Command.SHOW_CONTEXT_MENU                   -> onShowContextMenu();
+			case Command.ACCEPT                              -> onAccept();
+			case Command.CLOSE                               -> onClose();
+		}
 	}
 
 	//------------------------------------------------------------------
@@ -465,6 +446,7 @@ class GridDialog
 //  Instance methods : ChangeListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void stateChanged(ChangeEvent event)
 	{
 		symmetryComboBox.setSelectedValue(gridPane.getGrid().getSymmetry());
@@ -476,6 +458,7 @@ class GridDialog
 //  Instance methods : MouseListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void mouseClicked(MouseEvent event)
 	{
 		// do nothing
@@ -483,6 +466,7 @@ class GridDialog
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void mouseEntered(MouseEvent event)
 	{
 		// do nothing
@@ -490,6 +474,7 @@ class GridDialog
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void mouseExited(MouseEvent event)
 	{
 		// do nothing
@@ -497,6 +482,7 @@ class GridDialog
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void mousePressed(MouseEvent event)
 	{
 		showContextMenu(event);
@@ -504,6 +490,7 @@ class GridDialog
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void mouseReleased(MouseEvent event)
 	{
 		showContextMenu(event);
@@ -517,7 +504,7 @@ class GridDialog
 
 	private Grid getGrid()
 	{
-		return (accepted ? gridPane.getGrid() : null);
+		return accepted ? gridPane.getGrid() : null;
 	}
 
 	//------------------------------------------------------------------
@@ -635,8 +622,8 @@ class GridDialog
 	//  Constants
 	////////////////////////////////////////////////////////////////////
 
-		private static final	int	VERTICAL_MARGIN		= 2;
-		private static final	int	HORIZONTAL_MARGIN	= 6;
+		private static final	int		VERTICAL_MARGIN		= 2;
+		private static final	int		HORIZONTAL_MARGIN	= 6;
 
 		private static final	Color	TEXT_COLOUR			= Color.BLACK;
 		private static final	Color	BACKGROUND_COLOUR	= new Color(236, 244, 236);
@@ -684,33 +671,33 @@ class GridDialog
 		protected void paintComponent(Graphics gr)
 		{
 			// Create copy of graphics context
-			gr = gr.create();
+			Graphics2D gr2d = GuiUtils.copyGraphicsContext(gr);
 
 			// Get dimensions
 			int width = getWidth();
 			int height = getHeight();
 
 			// Draw background
-			gr.setColor(BACKGROUND_COLOUR);
-			gr.fillRect(0, 0, width, height);
+			gr2d.setColor(BACKGROUND_COLOUR);
+			gr2d.fillRect(0, 0, width, height);
 
 			// Draw text
 			if (numFields >= 0)
 			{
 				// Set rendering hints for text antialiasing and fractional metrics
-				TextRendering.setHints((Graphics2D)gr);
+				TextRendering.setHints(gr2d);
 
 				// Draw text
 				String text = Integer.toString(numFields);
-				FontMetrics fontMetrics = gr.getFontMetrics();
+				FontMetrics fontMetrics = gr2d.getFontMetrics();
 				int x = width - HORIZONTAL_MARGIN - fontMetrics.stringWidth(text);
-				gr.setColor(TEXT_COLOUR);
-				gr.drawString(text, x, VERTICAL_MARGIN + fontMetrics.getAscent());
+				gr2d.setColor(TEXT_COLOUR);
+				gr2d.drawString(text, x, VERTICAL_MARGIN + fontMetrics.getAscent());
 			}
 
 			// Draw border
-			gr.setColor(BORDER_COLOUR);
-			gr.drawRect(0, 0, width - 1, height - 1);
+			gr2d.setColor(BORDER_COLOUR);
+			gr2d.drawRect(0, 0, width - 1, height - 1);
 		}
 
 		//--------------------------------------------------------------

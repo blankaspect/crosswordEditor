@@ -40,7 +40,6 @@ import java.beans.PropertyChangeListener;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -123,8 +122,16 @@ class TextPanel
 
 	private static final	KeyStroke	ENTER_KEY	= KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
 
-	private static final	Set<KeyStroke>	FOCUS_FORWARD_KEYS;
-	private static final	Set<KeyStroke>	FOCUS_BACKWARD_KEYS;
+	private static final	Set<KeyStroke>	FOCUS_FORWARD_KEYS	= Set.of
+	(
+		KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0),
+		KeyStroke.getKeyStroke(KeyEvent.VK_TAB, KeyEvent.CTRL_DOWN_MASK)
+	);
+	private static final	Set<KeyStroke>	FOCUS_BACKWARD_KEYS	= Set.of
+	(
+		KeyStroke.getKeyStroke(KeyEvent.VK_TAB, KeyEvent.SHIFT_DOWN_MASK),
+		KeyStroke.getKeyStroke(KeyEvent.VK_TAB, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK)
+	);
 
 	// Commands
 	private interface Command
@@ -140,15 +147,22 @@ class TextPanel
 
 	private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS	=
 	{
-		new KeyAction.KeyCommandPair(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK),
-									 Command.UNDO),
-		new KeyAction.KeyCommandPair(KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK),
-									 Command.REDO),
-		new KeyAction.KeyCommandPair(KeyStroke.getKeyStroke(KeyEvent.VK_CONTEXT_MENU, 0),
-									 Command.SHOW_CONTEXT_MENU)
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK),
+						  Command.UNDO),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK),
+						  Command.REDO),
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_CONTEXT_MENU, 0),
+						  Command.SHOW_CONTEXT_MENU)
 	};
 
-	private static final	Map<String, CommandAction>	COMMANDS;
+	private static final	Map<String, CommandAction>	COMMANDS	= Map.of
+	(
+		Command.UNDO,  new CommandAction(Command.UNDO,  UNDO_STR),
+		Command.REDO,  new CommandAction(Command.REDO,  REDO_STR),
+		Command.CUT,   new CommandAction(Command.CUT,   CUT_STR),
+		Command.COPY,  new CommandAction(Command.COPY,  COPY_STR),
+		Command.PASTE, new CommandAction(Command.PASTE, PASTE_STR)
+	);
 
 ////////////////////////////////////////////////////////////////////////
 //  Instance variables
@@ -159,43 +173,6 @@ class TextPanel
 	private	FTextArea			textArea;
 	private	StyleButtonPanel	styleButtonPanel;
 	private	JPopupMenu			contextMenu;
-
-////////////////////////////////////////////////////////////////////////
-//  Static initialiser
-////////////////////////////////////////////////////////////////////////
-
-	static
-	{
-		// Forward traversal keys
-		FOCUS_FORWARD_KEYS = new HashSet<>();
-		FOCUS_FORWARD_KEYS.add
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0)
-		);
-		FOCUS_FORWARD_KEYS.add
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_TAB, KeyEvent.CTRL_DOWN_MASK)
-		);
-
-		// Backward traversal keys
-		FOCUS_BACKWARD_KEYS = new HashSet<>();
-		FOCUS_BACKWARD_KEYS.add
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_TAB, KeyEvent.SHIFT_DOWN_MASK)
-		);
-		FOCUS_BACKWARD_KEYS.add
-		(
-			KeyStroke.getKeyStroke(KeyEvent.VK_TAB, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK)
-		);
-
-		// Commands
-		COMMANDS = new HashMap<>();
-		COMMANDS.put(Command.UNDO,  new CommandAction(Command.UNDO,  UNDO_STR));
-		COMMANDS.put(Command.REDO,  new CommandAction(Command.REDO,  REDO_STR));
-		COMMANDS.put(Command.CUT,   new CommandAction(Command.CUT,   CUT_STR));
-		COMMANDS.put(Command.COPY,  new CommandAction(Command.COPY,  COPY_STR));
-		COMMANDS.put(Command.PASTE, new CommandAction(Command.PASTE, PASTE_STR));
-	}
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -330,7 +307,7 @@ class TextPanel
 		{
 			int keyCode = KeyEvent.getExtendedKeyCodeForChar(attr.getKeyChar());
 			KeyStroke keyStroke = KeyStroke.getKeyStroke(keyCode, KeyEvent.CTRL_DOWN_MASK);
-			styleCommands.add(new KeyAction.KeyCommandPair(keyStroke, Command.APPLY_STYLE + attr.getKey()));
+			styleCommands.add(KeyAction.command(keyStroke, Command.APPLY_STYLE + attr.getKey()));
 		}
 		KeyAction.create(textArea, JComponent.WHEN_FOCUSED, this, styleCommands);
 	}
@@ -348,24 +325,18 @@ class TextPanel
 
 		if (command.startsWith(Command.APPLY_STYLE))
 			onApplyStyle(StringUtils.removePrefix(command, Command.APPLY_STYLE));
-
-		else if (command.equals(Command.UNDO))
-			onUndo();
-
-		else if (command.equals(Command.REDO))
-			onRedo();
-
-		else if (command.equals(Command.CUT))
-			onCut();
-
-		else if (command.equals(Command.COPY))
-			onCopy();
-
-		else if (command.equals(Command.PASTE))
-			onPaste();
-
-		else if (command.equals(Command.SHOW_CONTEXT_MENU))
-			onShowContextMenu();
+		else
+		{
+			switch (command)
+			{
+				case Command.UNDO              -> onUndo();
+				case Command.REDO              -> onRedo();
+				case Command.CUT               -> onCut();
+				case Command.COPY              -> onCopy();
+				case Command.PASTE             -> onPaste();
+				case Command.SHOW_CONTEXT_MENU -> onShowContextMenu();
+			}
+		}
 	}
 
 	//------------------------------------------------------------------
@@ -696,22 +667,15 @@ class TextPanel
 	//  Constants
 	////////////////////////////////////////////////////////////////////
 
-		private static final	Map<StyledText.StyleAttr, ImageIcon>	ICON_MAP;
-
-	////////////////////////////////////////////////////////////////////
-	//  Static initialiser
-	////////////////////////////////////////////////////////////////////
-
-		static
-		{
-			ICON_MAP = new EnumMap<>(StyledText.StyleAttr.class);
-			ICON_MAP.put(StyledText.StyleAttr.BOLD,          new ImageIcon(ImgData.BOLD));
-			ICON_MAP.put(StyledText.StyleAttr.ITALIC,        new ImageIcon(ImgData.ITALIC));
-			ICON_MAP.put(StyledText.StyleAttr.SUPERSCRIPT,   new ImageIcon(ImgData.SUPERSCRIPT));
-			ICON_MAP.put(StyledText.StyleAttr.SUBSCRIPT,     new ImageIcon(ImgData.SUBSCRIPT));
-			ICON_MAP.put(StyledText.StyleAttr.UNDERLINE,     new ImageIcon(ImgData.UNDERLINE));
-			ICON_MAP.put(StyledText.StyleAttr.STRIKETHROUGH, new ImageIcon(ImgData.STRIKETHROUGH));
-		}
+		private static final	Map<StyledText.StyleAttr, ImageIcon>	ICON_MAP	= new EnumMap<>(Map.of
+		(
+			StyledText.StyleAttr.BOLD,          new ImageIcon(ImgData.BOLD),
+			StyledText.StyleAttr.ITALIC,        new ImageIcon(ImgData.ITALIC),
+			StyledText.StyleAttr.SUPERSCRIPT,   new ImageIcon(ImgData.SUPERSCRIPT),
+			StyledText.StyleAttr.SUBSCRIPT,     new ImageIcon(ImgData.SUBSCRIPT),
+			StyledText.StyleAttr.UNDERLINE,     new ImageIcon(ImgData.UNDERLINE),
+			StyledText.StyleAttr.STRIKETHROUGH, new ImageIcon(ImgData.STRIKETHROUGH)
+		));
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
@@ -860,7 +824,7 @@ class TextPanel
 		@Override
 		public boolean addEdit(UndoableEdit edit)
 		{
-			return ((compoundEdit == null) ? super.addEdit(edit) : compoundEdit.addEdit(edit));
+			return (compoundEdit == null) ? super.addEdit(edit) : compoundEdit.addEdit(edit);
 		}
 
 		//--------------------------------------------------------------

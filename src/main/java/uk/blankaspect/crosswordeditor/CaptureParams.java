@@ -351,9 +351,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public Grid.Separator getGridSeparator()
 	{
@@ -369,9 +369,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPGridSeparator	cpGridSeparator	= new CPGridSeparator();
 
@@ -401,9 +401,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public int getNumColumns()
 	{
@@ -419,9 +419,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPNumColumns	cpNumColumns	= new CPNumColumns();
 
@@ -451,9 +451,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public int getNumRows()
 	{
@@ -469,9 +469,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPNumRows	cpNumRows	= new CPNumRows();
 
@@ -501,9 +501,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public boolean isAutomaticGridDetection()
 	{
@@ -519,9 +519,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPAutomaticGridDetection	cpAutomaticGridDetection	= new CPAutomaticGridDetection();
 
@@ -551,9 +551,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public int getXOffset()
 	{
@@ -569,9 +569,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPXOffset	cpXOffset	= new CPXOffset();
 
@@ -601,9 +601,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public int getYOffset()
 	{
@@ -619,9 +619,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPYOffset	cpYOffset	= new CPYOffset();
 
@@ -651,9 +651,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public int getSampleSize()
 	{
@@ -669,9 +669,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPSampleSize	cpSampleSize	= new CPSampleSize();
 
@@ -701,9 +701,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public int getBlockBrightnessThreshold()
 	{
@@ -719,9 +719,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPBlockBrightnessThreshold	cpBlockBrightnessThreshold	= new CPBlockBrightnessThreshold();
 
@@ -751,9 +751,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public int getBarWidthThreshold()
 	{
@@ -769,9 +769,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPBarWidthThreshold	cpBarWidthThreshold	= new CPBarWidthThreshold();
 
@@ -801,9 +801,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public int getBarBrightnessThreshold()
 	{
@@ -819,9 +819,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPBarBrightnessThreshold	cpBarBrightnessThreshold	= new CPBarBrightnessThreshold();
 
@@ -852,9 +852,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public int getGridLineBrightnessThreshold()
 	{
@@ -870,9 +870,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPGridLineBrightnessThreshold	cpGridLineBrightnessThreshold	=
 																	new CPGridLineBrightnessThreshold();
@@ -904,9 +904,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public int getGridLineMinLength()
 	{
@@ -922,9 +922,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPGridLineMinLength	cpGridLineMinLength	=   new CPGridLineMinLength();
 
@@ -955,9 +955,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public int getGridLineMinSeparation()
 	{
@@ -973,9 +973,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPGridLineMinSeparation	cpGridLineMinSeparation	=   new CPGridLineMinSeparation();
 
@@ -1006,9 +1006,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public int getGridLineEndpointTolerance()
 	{
@@ -1024,9 +1024,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPGridLineEndpointTolerance	cpGridLineEndpointTolerance	=   new CPGridLineEndpointTolerance();
 
@@ -1056,9 +1056,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public String getMultipleFieldClueIdSeparator()
 	{
@@ -1074,9 +1074,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPMultipleFieldClueIdSeparator	cpMultipleFieldClueIdSeparator	= new CPMultipleFieldClueIdSeparator();
 
@@ -1106,9 +1106,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public String getClueReferenceKeyword()
 	{
@@ -1124,9 +1124,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPClueReferenceKeyword	cpClueReferenceKeyword	= new CPClueReferenceKeyword();
 
@@ -1167,8 +1167,7 @@ class CaptureParams
 			}
 			catch (PatternSyntaxException e)
 			{
-				InputException exception = new InputException(CaptureParams.ErrorId.MALFORMED_PATTERN,
-															  input);
+				InputException exception = new InputException(CaptureParams.ErrorId.MALFORMED_PATTERN, input);
 				exception.setReplacements(RegexUtils.getExceptionMessage(e));
 				throw exception;
 			}
@@ -1179,7 +1178,7 @@ class CaptureParams
 		@Override
 		public String toString()
 		{
-			return (value.isEmpty() ? null : value.toString());
+			return value.isEmpty() ? null : value.toString();
 		}
 
 		//--------------------------------------------------------------
@@ -1188,9 +1187,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public String getAnswerLengthPattern()
 	{
@@ -1206,9 +1205,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPAnswerLengthPattern	cpAnswerLengthPattern	= new CPAnswerLengthPattern();
 
@@ -1249,8 +1248,7 @@ class CaptureParams
 			}
 			catch (PatternSyntaxException e)
 			{
-				InputException exception = new InputException(CaptureParams.ErrorId.MALFORMED_PATTERN,
-															  input);
+				InputException exception = new InputException(CaptureParams.ErrorId.MALFORMED_PATTERN, input);
 				exception.setReplacements(RegexUtils.getExceptionMessage(e));
 				throw exception;
 			}
@@ -1266,7 +1264,7 @@ class CaptureParams
 		protected String toString(int index)
 		{
 			Substitution value = values.get(index);
-			return ((value == null) ? null : value.toString());
+			return (value == null) ? null : value.toString();
 		}
 
 		//--------------------------------------------------------------
@@ -1275,9 +1273,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public List<Substitution> getAnswerLengthSubstitutions()
 	{
@@ -1293,9 +1291,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPAnswerLengthSubstitution	cpAnswerLengthSubstitution	= new CPAnswerLengthSubstitution();
 
@@ -1336,8 +1334,7 @@ class CaptureParams
 			}
 			catch (PatternSyntaxException e)
 			{
-				InputException exception = new InputException(CaptureParams.ErrorId.MALFORMED_PATTERN,
-															  input);
+				InputException exception = new InputException(CaptureParams.ErrorId.MALFORMED_PATTERN, input);
 				exception.setReplacements(RegexUtils.getExceptionMessage(e));
 				throw exception;
 			}
@@ -1353,7 +1350,7 @@ class CaptureParams
 		protected String toString(int index)
 		{
 			Substitution value = values.get(index);
-			return ((value == null) ? null : value.toString());
+			return (value == null) ? null : value.toString();
 		}
 
 		//--------------------------------------------------------------
@@ -1362,9 +1359,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public List<Substitution> getClueSubstitutions()
 	{
@@ -1380,9 +1377,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPClueSubstitution	cpClueSubstitution	= new CPClueSubstitution();
 
@@ -1411,9 +1408,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public String getTitle()
 	{
@@ -1429,9 +1426,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPTitle	cpTitle	= new CPTitle();
 
@@ -1460,9 +1457,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public String getFilename()
 	{
@@ -1478,9 +1475,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPFilename	cpFilename	= new CPFilename();
 
@@ -1509,9 +1506,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public String getDocumentDirectory()
 	{
@@ -1527,9 +1524,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPDocumentDirectory	cpDocumentDirectory	= new CPDocumentDirectory();
 
@@ -1558,9 +1555,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance methods : associated methods in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	public String getHtmlDirectory()
 	{
@@ -1576,9 +1573,9 @@ class CaptureParams
 
 	//------------------------------------------------------------------
 
-//--////////////////////////////////////////////////////////////////////
-//--//  Instance variables : associated variables in enclosing class
-//--////////////////////////////////////////////////////////////////////
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	private	CPHtmlDirectory	cpHtmlDirectory	= new CPHtmlDirectory();
 

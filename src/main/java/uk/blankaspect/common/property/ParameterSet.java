@@ -156,8 +156,13 @@ public abstract class ParameterSet
 	public int compareTo(
 		ParameterSet	paramSet)
 	{
-		return ((name == null) ? (paramSet.name == null) ? 0 : -1
-							   : (paramSet.name == null) ? 1 : name.compareTo(paramSet.name));
+		return (name == null)
+					? (paramSet.name == null)
+							? 0
+							: -1
+					: (paramSet.name == null)
+							? 1
+							: name.compareTo(paramSet.name);
 	}
 
 	//------------------------------------------------------------------

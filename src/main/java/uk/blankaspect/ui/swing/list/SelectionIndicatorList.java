@@ -264,7 +264,7 @@ public class SelectionIndicatorList<E>
 
 	public E getSelectedItem()
 	{
-		return ((selectedIndex < 0) ? null : items.get(selectedIndex));
+		return (selectedIndex < 0) ? null : items.get(selectedIndex);
 	}
 
 	//------------------------------------------------------------------

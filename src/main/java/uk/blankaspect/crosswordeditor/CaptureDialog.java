@@ -20,7 +20,6 @@ package uk.blankaspect.crosswordeditor;
 
 import java.awt.CardLayout;
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -69,7 +68,6 @@ import uk.blankaspect.common.exception.FileException;
 
 import uk.blankaspect.common.filesystem.PathnameUtils;
 
-import uk.blankaspect.common.misc.FilenameSuffixFilter;
 import uk.blankaspect.common.misc.MaxValueMap;
 
 import uk.blankaspect.common.regex.RegexUtils;
@@ -95,6 +93,8 @@ import uk.blankaspect.ui.swing.container.PathnamePanel;
 import uk.blankaspect.ui.swing.dialog.ImageRegionSelectionDialog;
 import uk.blankaspect.ui.swing.dialog.ParameterSetDialog;
 
+import uk.blankaspect.ui.swing.filechooser.FileChooserUtils;
+
 import uk.blankaspect.ui.swing.font.FontUtils;
 
 import uk.blankaspect.ui.swing.image.ClipboardImage;
@@ -112,6 +112,10 @@ import uk.blankaspect.ui.swing.tabbedpane.FTabbedPane;
 
 import uk.blankaspect.ui.swing.textfield.FTextField;
 import uk.blankaspect.ui.swing.textfield.IntegerField;
+
+import uk.blankaspect.ui.swing.window.WindowUtils;
+
+import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
 
 //----------------------------------------------------------------------
 
@@ -299,7 +303,7 @@ class CaptureDialog
 		int		documentIndex)
 	{
 		// Call superclass constructor
-		super(owner, CAPTURE_STR, Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, CAPTURE_STR, ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		setIconImages(owner.getIconImages());
@@ -325,8 +329,7 @@ class CaptureDialog
 		parameterSetFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		parameterSetFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
 		parameterSetFileChooser.setApproveButtonToolTipText(SELECT_FILE_STR);
-		parameterSetFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.XML_FILES_STR,
-																	   AppConstants.XML_FILENAME_EXTENSION));
+		FileChooserUtils.setFilter(parameterSetFileChooser, AppConstants.XML_FILE_FILTER);
 
 
 		//----  Tabbed panel
@@ -481,9 +484,19 @@ class CaptureDialog
 		// Dispose of window explicitly
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-		// Handle window closing
+		// Handle window events
 		addWindowListener(new WindowAdapter()
 		{
+			@Override
+			public void windowOpened(
+				WindowEvent	event)
+			{
+				// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced downwards
+				// when its location is set.  The error in the y coordinate is the height of the title bar of the
+				// window.  The workaround is to set the location of the window again with an adjustment for the error.
+				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+			}
+
 			@Override
 			public void windowClosing(
 				WindowEvent	event)
@@ -538,32 +551,22 @@ class CaptureDialog
 		{
 			String command = event.getActionCommand();
 
-			if (command.equals(Command.SELECT_GRID_SEPARATOR))
-				onSelectGridSeparator();
-
-			else if (command.equals(Command.CHOOSE_DOCUMENT_DIRECTORY))
-				onChooseDocumentDirectory();
-
-			else if (command.equals(Command.CHOOSE_HTML_DIRECTORY))
-				onChooseHtmlDirectory();
-
-			else if (command.equals(Command.MANAGE_PARAMETER_SET))
-				onManageParameterSet();
-
-			else if (command.equals(Command.CLEAR))
-				onClear();
-
-			else if (command.equals(Command.GET_GRID_IMAGE))
-				onGetGridImage();
-
-			else if (command.startsWith(Command.GET_CLUES))
+			if (command.startsWith(Command.GET_CLUES))
 				onGetClues(StringUtils.removePrefix(command, Command.GET_CLUES));
-
-			else if (command.equals(Command.ACCEPT))
-				onAccept();
-
-			else if (command.equals(Command.CLOSE))
-				onClose();
+			else
+			{
+				switch (command)
+				{
+					case Command.SELECT_GRID_SEPARATOR     -> onSelectGridSeparator();
+					case Command.CHOOSE_DOCUMENT_DIRECTORY -> onChooseDocumentDirectory();
+					case Command.CHOOSE_HTML_DIRECTORY     -> onChooseHtmlDirectory();
+					case Command.MANAGE_PARAMETER_SET      -> onManageParameterSet();
+					case Command.CLEAR                     -> onClear();
+					case Command.GET_GRID_IMAGE            -> onGetGridImage();
+					case Command.ACCEPT                    -> onAccept();
+					case Command.CLOSE                     -> onClose();
+				}
+			}
 		}
 		catch (AppException e)
 		{
@@ -1250,9 +1253,6 @@ class CaptureDialog
 		gridBag.setConstraints(gridSeparatorParamPanel, gbc);
 		controlPanel.add(gridSeparatorParamPanel);
 
-		// Update widths of labels
-		GridLabel.update();
-
 
 		//----  Outer panel
 
@@ -1273,6 +1273,9 @@ class CaptureDialog
 		gbc.insets = new Insets(0, 0, 0, 0);
 		gridBag.setConstraints(controlPanel, gbc);
 		panel.add(controlPanel);
+
+		// Update widths of labels when panel is added to a window
+		WindowUtils.addRunOnAddedToWindow(panel, GridLabel::update);
 
 		return panel;
 	}

@@ -18,7 +18,7 @@ package uk.blankaspect.common.xml;
 // IMPORTS
 
 
-import java.util.stream.Stream;
+import java.util.Arrays;
 
 import uk.blankaspect.common.misc.IStringKeyed;
 
@@ -86,10 +86,7 @@ public enum Apostrophe
 
 	public static Apostrophe forKey(String key)
 	{
-		return Stream.of(values())
-				.filter(value -> value.key.equals(key))
-				.findFirst()
-				.orElse(null);
+		return Arrays.stream(values()).filter(value -> value.key.equals(key)).findFirst().orElse(null);
 	}
 
 	//------------------------------------------------------------------

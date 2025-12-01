@@ -48,6 +48,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -72,6 +73,8 @@ import uk.blankaspect.ui.swing.misc.GuiConstants;
 import uk.blankaspect.ui.swing.misc.GuiUtils;
 
 import uk.blankaspect.ui.swing.text.TextRendering;
+
+import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
 
 //----------------------------------------------------------------------
 
@@ -100,6 +103,334 @@ class ClueDialog
 	}
 
 ////////////////////////////////////////////////////////////////////////
+//  Class variables
+////////////////////////////////////////////////////////////////////////
+
+	private static	Point	location;
+
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	boolean		accepted;
+	private	String		clueReferenceKeyword;
+	private	int			clueIndex;
+	private	IdPanel		idPanel;
+	private	TextPanel	textPanel;
+	private	JPanel		buttonPanel;
+
+////////////////////////////////////////////////////////////////////////
+//  Constructors
+////////////////////////////////////////////////////////////////////////
+
+	private ClueDialog(Window            owner,
+					   CrosswordDocument document,
+					   Clue              clue)
+	{
+		// Call superclass constructor
+		super(owner, TITLE_STR + clue.getFieldId(), ModalityType.APPLICATION_MODAL);
+
+		// Set icons
+		setIconImages(owner.getIconImages());
+
+		// Initialise instance variables
+		this.clueReferenceKeyword = document.getClueReferenceKeyword();
+		clueIndex = clue.getId().index;
+
+
+		//----  Field ID panel
+
+		List<Field> clueFields = new ArrayList<>();
+		for (int i = 0; i < clue.getNumFields(); i++)
+		{
+			Grid.Field.Id fieldId = clue.getFieldId(i);
+			int length = document.getGrid().getField(fieldId).getLength();
+			List<Clue> clues = document.findClues(fieldId);
+			boolean defined = false;
+			if (i == 0)
+				defined = (clues.size() > 1) ||
+								((clues.size() == 1) && !clues.get(0).getFieldId().equals(fieldId));
+			else
+			{
+				for (Clue c : clues)
+				{
+					if (!c.isReference())
+					{
+						defined = true;
+						break;
+					}
+				}
+			}
+			clueFields.add(new Field(fieldId, length, defined));
+		}
+
+		boolean allowMultipleFieldUse = AppConfig.INSTANCE.isAllowMultipleFieldUse();
+		Grid.Field.Id clueFieldId = clue.getFieldId();
+		Map<Direction, List<Field>> availableFields = new EnumMap<>(Direction.class);
+		for (Direction direction : Direction.DEFINED_DIRECTIONS)
+		{
+			List<Field> fields = new ArrayList<>();
+			availableFields.put(direction, fields);
+
+			List<Clue> clues = document.getClues(direction);
+			for (Grid.Field field : document.getGrid().getFields(direction))
+			{
+				Grid.Field.Id fieldId = field.getId();
+				int length = field.getLength();
+				int index = Collections.binarySearch(clues, new Clue(fieldId), Clue.COMPARATOR);
+				if (index < 0)
+					fields.add(new Field(fieldId, length, false));
+				else
+				{
+					Clue.Id refId = clues.get(index).getReferentId();
+					if (refId == null)
+					{
+						if (allowMultipleFieldUse && !fieldId.equals(clueFieldId))
+							fields.add(new Field(fieldId, length, true));
+					}
+					else
+					{
+						if (refId.fieldId.equals(clueFieldId))
+							fields.add(new Field(fieldId, length, false));
+					}
+				}
+			}
+		}
+
+		int maxNumDigits = 0;
+		for (Grid.Field field : document.getGrid().getFields())
+		{
+			int numDigits = NumberUtils.getNumDecDigitsInt(field.getNumber());
+			if (maxNumDigits < numDigits)
+				maxNumDigits = numDigits;
+		}
+
+		idPanel = new IdPanel(this, clueFields, availableFields, maxNumDigits);
+
+
+		//----  Text panel
+
+		textPanel = new TextPanel(TEXT_AREA_NUM_ROWS, clue.hasText() ? clue.getText().toString() : null, true);
+
+
+		//----  Button panel
+
+		buttonPanel = new JPanel(new GridLayout(1, 0, 8, 0));
+		buttonPanel.setBorder(BorderFactory.createEmptyBorder(3, 12, 3, 12));
+
+		// Button: OK
+		JButton okButton = new FButton(AppConstants.OK_STR);
+		okButton.setActionCommand(Command.ACCEPT);
+		okButton.addActionListener(this);
+		buttonPanel.add(okButton);
+
+		// Button: cancel
+		JButton cancelButton = new FButton(AppConstants.CANCEL_STR);
+		cancelButton.setActionCommand(Command.CLOSE);
+		cancelButton.addActionListener(this);
+		buttonPanel.add(cancelButton);
+
+
+		//----  Main panel
+
+		GridBagLayout gridBag = new GridBagLayout();
+		GridBagConstraints gbc = new GridBagConstraints();
+
+		JPanel mainPanel = new JPanel(gridBag);
+		mainPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+
+		int gridY = 0;
+
+		gbc.gridx = 0;
+		gbc.gridy = gridY++;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.NORTH;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.insets = new Insets(0, 0, 0, 0);
+		gridBag.setConstraints(idPanel, gbc);
+		mainPanel.add(idPanel);
+
+		gbc.gridx = 0;
+		gbc.gridy = gridY++;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.NORTH;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.insets = new Insets(3, 0, 0, 0);
+		gridBag.setConstraints(textPanel, gbc);
+		mainPanel.add(textPanel);
+
+		gbc.gridx = 0;
+		gbc.gridy = gridY++;
+		gbc.gridwidth = 1;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.NORTH;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = new Insets(3, 0, 0, 0);
+		gridBag.setConstraints(buttonPanel, gbc);
+		mainPanel.add(buttonPanel);
+
+		// Add commands to action map
+		KeyAction.create(mainPanel, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+						 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), Command.CLOSE, this);
+
+
+		//----  Window
+
+		// Set content pane
+		setContentPane(mainPanel);
+
+		// Dispose of window explicitly
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+
+		// Handle window events
+		addWindowListener(new WindowAdapter()
+		{
+			@Override
+			public void windowOpened(
+				WindowEvent	event)
+			{
+				// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced downwards
+				// when its location is set.  The error in the y coordinate is the height of the title bar of the
+				// window.  The workaround is to set the location of the window again with an adjustment for the error.
+				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+			}
+
+			@Override
+			public void windowClosing(
+				WindowEvent	event)
+			{
+				onClose();
+			}
+		});
+
+		// Prevent dialog from being resized
+		setResizable(false);
+
+		// Resize dialog to its preferred size
+		pack();
+
+		// Set location of dialog
+		if (location == null)
+			location = GuiUtils.getComponentLocation(this, owner);
+		setLocation(location);
+
+		// Set default button
+		getRootPane().setDefaultButton(okButton);
+
+		// Set focus
+		textPanel.requestFocusInWindow();
+
+		// Show dialog
+		setVisible(true);
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Class methods
+////////////////////////////////////////////////////////////////////////
+
+	public static Clue showDialog(Component         parent,
+								  CrosswordDocument document,
+								  Clue              clue)
+	{
+		return new ClueDialog(GuiUtils.getWindow(parent), document, clue).getClue();
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods : ActionListener interface
+////////////////////////////////////////////////////////////////////////
+
+	@Override
+	public void actionPerformed(ActionEvent event)
+	{
+		switch (event.getActionCommand())
+		{
+			case Command.ACCEPT -> onAccept();
+			case Command.CLOSE  -> onClose();
+		}
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods
+////////////////////////////////////////////////////////////////////////
+
+	private Clue getClue()
+	{
+		Clue clue = null;
+		if (accepted)
+		{
+			try
+			{
+				clue = textPanel.isEmpty()
+						? new Clue(idPanel.clueFields.get(0).id)
+						: new Clue(idPanel.getIds(), textPanel.getText(), clueReferenceKeyword, idPanel.getLength());
+				clue.setIndex(clueIndex);
+			}
+			catch (StyledText.ParseException e)
+			{
+				throw new UnexpectedRuntimeException(e);
+			}
+		}
+		return clue;
+	}
+
+	//------------------------------------------------------------------
+
+	private void setButtonsEnabled(boolean enabled)
+	{
+		for (Component component : buttonPanel.getComponents())
+			component.setEnabled(enabled);
+	}
+
+	//------------------------------------------------------------------
+
+	private void validateUserInput()
+		throws AppException
+	{
+		textPanel.getText();
+	}
+
+	//------------------------------------------------------------------
+
+	private void onAccept()
+	{
+		try
+		{
+			validateUserInput();
+			accepted = true;
+			onClose();
+		}
+		catch (AppException e)
+		{
+			JOptionPane.showMessageDialog(this, e, getTitle(), JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	//------------------------------------------------------------------
+
+	private void onClose()
+	{
+		location = getLocation();
+		setVisible(false);
+		dispose();
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
 //  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
@@ -117,6 +448,14 @@ class ClueDialog
 		public static final	String	DEFINED_PREFIX	= "* ";
 
 		public static final	Grid.Field.Id	NO_ID	= new Grid.Field.Id(0);
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		Grid.Field.Id	id;
+		int				length;
+		boolean			defined;
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
@@ -147,7 +486,10 @@ class ClueDialog
 		@Override
 		public boolean equals(Object obj)
 		{
-			return ((obj instanceof Field) && id.equals(((Field)obj).id));
+			if (this == obj)
+				return true;
+
+			return (obj instanceof Field other) && Objects.equals(id, other.id);
 		}
 
 		//--------------------------------------------------------------
@@ -155,7 +497,7 @@ class ClueDialog
 		@Override
 		public int hashCode()
 		{
-			return id.hashCode();
+			return Objects.hashCode(id);
 		}
 
 		//--------------------------------------------------------------
@@ -164,18 +506,10 @@ class ClueDialog
 		public String toString()
 		{
 			String str = id.toString();
-			return (defined ? DEFINED_PREFIX + str : str);
+			return defined ? DEFINED_PREFIX + str : str;
 		}
 
 		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		Grid.Field.Id	id;
-		int				length;
-		boolean			defined;
 
 	}
 
@@ -221,32 +555,30 @@ class ClueDialog
 
 		private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS	=
 		{
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
-				Command.SELECT_PREVIOUS_ID
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
-				Command.SELECT_NEXT_ID
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
-				Command.SELECT_FIRST_ID
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_END, 0),
-				Command.SELECT_LAST_ID
-			),
-			new KeyAction.KeyCommandPair
-			(
-				KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0),
-				Command.EDIT_ID
-			)
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
+							  Command.SELECT_PREVIOUS_ID),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
+							  Command.SELECT_NEXT_ID),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
+							  Command.SELECT_FIRST_ID),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0),
+							  Command.SELECT_LAST_ID),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0),
+							  Command.EDIT_ID)
 		};
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	ClueDialog					dialog;
+		private	List<Field>					clueFields;
+		private	Map<Direction, List<Field>>	availableFields;
+		private	int							selectedIndex;
+		private	boolean						selectingField;
+		private	int							cellWidth;
+		private	int							preferredWidth;
+		private	int							preferredHeight;
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
@@ -305,22 +637,14 @@ class ClueDialog
 		@Override
 		public void actionPerformed(ActionEvent event)
 		{
-			String command = event.getActionCommand();
-
-			if (command.equals(Command.SELECT_PREVIOUS_ID))
-				onSelectPreviousId();
-
-			else if (command.equals(Command.SELECT_NEXT_ID))
-				onSelectNextId();
-
-			else if (command.equals(Command.SELECT_FIRST_ID))
-				onSelectFirstId();
-
-			else if (command.equals(Command.SELECT_LAST_ID))
-				onSelectLastId();
-
-			else if (command.equals(Command.EDIT_ID))
-				onEditId();
+			switch (event.getActionCommand())
+			{
+				case Command.SELECT_PREVIOUS_ID -> onSelectPreviousId();
+				case Command.SELECT_NEXT_ID     -> onSelectNextId();
+				case Command.SELECT_FIRST_ID    -> onSelectFirstId();
+				case Command.SELECT_LAST_ID     -> onSelectLastId();
+				case Command.EDIT_ID            -> onEditId();
+			}
 		}
 
 		//--------------------------------------------------------------
@@ -604,11 +928,10 @@ class ClueDialog
 
 			// Select field
 			dialog.setButtonsEnabled(false);
-			Grid.Field.Id fieldId = (selectedIndex < clueFields.size())
-																	? clueFields.get(selectedIndex).id
-																	: Field.NO_ID;
-			Grid.Field.Id newFieldId = FieldSelectionDialog.showDialog(this, selectedIndex * cellWidth,
-																	   fieldMap, fieldId);
+			Grid.Field.Id fieldId = (selectedIndex < clueFields.size()) ? clueFields.get(selectedIndex).id
+																		: Field.NO_ID;
+			Grid.Field.Id newFieldId =
+					FieldSelectionDialog.showDialog(this, selectedIndex * cellWidth, fieldMap, fieldId);
 			dialog.setButtonsEnabled(true);
 
 			// Update list of clue fields
@@ -634,341 +957,9 @@ class ClueDialog
 
 		//--------------------------------------------------------------
 
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	ClueDialog					dialog;
-		private	List<Field>					clueFields;
-		private	Map<Direction, List<Field>>	availableFields;
-		private	int							selectedIndex;
-		private	boolean						selectingField;
-		private	int							cellWidth;
-		private	int							preferredWidth;
-		private	int							preferredHeight;
-
 	}
 
 	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
-//  Constructors
-////////////////////////////////////////////////////////////////////////
-
-	private ClueDialog(Window            owner,
-					   CrosswordDocument document,
-					   Clue              clue)
-	{
-		// Call superclass constructor
-		super(owner, TITLE_STR + clue.getFieldId(), ModalityType.APPLICATION_MODAL);
-
-		// Set icons
-		setIconImages(owner.getIconImages());
-
-		// Initialise instance variables
-		this.clueReferenceKeyword = document.getClueReferenceKeyword();
-		clueIndex = clue.getId().index;
-
-
-		//----  Field ID panel
-
-		List<Field> clueFields = new ArrayList<>();
-		for (int i = 0; i < clue.getNumFields(); i++)
-		{
-			Grid.Field.Id fieldId = clue.getFieldId(i);
-			int length = document.getGrid().getField(fieldId).getLength();
-			List<Clue> clues = document.findClues(fieldId);
-			boolean defined = false;
-			if (i == 0)
-				defined = (clues.size() > 1) ||
-								((clues.size() == 1) && !clues.get(0).getFieldId().equals(fieldId));
-			else
-			{
-				for (Clue c : clues)
-				{
-					if (!c.isReference())
-					{
-						defined = true;
-						break;
-					}
-				}
-			}
-			clueFields.add(new Field(fieldId, length, defined));
-		}
-
-		boolean allowMultipleFieldUse = AppConfig.INSTANCE.isAllowMultipleFieldUse();
-		Grid.Field.Id clueFieldId = clue.getFieldId();
-		Map<Direction, List<Field>> availableFields = new EnumMap<>(Direction.class);
-		for (Direction direction : Direction.DEFINED_DIRECTIONS)
-		{
-			List<Field> fields = new ArrayList<>();
-			availableFields.put(direction, fields);
-
-			List<Clue> clues = document.getClues(direction);
-			for (Grid.Field field : document.getGrid().getFields(direction))
-			{
-				Grid.Field.Id fieldId = field.getId();
-				int length = field.getLength();
-				int index = Collections.binarySearch(clues, new Clue(fieldId), Clue.COMPARATOR);
-				if (index < 0)
-					fields.add(new Field(fieldId, length, false));
-				else
-				{
-					Clue.Id refId = clues.get(index).getReferentId();
-					if (refId == null)
-					{
-						if (allowMultipleFieldUse && !fieldId.equals(clueFieldId))
-							fields.add(new Field(fieldId, length, true));
-					}
-					else
-					{
-						if (refId.fieldId.equals(clueFieldId))
-							fields.add(new Field(fieldId, length, false));
-					}
-				}
-			}
-		}
-
-		int maxNumDigits = 0;
-		for (Grid.Field field : document.getGrid().getFields())
-		{
-			int numDigits = NumberUtils.getNumDecDigitsInt(field.getNumber());
-			if (maxNumDigits < numDigits)
-				maxNumDigits = numDigits;
-		}
-
-		idPanel = new IdPanel(this, clueFields, availableFields, maxNumDigits);
-
-
-		//----  Text panel
-
-		textPanel = new TextPanel(TEXT_AREA_NUM_ROWS, clue.hasText() ? clue.getText().toString() : null, true);
-
-
-		//----  Button panel
-
-		buttonPanel = new JPanel(new GridLayout(1, 0, 8, 0));
-		buttonPanel.setBorder(BorderFactory.createEmptyBorder(3, 12, 3, 12));
-
-		// Button: OK
-		JButton okButton = new FButton(AppConstants.OK_STR);
-		okButton.setActionCommand(Command.ACCEPT);
-		okButton.addActionListener(this);
-		buttonPanel.add(okButton);
-
-		// Button: cancel
-		JButton cancelButton = new FButton(AppConstants.CANCEL_STR);
-		cancelButton.setActionCommand(Command.CLOSE);
-		cancelButton.addActionListener(this);
-		buttonPanel.add(cancelButton);
-
-
-		//----  Main panel
-
-		GridBagLayout gridBag = new GridBagLayout();
-		GridBagConstraints gbc = new GridBagConstraints();
-
-		JPanel mainPanel = new JPanel(gridBag);
-		mainPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-
-		int gridY = 0;
-
-		gbc.gridx = 0;
-		gbc.gridy = gridY++;
-		gbc.gridwidth = 1;
-		gbc.gridheight = 1;
-		gbc.weightx = 0.0;
-		gbc.weighty = 0.0;
-		gbc.anchor = GridBagConstraints.NORTH;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		gbc.insets = new Insets(0, 0, 0, 0);
-		gridBag.setConstraints(idPanel, gbc);
-		mainPanel.add(idPanel);
-
-		gbc.gridx = 0;
-		gbc.gridy = gridY++;
-		gbc.gridwidth = 1;
-		gbc.gridheight = 1;
-		gbc.weightx = 0.0;
-		gbc.weighty = 0.0;
-		gbc.anchor = GridBagConstraints.NORTH;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		gbc.insets = new Insets(3, 0, 0, 0);
-		gridBag.setConstraints(textPanel, gbc);
-		mainPanel.add(textPanel);
-
-		gbc.gridx = 0;
-		gbc.gridy = gridY++;
-		gbc.gridwidth = 1;
-		gbc.gridheight = 1;
-		gbc.weightx = 0.0;
-		gbc.weighty = 0.0;
-		gbc.anchor = GridBagConstraints.NORTH;
-		gbc.fill = GridBagConstraints.NONE;
-		gbc.insets = new Insets(3, 0, 0, 0);
-		gridBag.setConstraints(buttonPanel, gbc);
-		mainPanel.add(buttonPanel);
-
-		// Add commands to action map
-		KeyAction.create(mainPanel, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
-						 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), Command.CLOSE, this);
-
-
-		//----  Window
-
-		// Set content pane
-		setContentPane(mainPanel);
-
-		// Dispose of window explicitly
-		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-
-		// Handle window closing
-		addWindowListener(new WindowAdapter()
-		{
-			@Override
-			public void windowClosing(WindowEvent event)
-			{
-				onClose();
-			}
-		});
-
-		// Prevent dialog from being resized
-		setResizable(false);
-
-		// Resize dialog to its preferred size
-		pack();
-
-		// Set location of dialog
-		if (location == null)
-			location = GuiUtils.getComponentLocation(this, owner);
-		setLocation(location);
-
-		// Set default button
-		getRootPane().setDefaultButton(okButton);
-
-		// Set focus
-		textPanel.requestFocusInWindow();
-
-		// Show dialog
-		setVisible(true);
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Class methods
-////////////////////////////////////////////////////////////////////////
-
-	public static Clue showDialog(Component         parent,
-								  CrosswordDocument document,
-								  Clue              clue)
-	{
-		return new ClueDialog(GuiUtils.getWindow(parent), document, clue).getClue();
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods : ActionListener interface
-////////////////////////////////////////////////////////////////////////
-
-	public void actionPerformed(ActionEvent event)
-	{
-		String command = event.getActionCommand();
-
-		if (command.equals(Command.ACCEPT))
-			onAccept();
-
-		else if (command.equals(Command.CLOSE))
-			onClose();
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods
-////////////////////////////////////////////////////////////////////////
-
-	private Clue getClue()
-	{
-		Clue clue = null;
-		if (accepted)
-		{
-			try
-			{
-				clue = textPanel.isEmpty()
-								? new Clue(idPanel.clueFields.get(0).id)
-								: new Clue(idPanel.getIds(), textPanel.getText(), clueReferenceKeyword,
-										   idPanel.getLength());
-				clue.setIndex(clueIndex);
-			}
-			catch (StyledText.ParseException e)
-			{
-				throw new UnexpectedRuntimeException(e);
-			}
-		}
-		return clue;
-	}
-
-	//------------------------------------------------------------------
-
-	private void setButtonsEnabled(boolean enabled)
-	{
-		for (Component component : buttonPanel.getComponents())
-			component.setEnabled(enabled);
-	}
-
-	//------------------------------------------------------------------
-
-	private void validateUserInput()
-		throws AppException
-	{
-		textPanel.getText();
-	}
-
-	//------------------------------------------------------------------
-
-	private void onAccept()
-	{
-		try
-		{
-			validateUserInput();
-			accepted = true;
-			onClose();
-		}
-		catch (AppException e)
-		{
-			JOptionPane.showMessageDialog(this, e, getTitle(), JOptionPane.ERROR_MESSAGE);
-		}
-	}
-
-	//------------------------------------------------------------------
-
-	private void onClose()
-	{
-		location = getLocation();
-		setVisible(false);
-		dispose();
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Class variables
-////////////////////////////////////////////////////////////////////////
-
-	private static	Point	location;
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	boolean		accepted;
-	private	String		clueReferenceKeyword;
-	private	int			clueIndex;
-	private	IdPanel		idPanel;
-	private	TextPanel	textPanel;
-	private	JPanel		buttonPanel;
 
 }
 

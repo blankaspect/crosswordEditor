@@ -551,8 +551,8 @@ class CrosswordDocument
 
 	public List<Clue> getClues(Direction direction)
 	{
-		return (clueLists.containsKey(direction) ? Collections.unmodifiableList(clueLists.get(direction))
-												 : new ArrayList<>());
+		return clueLists.containsKey(direction) ? Collections.unmodifiableList(clueLists.get(direction))
+												: new ArrayList<>();
 	}
 
 	//------------------------------------------------------------------
@@ -692,8 +692,11 @@ class CrosswordDocument
 
 	public String getName(boolean fullPathname)
 	{
-		return ((file == null) ? UNNAMED_STR + unnamedIndex
-							   : fullPathname ? Utils.getPathname(file) : file.getName());
+		return (file == null)
+					? UNNAMED_STR + unnamedIndex
+					: fullPathname
+							? Utils.getPathname(file)
+							: file.getName();
 	}
 
 	//------------------------------------------------------------------
@@ -724,8 +727,8 @@ class CrosswordDocument
 		if ((refId.fieldId.direction == direction) ||
 			 (grid.findFields(refId.fieldId.undefined()).size() == 1))
 			refId.fieldId.direction = Direction.NONE;
-		return (((clueReferenceKeyword == null) ? DEFAULT_CLUE_REFERENCE_KEYWORD
-												: clueReferenceKeyword) + " " + refId.toString());
+		return ((clueReferenceKeyword == null) ? DEFAULT_CLUE_REFERENCE_KEYWORD : clueReferenceKeyword)
+				+ " " + refId.toString();
 	}
 
 	//------------------------------------------------------------------
@@ -2753,12 +2756,12 @@ class CrosswordDocument
 		if (result != null)
 		{
 			edit = new IndicationsEdit(clueReferenceKeyword, answerLengthPattern, answerLengthSubstitutions, lineBreak,
-									   result.clueReferenceKeyword, result.answerLengthPattern,
-									   result.answerLengthSubstitutions, result.lineBreak);
-			clueReferenceKeyword = result.clueReferenceKeyword;
-			answerLengthPattern = result.answerLengthPattern;
-			answerLengthSubstitutions = result.answerLengthSubstitutions;
-			lineBreak = result.lineBreak;
+									   result.clueReferenceKeyword(), result.answerLengthPattern(),
+									   result.answerLengthSubstitutions(), result.lineBreak());
+			clueReferenceKeyword = result.clueReferenceKeyword();
+			answerLengthPattern = result.answerLengthPattern();
+			answerLengthSubstitutions = result.answerLengthSubstitutions();
+			lineBreak = result.lineBreak();
 		}
 		return edit;
 	}
@@ -2872,7 +2875,7 @@ class CrosswordDocument
 			if (clearWithEmptyClue)
 			{
 				for (Grid.Field field : grid.getFields())
-					newClues.add(new Clue(Collections.singletonList(field.getId()), new StyledText(), 0));
+					newClues.add(new Clue(List.of(field.getId()), new StyledText(), 0));
 			}
 
 			// Clear lists of clues
@@ -3714,7 +3717,7 @@ class CrosswordDocument
 
 		private boolean canLoad()
 		{
-			return ((location != null) && (hashValue != null));
+			return (location != null) && (hashValue != null);
 		}
 
 		//--------------------------------------------------------------
@@ -3804,7 +3807,7 @@ class CrosswordDocument
 
 		private XmlParseException extend(XmlParseException exception)
 		{
-			return ((url == null) ? new XmlParseException(exception, file) : new XmlParseException(exception, url));
+			return (url == null) ? new XmlParseException(exception, file) : new XmlParseException(exception, url);
 		}
 
 		//--------------------------------------------------------------

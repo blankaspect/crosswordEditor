@@ -25,12 +25,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import java.util.stream.Stream;
 
 import uk.blankaspect.common.exception2.BaseException;
 import uk.blankaspect.common.exception2.FileException;
@@ -787,7 +786,7 @@ public class FileAssociations
 
 		static
 		{
-			MAX_KEY_LENGTH = Stream.of(values()).mapToInt(value -> value.key.length()).max().orElse(0);
+			MAX_KEY_LENGTH = Arrays.stream(values()).mapToInt(value -> value.key.length()).max().orElse(0);
 		}
 
 	////////////////////////////////////////////////////////////////////

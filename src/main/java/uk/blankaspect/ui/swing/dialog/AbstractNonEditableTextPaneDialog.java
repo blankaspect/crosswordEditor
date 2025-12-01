@@ -33,7 +33,6 @@ import java.awt.event.WindowEvent;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -64,6 +63,8 @@ import uk.blankaspect.ui.swing.font.FontUtils;
 
 import uk.blankaspect.ui.swing.misc.GuiUtils;
 
+import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
+
 //----------------------------------------------------------------------
 
 
@@ -84,111 +85,19 @@ public abstract class AbstractNonEditableTextPaneDialog
 	private static final	int	BUTTON_GAP	= 16;
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
+	private static	Map<String, Point>	locations	= new Hashtable<>();
 
-	// SPAN CLASS
+////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
 
-
-	public static class Span
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public Span(String text)
-		{
-			this(text, null);
-		}
-
-		//--------------------------------------------------------------
-
-		public Span(String text,
-					String styleKey)
-		{
-			this.text = text;
-			this.styleKey = styleKey;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	text;
-		private	String	styleKey;
-
-	}
-
-	//==================================================================
-
-
-	// PARAGRAPH CLASS
-
-
-	public static class Paragraph
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public Paragraph()
-		{
-			spans = new ArrayList<>();
-		}
-
-		//--------------------------------------------------------------
-
-		public Paragraph(String styleKey)
-		{
-			this();
-			this.styleKey = styleKey;
-		}
-
-		//--------------------------------------------------------------
-
-		public Paragraph(Collection<Span> spans,
-						 String           styleKey)
-		{
-			this();
-			this.spans.addAll(spans);
-			this.styleKey = styleKey;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public void setStyle(String key)
-		{
-			styleKey = key;
-		}
-
-		//--------------------------------------------------------------
-
-		public void add(Span span)
-		{
-			spans.add(span);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	List<Span>	spans;
-		private	String		styleKey;
-
-	}
-
-	//==================================================================
+	private	String					key;
+	private	Point					location;
+	private	JTextPane				textPane;
+	private	Map<String, JButton>	buttons;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -306,11 +215,22 @@ public abstract class AbstractNonEditableTextPaneDialog
 		// Dispose of window explicitly
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-		// Handle window closing
+		// Handle window events
 		addWindowListener(new WindowAdapter()
 		{
 			@Override
-			public void windowClosing(WindowEvent event)
+			public void windowOpened(
+				WindowEvent	event)
+			{
+				// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced downwards
+				// when its location is set.  The error in the y coordinate is the height of the title bar of the
+				// window.  The workaround is to set the location of the window again with an adjustment for the error.
+				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+			}
+
+			@Override
+			public void windowClosing(
+				WindowEvent	event)
 			{
 				onClose();
 			}
@@ -323,7 +243,7 @@ public abstract class AbstractNonEditableTextPaneDialog
 		pack();
 
 		// Set location of dialog
-		Point location = locations.get(key);
+		location = locations.get(key);
 		if (location == null)
 			location = GuiUtils.getComponentLocation(this, owner);
 		setLocation(location);
@@ -331,7 +251,6 @@ public abstract class AbstractNonEditableTextPaneDialog
 		// Set default button
 		if (defaultButtonKey != null)
 			getRootPane().setDefaultButton(getButton(defaultButtonKey));
-
 	}
 
 	//------------------------------------------------------------------
@@ -364,7 +283,7 @@ public abstract class AbstractNonEditableTextPaneDialog
 
 	public void append(String text)
 	{
-		append(Collections.singletonList(new Span(text)));
+		append(List.of(new Span(text)));
 	}
 
 	//------------------------------------------------------------------
@@ -372,14 +291,14 @@ public abstract class AbstractNonEditableTextPaneDialog
 	public void append(String text,
 					   String styleKey)
 	{
-		append(Collections.singletonList(new Span(text, styleKey)));
+		append(List.of(new Span(text, styleKey)));
 	}
 
 	//------------------------------------------------------------------
 
 	public void append(Span span)
 	{
-		append(Collections.singletonList(span));
+		append(List.of(span));
 	}
 
 	//------------------------------------------------------------------
@@ -500,18 +419,111 @@ public abstract class AbstractNonEditableTextPaneDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class variables
+//  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	private static	Map<String, Point>	locations	= new Hashtable<>();
 
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
+	// SPAN CLASS
 
-	private	String					key;
-	private	JTextPane				textPane;
-	private	Map<String, JButton>	buttons;
+
+	public static class Span
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	text;
+		private	String	styleKey;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		public Span(String text)
+		{
+			this(text, null);
+		}
+
+		//--------------------------------------------------------------
+
+		public Span(String text,
+					String styleKey)
+		{
+			this.text = text;
+			this.styleKey = styleKey;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// PARAGRAPH CLASS
+
+
+	public static class Paragraph
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	List<Span>	spans;
+		private	String		styleKey;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		public Paragraph()
+		{
+			spans = new ArrayList<>();
+		}
+
+		//--------------------------------------------------------------
+
+		public Paragraph(String styleKey)
+		{
+			this();
+			this.styleKey = styleKey;
+		}
+
+		//--------------------------------------------------------------
+
+		public Paragraph(Collection<Span> spans,
+						 String           styleKey)
+		{
+			this();
+			this.spans.addAll(spans);
+			this.styleKey = styleKey;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public void setStyle(String key)
+		{
+			styleKey = key;
+		}
+
+		//--------------------------------------------------------------
+
+		public void add(Span span)
+		{
+			spans.add(span);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

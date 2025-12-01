@@ -44,7 +44,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
@@ -122,9 +121,9 @@ public class TabbedPane
 	private static final	int		LIST_BUTTON_WIDTH		= 17;
 	private static final	int		HEADER_BUTTON_HEIGHT	= 15;
 
-	private static final	int		MIN_HEADER_WIDTH	= SCROLL_BUTTON_LEADING_MARGIN
-															+ 2 * SCROLL_BUTTON_WIDTH + SCROLL_BUTTON_TRAILING_MARGIN
-															+ LIST_BUTTON_WIDTH + LIST_BUTTON_TRAILING_MARGIN;
+	private static final	int		MIN_HEADER_WIDTH	=
+			SCROLL_BUTTON_LEADING_MARGIN + 2 * SCROLL_BUTTON_WIDTH + SCROLL_BUTTON_TRAILING_MARGIN + LIST_BUTTON_WIDTH
+			+ LIST_BUTTON_TRAILING_MARGIN;
 
 	private static final	Color	TAB_BACKGROUND_COLOUR				= new Color(216, 216, 216);
 	private static final	Color	TAB_BORDER_COLOUR					= Colours.LINE_BORDER;
@@ -159,10 +158,10 @@ public class TabbedPane
 	private static final	ImageIcon	CORNER_LS_ICON		= new ImageIcon(ImgData.CORNER_LS);
 	private static final	ImageIcon	CORNER_RS_ICON		= new ImageIcon(ImgData.CORNER_RS);
 
-	private static final	int	CLOSE_BUTTON_ICON_WIDTH		= CROSS_ICON.getIconWidth();
-	private static final	int	CLOSE_BUTTON_ICON_HEIGHT	= CROSS_ICON.getIconHeight();
-	private static final	int	CLOSE_BUTTON_WIDTH			= CLOSE_BUTTON_ICON_WIDTH + 6;
-	private static final	int	CLOSE_BUTTON_HEIGHT			= CLOSE_BUTTON_ICON_HEIGHT + 6;
+	private static final	int		CLOSE_BUTTON_ICON_WIDTH		= CROSS_ICON.getIconWidth();
+	private static final	int		CLOSE_BUTTON_ICON_HEIGHT	= CROSS_ICON.getIconHeight();
+	private static final	int		CLOSE_BUTTON_WIDTH			= CLOSE_BUTTON_ICON_WIDTH + 6;
+	private static final	int		CLOSE_BUTTON_HEIGHT			= CLOSE_BUTTON_ICON_HEIGHT + 6;
 
 	// Commands
 	private interface Command
@@ -197,971 +196,15 @@ public class TabbedPane
 
 	private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS_A	=
 	{
-		new KeyAction.KeyCommandPair(KEY_PREVIOUS_TAB_A, Command.SELECT_PREVIOUS_TAB),
-		new KeyAction.KeyCommandPair(KEY_NEXT_TAB_A, Command.SELECT_NEXT_TAB)
+		KeyAction.command(KEY_PREVIOUS_TAB_A, Command.SELECT_PREVIOUS_TAB),
+		KeyAction.command(KEY_NEXT_TAB_A,     Command.SELECT_NEXT_TAB)
 	};
 
 	private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS_B	=
 	{
-		new KeyAction.KeyCommandPair(KEY_PREVIOUS_TAB_B, Command.SELECT_PREVIOUS_TAB),
-		new KeyAction.KeyCommandPair(KEY_NEXT_TAB_B, Command.SELECT_NEXT_TAB)
+		KeyAction.command(KEY_PREVIOUS_TAB_B, Command.SELECT_PREVIOUS_TAB),
+		KeyAction.command(KEY_NEXT_TAB_B,     Command.SELECT_NEXT_TAB)
 	};
-
-////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
-////////////////////////////////////////////////////////////////////////
-
-
-	// ELEMENT CLASS
-
-
-	private static class Element
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Element(Tab       tab,
-						Component component)
-		{
-			this.tab = tab;
-			this.component = component;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public String toString()
-		{
-			return tab.getTitle();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	Tab			tab;
-		private	Component	component;
-		private	Component	focusOwner;
-
-	}
-
-	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
-//  Member classes : inner classes
-////////////////////////////////////////////////////////////////////////
-
-
-	// SCROLL BUTTON CLASS
-
-
-	private class ScrollButton
-		extends ArrowButton
-		implements MouseListener
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ScrollButton(ScrollDirection scrollDirection)
-		{
-			super(SCROLL_BUTTON_WIDTH, HEADER_BUTTON_HEIGHT, ARROW_SIZE);
-			this.scrollDirection = scrollDirection;
-			setActive(Active.PRESSED);
-			setFocusable(false);
-			setDirection();
-			addMouseListener(this);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : MouseListener interface
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public void mouseClicked(MouseEvent event)
-		{
-			// do nothing
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mouseEntered(MouseEvent event)
-		{
-			// do nothing
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mouseExited(MouseEvent event)
-		{
-			// do nothing
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mousePressed(MouseEvent event)
-		{
-			if (isEnabled())
-				startScrolling(scrollDirection);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mouseReleased(MouseEvent event)
-		{
-			if (isEnabled())
-				stopScrolling();
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		public void setDirection()
-		{
-			setDirection((scrollDirection == ScrollDirection.BACKWARD) ? Direction.LEFT : Direction.RIGHT);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	ScrollDirection	scrollDirection;
-
-	}
-
-	//==================================================================
-
-
-	// LIST BUTTON CLASS
-
-
-	private class ListButton
-		extends ArrowButton
-		implements MouseListener, MouseMotionListener
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	int	CLICK_INTERVAL	= 500;
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ListButton()
-		{
-			super(LIST_BUTTON_WIDTH, HEADER_BUTTON_HEIGHT, ARROW_SIZE, ArrowButton.Direction.DOWN);
-			setActive(Active.PRESSED);
-			setFocusable(false);
-			addMouseListener(this);
-			addMouseMotionListener(this);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : MouseListener interface
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public void mouseClicked(MouseEvent event)
-		{
-			// do nothing
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mouseEntered(MouseEvent event)
-		{
-			// do nothing
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mouseExited(MouseEvent event)
-		{
-			// do nothing
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mousePressed(MouseEvent event)
-		{
-			if (mouseSelectionListWindow == null)
-			{
-				pressTime = event.getWhen();
-				createMouseSelectionList();
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mouseReleased(MouseEvent event)
-		{
-			if ((mouseSelectionListWindow != null) && (event.getWhen() > pressTime + CLICK_INTERVAL))
-			{
-				mouseSelectionListWindow.updateSelection(event);
-				mouseSelectionListWindow.doSelection();
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : MouseMotionListener interface
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public void mouseDragged(MouseEvent event)
-		{
-			if (mouseSelectionListWindow != null)
-				mouseSelectionListWindow.updateSelection(event);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mouseMoved(MouseEvent event)
-		{
-			// do nothing
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	long	pressTime;
-
-	}
-
-	//==================================================================
-
-
-	// TAB CLASS
-
-
-	private class Tab
-		extends JComponent
-		implements ActionListener, MouseListener, MouseMotionListener
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	int	TOP_MARGIN				= 2;
-		private static final	int	BOTTOM_MARGIN			= 3;
-		private static final	int	TEXT_LEADING_MARGIN		= 6;
-		private static final	int	TEXT_TRAILING_MARGIN	= 6;
-		private static final	int	BUTTON_TRAILING_MARGIN	= 1;
-
-		private static final	int	CORNER_WIDTH	= 4;
-		private static final	int	CORNER_HEIGHT	= CORNER_WIDTH;
-
-		private static final	int	MIN_WIDTH	= TEXT_LEADING_MARGIN;
-
-	////////////////////////////////////////////////////////////////////
-	//  Member classes : inner classes
-	////////////////////////////////////////////////////////////////////
-
-
-		// TAB ACTION CLASS
-
-
-		protected class TabAction
-			extends AbstractAction
-		{
-
-		////////////////////////////////////////////////////////////////
-		//  Constructors
-		////////////////////////////////////////////////////////////////
-
-			protected TabAction(String command,
-								String text)
-			{
-				super(text);
-				putValue(Action.ACTION_COMMAND_KEY, command);
-			}
-
-			//----------------------------------------------------------
-
-		////////////////////////////////////////////////////////////////
-		//  Instance methods : ActionListener interface
-		////////////////////////////////////////////////////////////////
-
-			public void actionPerformed(ActionEvent event)
-			{
-				Tab.this.actionPerformed(event);
-			}
-
-			//----------------------------------------------------------
-
-		}
-
-		//==============================================================
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Tab(String title,
-					Action closeAction)
-		{
-			// Initialise instance variables
-			this.title = title;
-			this.closeAction = closeAction;
-			buttonState = ButtonState.NOT_OVER;
-			FontUtils.setAppFont(FontKey.MAIN, this);
-			FontMetrics fontMetrics = getFontMetrics(getFont());
-			preferredWidth = TEXT_LEADING_MARGIN + fontMetrics.stringWidth(title)
-												+ TEXT_TRAILING_MARGIN + CLOSE_BUTTON_WIDTH + BUTTON_TRAILING_MARGIN;
-			height = TOP_MARGIN + Math.max(fontMetrics.getAscent() + fontMetrics.getDescent(), CLOSE_BUTTON_HEIGHT)
-																										+ BOTTOM_MARGIN;
-
-			// Set properties
-			setOpaque(true);
-			setFocusable(false);
-
-			// Add listeners
-			addMouseListener(this);
-			addMouseMotionListener(this);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : ActionListener interface
-	////////////////////////////////////////////////////////////////////
-
-		public void actionPerformed(ActionEvent event)
-		{
-			close(event.getModifiers());
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : MouseListener interface
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public void mouseClicked(MouseEvent event)
-		{
-			// do nothing
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mouseEntered(MouseEvent event)
-		{
-			updateCloseButtonState(event, false);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mouseExited(MouseEvent event)
-		{
-			updateCloseButtonState(event, false);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mousePressed(MouseEvent event)
-		{
-			updateCloseButtonState(event, true);
-			if (buttonState == ButtonState.NOT_OVER)
-				selectTab(getIndex());
-
-			showContextMenu(event);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mouseReleased(MouseEvent event)
-		{
-			boolean pressed = (buttonState == ButtonState.PRESSED);
-			updateCloseButtonState(event, false);
-			if (SwingUtilities.isLeftMouseButton(event) && (buttonState == ButtonState.OVER) && pressed)
-				close(event.getModifiersEx());
-
-			showContextMenu(event);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : MouseMotionListener interface
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public void mouseDragged(MouseEvent event)
-		{
-			updateCloseButtonState(event, true);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mouseMoved(MouseEvent event)
-		{
-			updateCloseButtonState(event, false);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public Dimension getPreferredSize()
-		{
-			return new Dimension(preferredWidth, height);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected void paintComponent(Graphics gr)
-		{
-			// Create copy of graphics context
-			gr = gr.create();
-
-			// Fill background
-			Rectangle rect = gr.getClipBounds();
-			gr.setColor(selected ? SELECTED_TAB_BACKGROUND_COLOUR : TAB_BACKGROUND_COLOUR);
-			gr.fillRect(rect.x, rect.y, rect.width, rect.height);
-
-			// Draw corners
-			int width = getWidth();
-			int height = getHeight();
-			boolean fullWidth = (width == preferredWidth);
-			gr.setColor(getBackground());
-			if (fullWidth)
-			{
-				gr.fillRect(0, 0, CORNER_WIDTH, CORNER_HEIGHT);
-				gr.drawImage(selected ? CORNER_LS_ICON.getImage() : CORNER_L_ICON.getImage(), 0, 0, null);
-				gr.fillRect(width - CORNER_WIDTH, 0, CORNER_WIDTH, CORNER_HEIGHT);
-				gr.drawImage(selected ? CORNER_RS_ICON.getImage()
-									  : CORNER_R_ICON.getImage(), width - CORNER_WIDTH, 0, null);
-			}
-			else
-			{
-				gr.fillRect(0, 0, CORNER_WIDTH, CORNER_HEIGHT);
-				gr.drawImage(selected ? CORNER_LS_ICON.getImage() : CORNER_L_ICON.getImage(), 0, 0,
-							 null);
-			}
-
-			// Set rendering hints for text antialiasing and fractional metrics
-			TextRendering.setHints((Graphics2D)gr);
-
-			// Get text
-			FontMetrics fontMetrics = gr.getFontMetrics();
-			String str = title;
-			if (!fullWidth)
-			{
-				int maxTextWidth = width - TEXT_LEADING_MARGIN - TEXT_TRAILING_MARGIN;
-				str = (maxTextWidth < fontMetrics.stringWidth(GuiConstants.ELLIPSIS_STR))
-													? null
-													: TextUtils.getLimitedWidthString(str, fontMetrics, maxTextWidth,
-																					  TextUtils.RemovalMode.END);
-			}
-
-			// Draw text
-			if (str != null)
-			{
-				gr.setColor(TEXT_COLOUR);
-				gr.drawString(str, TEXT_LEADING_MARGIN, FontUtils.getBaselineOffset(height, fontMetrics));
-			}
-
-			// Draw close button
-			if (fullWidth)
-			{
-				int x = width - CLOSE_BUTTON_WIDTH - BUTTON_TRAILING_MARGIN;
-				int y = (height - CLOSE_BUTTON_HEIGHT + 1) / 2;
-
-				if (buttonState != ButtonState.NOT_OVER)
-				{
-					gr.setColor(BUTTON_BORDER_COLOUR);
-					if (buttonState == ButtonState.PRESSED)
-						gr.fillRect(x, y, CLOSE_BUTTON_WIDTH, CLOSE_BUTTON_HEIGHT);
-					else
-					{
-						gr.drawRect(x, y, CLOSE_BUTTON_WIDTH - 1, CLOSE_BUTTON_HEIGHT - 1);
-						gr.setColor(BUTTON_BACKGROUND_COLOUR);
-						gr.fillRect(x + 1, y + 1, CLOSE_BUTTON_WIDTH - 2, CLOSE_BUTTON_HEIGHT - 2);
-					}
-				}
-
-				gr.drawImage((buttonState == ButtonState.PRESSED) ? ACTIVE_CROSS_ICON.getImage()
-																  : CROSS_ICON.getImage(),
-							 x + (CLOSE_BUTTON_WIDTH - CLOSE_BUTTON_ICON_WIDTH) / 2,
-							 y + (CLOSE_BUTTON_HEIGHT - CLOSE_BUTTON_ICON_HEIGHT) / 2, null);
-			}
-
-			// Draw border
-			gr.setColor(selected ? SELECTED_TAB_BORDER_COLOUR : TAB_BORDER_COLOUR);
-			if (fullWidth)
-			{
-				int x1 = 0;
-				int x2 = width - 1;
-				int y1 = CORNER_HEIGHT;
-				int y2 = height - 1;
-				gr.drawLine(x1, y1, x1, y2);
-				gr.drawLine(x2, y1, x2, y2);
-
-				x1 = CORNER_WIDTH;
-				x2 = width - CORNER_WIDTH - 1;
-				y1 = 0;
-				gr.drawLine(x1, y1, x2, y1);
-			}
-			else
-			{
-				int x1 = 0;
-				int y1 = CORNER_HEIGHT;
-				int y2 = height - 1;
-				gr.drawLine(x1, y1, x1, y2);
-
-				x1 = CORNER_WIDTH;
-				int x2 = width - 1;
-				y1 = 0;
-				gr.drawLine(x1, y1, x2, y1);
-			}
-
-			int x1 = 0;
-			int x2 = width - 1;
-			int y = height - 1;
-			if (selected)
-			{
-				gr.setColor(SELECTED_TAB_BOTTOM_BORDER_COLOUR);
-				++x1;
-				if (fullWidth)
-					--x2;
-			}
-			else
-				gr.setColor(SELECTED_TAB_BORDER_COLOUR);
-			gr.drawLine(x1, y, x2, y);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private String getTitle()
-		{
-			return title;
-		}
-
-		//--------------------------------------------------------------
-
-		private void setSelected(boolean selected)
-		{
-			if (this.selected != selected)
-			{
-				this.selected = selected;
-				repaint();
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		private void setTitle(String title)
-		{
-			if (!this.title.equals(title))
-			{
-				this.title = title;
-				FontMetrics fontMetrics = getFontMetrics(getFont());
-				int width = TEXT_LEADING_MARGIN + fontMetrics.stringWidth(title)
-												+ TEXT_TRAILING_MARGIN + CLOSE_BUTTON_WIDTH + BUTTON_TRAILING_MARGIN;
-				if (preferredWidth != width)
-				{
-					preferredWidth = width;
-					updateTabs();
-				}
-				else
-					repaint();
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		private boolean isWithinButton(MouseEvent event)
-		{
-			int width = getWidth();
-			if (width < preferredWidth)
-				return false;
-
-			int x = event.getX();
-			int y = event.getY();
-			int x2 = width - BUTTON_TRAILING_MARGIN;
-			int x1 = x2 - CLOSE_BUTTON_WIDTH;
-			int y1 = (getHeight() - CLOSE_BUTTON_HEIGHT) / 2;
-			int y2 = y1 + CLOSE_BUTTON_HEIGHT;
-			return ((x >= x1) && (x < x2) && (y >= y1) && (y < y2));
-		}
-
-		//--------------------------------------------------------------
-
-		private void updateCloseButtonState(MouseEvent event,
-											boolean    pressed)
-		{
-			ButtonState state = isWithinButton(event)
-											? (pressed && SwingUtilities.isLeftMouseButton(event)) ? ButtonState.PRESSED
-																								   : ButtonState.OVER
-											: ButtonState.NOT_OVER;
-			if (buttonState != state)
-			{
-				buttonState = state;
-				repaint();
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		private int getIndex()
-		{
-			for (int i = 0; i < elements.size(); i++)
-			{
-				if (elements.get(i).tab == this)
-					return i;
-			}
-			return -1;
-		}
-
-		//--------------------------------------------------------------
-
-		private void showContextMenu(MouseEvent event)
-		{
-			if (event.isPopupTrigger())
-			{
-				// Create context menu
-				if (contextMenu == null)
-					contextMenu = new JPopupMenu();
-				else
-					contextMenu.removeAll();
-
-				contextMenu.add(new FMenuItem(new TabAction(Command.CLOSE, GuiConstants.CLOSE_STR)));
-
-				// Display menu
-				contextMenu.show(event.getComponent(), event.getX(), event.getY());
-			}
-		}
-
-		//--------------------------------------------------------------
-
-		private void close(int modifiers)
-		{
-			if ((closeAction != null) && !closing)
-			{
-				closing = true;
-				String command = closeAction.getValue(Action.ACTION_COMMAND_KEY).toString()
-																						+ Integer.toString(getIndex());
-				closeAction.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, command, modifiers));
-				closing = false;
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String		title;
-		private	Action		closeAction;
-		private	boolean		closing;
-		private	int			preferredWidth;
-		private	int			height;
-		private	boolean		selected;
-		private	ButtonState	buttonState;
-
-	}
-
-	//==================================================================
-
-
-	// KEY-SELECTION LIST WINDOW CLASS
-
-
-	private class KeySelectionListWindow
-		extends JWindow
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private KeySelectionListWindow(Window  owner,
-									   boolean decrement)
-		{
-			// Call superclass constructor
-			super(owner);
-
-			// Make window non-focusable
-			setFocusableWindowState(false);
-
-			// Create list
-			list = new SelectionIndicatorList<>(recentElements, -1);
-			list.setSelectedIndex(decrement ? recentElements.size() - 1 : 1);
-
-			// Set list as content pane
-			setContentPane(list);
-
-			// Resize window to its preferred size
-			pack();
-
-			// Set location of window
-			setLocation(GuiUtils.getComponentLocation(list, owner));
-
-			// Show window
-			setVisible(true);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private void decrementSelection()
-		{
-			int numItems = list.getNumItems();
-			int index = list.getSelectedIndex();
-			if (index < 0)
-				index = 0;
-			index = (index == 0) ? numItems - 1 : index - 1;
-			list.setSelectedIndex(index);
-		}
-
-		//--------------------------------------------------------------
-
-		private void incrementSelection()
-		{
-			int numItems = list.getNumItems();
-			int index = list.getSelectedIndex();
-			if (index < 0)
-				index = 0;
-			index = (index == numItems - 1) ? 0 : index + 1;
-			list.setSelectedIndex(index);
-		}
-
-		//--------------------------------------------------------------
-
-		private void doSelection()
-		{
-			destroyKeySelectionList();
-			selectTab(list.getSelectedItem());
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	SelectionIndicatorList<Element>	list;
-
-	}
-
-	//==================================================================
-
-
-	// MOUSE-SELECTION LIST WINDOW CLASS
-
-
-	private class MouseSelectionListWindow
-		extends JWindow
-		implements AWTEventListener, MouseListener, MouseMotionListener
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private MouseSelectionListWindow(Window owner)
-		{
-			// Call superclass constructor
-			super(owner);
-
-			// Make window non-focusable
-			setFocusableWindowState(false);
-
-			// Create list
-			List<Element> orderedElements = new ArrayList<>(elements);
-			orderedElements.sort(Comparator.<Element, String>comparing(element -> element.toString(),
-																	   ignoreCase ? String.CASE_INSENSITIVE_ORDER
-																				  : Comparator.naturalOrder()));
-			list = new SelectionIndicatorList<>(orderedElements,
-												(selectedIndex < 0) ? null : elements.get(selectedIndex));
-
-			// Add listeners
-			getToolkit().addAWTEventListener(this, AWTEvent.MOUSE_EVENT_MASK);
-			list.addMouseListener(this);
-			list.addMouseMotionListener(this);
-
-			// Set list as content pane
-			setContentPane(list);
-
-			// Resize window to its preferred size
-			pack();
-
-			// Set location of window
-			Point location = new Point(listButton.getWidth() - list.getPreferredSize().width, listButton.getHeight());
-			SwingUtilities.convertPointToScreen(location, listButton);
-			setLocation(GuiUtils.getComponentLocation(list, location));
-
-			// Show window
-			setVisible(true);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : AWTEventListener interface
-	////////////////////////////////////////////////////////////////////
-
-		public void eventDispatched(AWTEvent event)
-		{
-			if (event.getID() == MouseEvent.MOUSE_PRESSED)
-			{
-				MouseEvent mouseEvent = (MouseEvent)event;
-				if (mouseEvent.getComponent() != list)
-					destroyMouseSelectionList();
-				if (mouseEvent.getComponent() == listButton)
-					mouseEvent.consume();
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : MouseListener interface
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public void mouseClicked(MouseEvent event)
-		{
-			// do nothing
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mouseEntered(MouseEvent event)
-		{
-			updateSelection(event);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mouseExited(MouseEvent event)
-		{
-			updateSelection(event);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mousePressed(MouseEvent event)
-		{
-			updateSelection(event);
-			doSelection();
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mouseReleased(MouseEvent event)
-		{
-			updateSelection(event);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : MouseMotionListener interface
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public void mouseDragged(MouseEvent event)
-		{
-			updateSelection(event);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void mouseMoved(MouseEvent event)
-		{
-			updateSelection(event);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		private void updateSelection(MouseEvent event)
-		{
-			Point point = SwingUtilities.convertPoint(event.getComponent(), event.getPoint(), list);
-			list.setSelectedIndex(list.pointToIndex(point));
-		}
-
-		//--------------------------------------------------------------
-
-		private void doSelection()
-		{
-			destroyMouseSelectionList();
-			selectTab(list.getSelectedItem());
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	SelectionIndicatorList<Element>	list;
-
-	}
-
-	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
 //  Instance variables
@@ -1242,10 +285,9 @@ public class TabbedPane
 		if (!directTabTraversal)
 		{
 			setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
-								  Collections.singleton(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0)));
+								  Set.of(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0)));
 			setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
-								  Collections.singleton(KeyStroke.getKeyStroke(KeyEvent.VK_TAB,
-																			   KeyEvent.SHIFT_DOWN_MASK)));
+								  Set.of(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, KeyEvent.SHIFT_DOWN_MASK)));
 		}
 
 		// Track changes in size
@@ -1268,16 +310,12 @@ public class TabbedPane
 	@Override
 	public void actionPerformed(ActionEvent event)
 	{
-		String command = event.getActionCommand();
-
-		if (command.equals(Command.SCROLL))
-			onScroll();
-
-		else if (command.equals(Command.SELECT_PREVIOUS_TAB))
-			onSelectPreviousTab();
-
-		else if (command.equals(Command.SELECT_NEXT_TAB))
-			onSelectNextTab();
+		switch (event.getActionCommand())
+		{
+			case Command.SCROLL              -> onScroll();
+			case Command.SELECT_PREVIOUS_TAB -> onSelectPreviousTab();
+			case Command.SELECT_NEXT_TAB     -> onSelectNextTab();
+		}
 	}
 
 	//------------------------------------------------------------------
@@ -1384,7 +422,7 @@ public class TabbedPane
 		}
 		return new Dimension(getBorderSize(Border.LEFT) + maxWidth + getBorderSize(Border.RIGHT),
 							 getBorderSize(Border.TOP) + TOP_MARGIN + headerHeight + maxHeight
-																						+ getBorderSize(Border.BOTTOM));
+											+ getBorderSize(Border.BOTTOM));
 	}
 
 	//------------------------------------------------------------------
@@ -1410,7 +448,7 @@ public class TabbedPane
 		}
 		return new Dimension(getBorderSize(Border.LEFT) + maxWidth + getBorderSize(Border.RIGHT),
 							 getBorderSize(Border.TOP) + TOP_MARGIN + headerHeight + maxHeight
-																						+ getBorderSize(Border.BOTTOM));
+											+ getBorderSize(Border.BOTTOM));
 	}
 
 	//------------------------------------------------------------------
@@ -1564,7 +602,7 @@ public class TabbedPane
 
 	public Component getSelectedComponent()
 	{
-		return ((selectedIndex < 0) ? null : elements.get(selectedIndex).component);
+		return (selectedIndex < 0) ? null : elements.get(selectedIndex).component;
 	}
 
 	//------------------------------------------------------------------
@@ -1792,7 +830,7 @@ public class TabbedPane
 
 	private int getBorderSize(Border border)
 	{
-		return (borders.contains(border) ? 1 : 0);
+		return borders.contains(border) ? 1 : 0;
 	}
 
 	//------------------------------------------------------------------
@@ -2082,6 +1120,963 @@ public class TabbedPane
 	}
 
 	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Member classes : non-inner classes
+////////////////////////////////////////////////////////////////////////
+
+
+	// ELEMENT CLASS
+
+
+	private static class Element
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	Tab			tab;
+		private	Component	component;
+		private	Component	focusOwner;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Element(Tab       tab,
+						Component component)
+		{
+			this.tab = tab;
+			this.component = component;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String toString()
+		{
+			return tab.getTitle();
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+////////////////////////////////////////////////////////////////////////
+//  Member classes : inner classes
+////////////////////////////////////////////////////////////////////////
+
+
+	// SCROLL BUTTON CLASS
+
+
+	private class ScrollButton
+		extends ArrowButton
+		implements MouseListener
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	ScrollDirection	scrollDirection;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ScrollButton(ScrollDirection scrollDirection)
+		{
+			super(SCROLL_BUTTON_WIDTH, HEADER_BUTTON_HEIGHT, ARROW_SIZE);
+			this.scrollDirection = scrollDirection;
+			setActive(Active.PRESSED);
+			setFocusable(false);
+			setDirection();
+			addMouseListener(this);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : MouseListener interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void mouseClicked(MouseEvent event)
+		{
+			// do nothing
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mouseEntered(MouseEvent event)
+		{
+			// do nothing
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mouseExited(MouseEvent event)
+		{
+			// do nothing
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mousePressed(MouseEvent event)
+		{
+			if (isEnabled())
+				startScrolling(scrollDirection);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mouseReleased(MouseEvent event)
+		{
+			if (isEnabled())
+				stopScrolling();
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public void setDirection()
+		{
+			setDirection((scrollDirection == ScrollDirection.BACKWARD) ? Direction.LEFT : Direction.RIGHT);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// LIST BUTTON CLASS
+
+
+	private class ListButton
+		extends ArrowButton
+		implements MouseListener, MouseMotionListener
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	int	CLICK_INTERVAL	= 500;
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	long	pressTime;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ListButton()
+		{
+			super(LIST_BUTTON_WIDTH, HEADER_BUTTON_HEIGHT, ARROW_SIZE, ArrowButton.Direction.DOWN);
+			setActive(Active.PRESSED);
+			setFocusable(false);
+			addMouseListener(this);
+			addMouseMotionListener(this);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : MouseListener interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void mouseClicked(MouseEvent event)
+		{
+			// do nothing
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mouseEntered(MouseEvent event)
+		{
+			// do nothing
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mouseExited(MouseEvent event)
+		{
+			// do nothing
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mousePressed(MouseEvent event)
+		{
+			if (mouseSelectionListWindow == null)
+			{
+				pressTime = event.getWhen();
+				createMouseSelectionList();
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mouseReleased(MouseEvent event)
+		{
+			if ((mouseSelectionListWindow != null) && (event.getWhen() > pressTime + CLICK_INTERVAL))
+			{
+				mouseSelectionListWindow.updateSelection(event);
+				mouseSelectionListWindow.doSelection();
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : MouseMotionListener interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void mouseDragged(MouseEvent event)
+		{
+			if (mouseSelectionListWindow != null)
+				mouseSelectionListWindow.updateSelection(event);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mouseMoved(MouseEvent event)
+		{
+			// do nothing
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// TAB CLASS
+
+
+	private class Tab
+		extends JComponent
+		implements ActionListener, MouseListener, MouseMotionListener
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	int	TOP_MARGIN				= 2;
+		private static final	int	BOTTOM_MARGIN			= 3;
+		private static final	int	TEXT_LEADING_MARGIN		= 6;
+		private static final	int	TEXT_TRAILING_MARGIN	= 6;
+		private static final	int	BUTTON_TRAILING_MARGIN	= 1;
+
+		private static final	int	CORNER_WIDTH	= 4;
+		private static final	int	CORNER_HEIGHT	= CORNER_WIDTH;
+
+		private static final	int	MIN_WIDTH	= TEXT_LEADING_MARGIN;
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String		title;
+		private	Action		closeAction;
+		private	boolean		closing;
+		private	int			preferredWidth;
+		private	int			height;
+		private	boolean		selected;
+		private	ButtonState	buttonState;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Tab(String title,
+					Action closeAction)
+		{
+			// Initialise instance variables
+			this.title = title;
+			this.closeAction = closeAction;
+			buttonState = ButtonState.NOT_OVER;
+			FontUtils.setAppFont(FontKey.MAIN, this);
+			FontMetrics fontMetrics = getFontMetrics(getFont());
+			preferredWidth = TEXT_LEADING_MARGIN + fontMetrics.stringWidth(title)
+												+ TEXT_TRAILING_MARGIN + CLOSE_BUTTON_WIDTH + BUTTON_TRAILING_MARGIN;
+			height = TOP_MARGIN + Math.max(fontMetrics.getAscent() + fontMetrics.getDescent(), CLOSE_BUTTON_HEIGHT)
+																										+ BOTTOM_MARGIN;
+
+			// Set properties
+			setOpaque(true);
+			setFocusable(false);
+
+			// Add listeners
+			addMouseListener(this);
+			addMouseMotionListener(this);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : ActionListener interface
+	////////////////////////////////////////////////////////////////////
+
+		public void actionPerformed(ActionEvent event)
+		{
+			close(event.getModifiers());
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : MouseListener interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void mouseClicked(MouseEvent event)
+		{
+			// do nothing
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mouseEntered(MouseEvent event)
+		{
+			updateCloseButtonState(event, false);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mouseExited(MouseEvent event)
+		{
+			updateCloseButtonState(event, false);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mousePressed(MouseEvent event)
+		{
+			updateCloseButtonState(event, true);
+			if (buttonState == ButtonState.NOT_OVER)
+				selectTab(getIndex());
+
+			showContextMenu(event);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mouseReleased(MouseEvent event)
+		{
+			boolean pressed = (buttonState == ButtonState.PRESSED);
+			updateCloseButtonState(event, false);
+			if (SwingUtilities.isLeftMouseButton(event) && (buttonState == ButtonState.OVER) && pressed)
+				close(event.getModifiersEx());
+
+			showContextMenu(event);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : MouseMotionListener interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void mouseDragged(MouseEvent event)
+		{
+			updateCloseButtonState(event, true);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mouseMoved(MouseEvent event)
+		{
+			updateCloseButtonState(event, false);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public Dimension getPreferredSize()
+		{
+			return new Dimension(preferredWidth, height);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected void paintComponent(Graphics gr)
+		{
+			// Create copy of graphics context
+			gr = gr.create();
+
+			// Fill background
+			Rectangle rect = gr.getClipBounds();
+			gr.setColor(selected ? SELECTED_TAB_BACKGROUND_COLOUR : TAB_BACKGROUND_COLOUR);
+			gr.fillRect(rect.x, rect.y, rect.width, rect.height);
+
+			// Draw corners
+			int width = getWidth();
+			int height = getHeight();
+			boolean fullWidth = (width == preferredWidth);
+			gr.setColor(getBackground());
+			if (fullWidth)
+			{
+				gr.fillRect(0, 0, CORNER_WIDTH, CORNER_HEIGHT);
+				gr.drawImage(selected ? CORNER_LS_ICON.getImage() : CORNER_L_ICON.getImage(), 0, 0, null);
+				gr.fillRect(width - CORNER_WIDTH, 0, CORNER_WIDTH, CORNER_HEIGHT);
+				gr.drawImage(selected ? CORNER_RS_ICON.getImage()
+									  : CORNER_R_ICON.getImage(), width - CORNER_WIDTH, 0, null);
+			}
+			else
+			{
+				gr.fillRect(0, 0, CORNER_WIDTH, CORNER_HEIGHT);
+				gr.drawImage(selected ? CORNER_LS_ICON.getImage() : CORNER_L_ICON.getImage(), 0, 0, null);
+			}
+
+			// Set rendering hints for text antialiasing and fractional metrics
+			TextRendering.setHints((Graphics2D)gr);
+
+			// Get text
+			FontMetrics fontMetrics = gr.getFontMetrics();
+			String str = title;
+			if (!fullWidth)
+			{
+				int maxTextWidth = width - TEXT_LEADING_MARGIN - TEXT_TRAILING_MARGIN;
+				str = (maxTextWidth < fontMetrics.stringWidth(GuiConstants.ELLIPSIS_STR))
+						? null
+						: TextUtils.getLimitedWidthString(str, fontMetrics, maxTextWidth, TextUtils.RemovalMode.END);
+			}
+
+			// Draw text
+			if (str != null)
+			{
+				gr.setColor(TEXT_COLOUR);
+				gr.drawString(str, TEXT_LEADING_MARGIN, FontUtils.getBaselineOffset(height, fontMetrics));
+			}
+
+			// Draw close button
+			if (fullWidth)
+			{
+				int x = width - CLOSE_BUTTON_WIDTH - BUTTON_TRAILING_MARGIN;
+				int y = (height - CLOSE_BUTTON_HEIGHT + 1) / 2;
+
+				if (buttonState != ButtonState.NOT_OVER)
+				{
+					gr.setColor(BUTTON_BORDER_COLOUR);
+					if (buttonState == ButtonState.PRESSED)
+						gr.fillRect(x, y, CLOSE_BUTTON_WIDTH, CLOSE_BUTTON_HEIGHT);
+					else
+					{
+						gr.drawRect(x, y, CLOSE_BUTTON_WIDTH - 1, CLOSE_BUTTON_HEIGHT - 1);
+						gr.setColor(BUTTON_BACKGROUND_COLOUR);
+						gr.fillRect(x + 1, y + 1, CLOSE_BUTTON_WIDTH - 2, CLOSE_BUTTON_HEIGHT - 2);
+					}
+				}
+
+				gr.drawImage((buttonState == ButtonState.PRESSED) ? ACTIVE_CROSS_ICON.getImage()
+																  : CROSS_ICON.getImage(),
+							 x + (CLOSE_BUTTON_WIDTH - CLOSE_BUTTON_ICON_WIDTH) / 2,
+							 y + (CLOSE_BUTTON_HEIGHT - CLOSE_BUTTON_ICON_HEIGHT) / 2, null);
+			}
+
+			// Draw border
+			gr.setColor(selected ? SELECTED_TAB_BORDER_COLOUR : TAB_BORDER_COLOUR);
+			if (fullWidth)
+			{
+				int x1 = 0;
+				int x2 = width - 1;
+				int y1 = CORNER_HEIGHT;
+				int y2 = height - 1;
+				gr.drawLine(x1, y1, x1, y2);
+				gr.drawLine(x2, y1, x2, y2);
+
+				x1 = CORNER_WIDTH;
+				x2 = width - CORNER_WIDTH - 1;
+				y1 = 0;
+				gr.drawLine(x1, y1, x2, y1);
+			}
+			else
+			{
+				int x1 = 0;
+				int y1 = CORNER_HEIGHT;
+				int y2 = height - 1;
+				gr.drawLine(x1, y1, x1, y2);
+
+				x1 = CORNER_WIDTH;
+				int x2 = width - 1;
+				y1 = 0;
+				gr.drawLine(x1, y1, x2, y1);
+			}
+
+			int x1 = 0;
+			int x2 = width - 1;
+			int y = height - 1;
+			if (selected)
+			{
+				gr.setColor(SELECTED_TAB_BOTTOM_BORDER_COLOUR);
+				++x1;
+				if (fullWidth)
+					--x2;
+			}
+			else
+				gr.setColor(SELECTED_TAB_BORDER_COLOUR);
+			gr.drawLine(x1, y, x2, y);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private String getTitle()
+		{
+			return title;
+		}
+
+		//--------------------------------------------------------------
+
+		private void setSelected(boolean selected)
+		{
+			if (this.selected != selected)
+			{
+				this.selected = selected;
+				repaint();
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		private void setTitle(String title)
+		{
+			if (!this.title.equals(title))
+			{
+				this.title = title;
+				FontMetrics fontMetrics = getFontMetrics(getFont());
+				int width = TEXT_LEADING_MARGIN + fontMetrics.stringWidth(title)
+								+ TEXT_TRAILING_MARGIN + CLOSE_BUTTON_WIDTH + BUTTON_TRAILING_MARGIN;
+				if (preferredWidth != width)
+				{
+					preferredWidth = width;
+					updateTabs();
+				}
+				else
+					repaint();
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		private boolean isWithinButton(MouseEvent event)
+		{
+			int width = getWidth();
+			if (width < preferredWidth)
+				return false;
+
+			int x = event.getX();
+			int y = event.getY();
+			int x2 = width - BUTTON_TRAILING_MARGIN;
+			int x1 = x2 - CLOSE_BUTTON_WIDTH;
+			int y1 = (getHeight() - CLOSE_BUTTON_HEIGHT) / 2;
+			int y2 = y1 + CLOSE_BUTTON_HEIGHT;
+			return (x >= x1) && (x < x2) && (y >= y1) && (y < y2);
+		}
+
+		//--------------------------------------------------------------
+
+		private void updateCloseButtonState(MouseEvent event,
+											boolean    pressed)
+		{
+			ButtonState state = isWithinButton(event)
+									? (pressed && SwingUtilities.isLeftMouseButton(event))
+											? ButtonState.PRESSED
+											: ButtonState.OVER
+									: ButtonState.NOT_OVER;
+			if (buttonState != state)
+			{
+				buttonState = state;
+				repaint();
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		private int getIndex()
+		{
+			for (int i = 0; i < elements.size(); i++)
+			{
+				if (elements.get(i).tab == this)
+					return i;
+			}
+			return -1;
+		}
+
+		//--------------------------------------------------------------
+
+		private void showContextMenu(MouseEvent event)
+		{
+			if (event.isPopupTrigger())
+			{
+				// Create context menu
+				if (contextMenu == null)
+					contextMenu = new JPopupMenu();
+				else
+					contextMenu.removeAll();
+
+				contextMenu.add(new FMenuItem(new TabAction(Command.CLOSE, GuiConstants.CLOSE_STR)));
+
+				// Display menu
+				contextMenu.show(event.getComponent(), event.getX(), event.getY());
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		private void close(int modifiers)
+		{
+			if ((closeAction != null) && !closing)
+			{
+				closing = true;
+				String command =
+						closeAction.getValue(Action.ACTION_COMMAND_KEY).toString() + Integer.toString(getIndex());
+				closeAction.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, command, modifiers));
+				closing = false;
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Member classes : inner classes
+	////////////////////////////////////////////////////////////////////
+
+
+		// TAB ACTION CLASS
+
+
+		protected class TabAction
+			extends AbstractAction
+		{
+
+		////////////////////////////////////////////////////////////////
+		//  Constructors
+		////////////////////////////////////////////////////////////////
+
+			protected TabAction(String command,
+								String text)
+			{
+				super(text);
+				putValue(Action.ACTION_COMMAND_KEY, command);
+			}
+
+			//----------------------------------------------------------
+
+		////////////////////////////////////////////////////////////////
+		//  Instance methods : ActionListener interface
+		////////////////////////////////////////////////////////////////
+
+			@Override
+			public void actionPerformed(ActionEvent event)
+			{
+				Tab.this.actionPerformed(event);
+			}
+
+			//----------------------------------------------------------
+
+		}
+
+		//==============================================================
+
+	}
+
+	//==================================================================
+
+
+	// KEY-SELECTION LIST WINDOW CLASS
+
+
+	private class KeySelectionListWindow
+		extends JWindow
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	SelectionIndicatorList<Element>	list;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private KeySelectionListWindow(Window  owner,
+									   boolean decrement)
+		{
+			// Call superclass constructor
+			super(owner);
+
+			// Make window non-focusable
+			setFocusableWindowState(false);
+
+			// Create list
+			list = new SelectionIndicatorList<>(recentElements, -1);
+			list.setSelectedIndex(decrement ? recentElements.size() - 1 : 1);
+
+			// Set list as content pane
+			setContentPane(list);
+
+			// Resize window to its preferred size
+			pack();
+
+			// Set location of window
+			setLocation(GuiUtils.getComponentLocation(list, owner));
+
+			// Show window
+			setVisible(true);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private void decrementSelection()
+		{
+			int numItems = list.getNumItems();
+			int index = list.getSelectedIndex();
+			if (index < 0)
+				index = 0;
+			index = (index == 0) ? numItems - 1 : index - 1;
+			list.setSelectedIndex(index);
+		}
+
+		//--------------------------------------------------------------
+
+		private void incrementSelection()
+		{
+			int numItems = list.getNumItems();
+			int index = list.getSelectedIndex();
+			if (index < 0)
+				index = 0;
+			index = (index == numItems - 1) ? 0 : index + 1;
+			list.setSelectedIndex(index);
+		}
+
+		//--------------------------------------------------------------
+
+		private void doSelection()
+		{
+			destroyKeySelectionList();
+			selectTab(list.getSelectedItem());
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
+	// MOUSE-SELECTION LIST WINDOW CLASS
+
+
+	private class MouseSelectionListWindow
+		extends JWindow
+		implements AWTEventListener, MouseListener, MouseMotionListener
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	SelectionIndicatorList<Element>	list;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private MouseSelectionListWindow(Window owner)
+		{
+			// Call superclass constructor
+			super(owner);
+
+			// Make window non-focusable
+			setFocusableWindowState(false);
+
+			// Create list
+			List<Element> orderedElements = new ArrayList<>(elements);
+			orderedElements.sort(Comparator.<Element, String>comparing(element -> element.toString(),
+																	   ignoreCase ? String.CASE_INSENSITIVE_ORDER
+																				  : Comparator.naturalOrder()));
+			list = new SelectionIndicatorList<>(orderedElements,
+												(selectedIndex < 0) ? null : elements.get(selectedIndex));
+
+			// Add listeners
+			getToolkit().addAWTEventListener(this, AWTEvent.MOUSE_EVENT_MASK);
+			list.addMouseListener(this);
+			list.addMouseMotionListener(this);
+
+			// Set list as content pane
+			setContentPane(list);
+
+			// Resize window to its preferred size
+			pack();
+
+			// Set location of window
+			Point location = new Point(listButton.getWidth() - list.getPreferredSize().width, listButton.getHeight());
+			SwingUtilities.convertPointToScreen(location, listButton);
+			setLocation(GuiUtils.getComponentLocation(list, location));
+
+			// Show window
+			setVisible(true);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : AWTEventListener interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void eventDispatched(AWTEvent event)
+		{
+			if (event.getID() == MouseEvent.MOUSE_PRESSED)
+			{
+				MouseEvent mouseEvent = (MouseEvent)event;
+				if (mouseEvent.getComponent() != list)
+					destroyMouseSelectionList();
+				if (mouseEvent.getComponent() == listButton)
+					mouseEvent.consume();
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : MouseListener interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void mouseClicked(MouseEvent event)
+		{
+			// do nothing
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mouseEntered(MouseEvent event)
+		{
+			updateSelection(event);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mouseExited(MouseEvent event)
+		{
+			updateSelection(event);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mousePressed(MouseEvent event)
+		{
+			updateSelection(event);
+			doSelection();
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mouseReleased(MouseEvent event)
+		{
+			updateSelection(event);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : MouseMotionListener interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void mouseDragged(MouseEvent event)
+		{
+			updateSelection(event);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void mouseMoved(MouseEvent event)
+		{
+			updateSelection(event);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private void updateSelection(MouseEvent event)
+		{
+			Point point = SwingUtilities.convertPoint(event.getComponent(), event.getPoint(), list);
+			list.setSelectedIndex(list.pointToIndex(point));
+		}
+
+		//--------------------------------------------------------------
+
+		private void doSelection()
+		{
+			destroyMouseSelectionList();
+			selectTab(list.getSelectedItem());
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
 //  Image data

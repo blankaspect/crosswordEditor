@@ -64,6 +64,8 @@ import uk.blankaspect.ui.swing.misc.GuiUtils;
 
 import uk.blankaspect.ui.swing.textfield.FTextField;
 
+import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
+
 //----------------------------------------------------------------------
 
 
@@ -94,155 +96,19 @@ class IndicationsDialog
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Enumerated types
+//  Class variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// ERROR IDENTIFIERS
-
-
-	private enum ErrorId
-		implements AppException.IId
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		MALFORMED_PATTERN
-		("The pattern is not a well-formed regular expression.\n(%1)");
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private ErrorId(String message)
-		{
-			this.message = message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : AppException.IId interface
-	////////////////////////////////////////////////////////////////////
-
-		public String getMessage()
-		{
-			return message;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	message;
-
-	}
-
-	//==================================================================
+	private static	Point	location;
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// PARAMETERS CLASS
-
-
-	public static class Params
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public Params(String             clueReferenceKeyword,
-					  String             answerLengthPattern,
-					  List<Substitution> answerLengthSubstitutions,
-					  String             lineBreak)
-		{
-			this.clueReferenceKeyword = clueReferenceKeyword;
-			this.answerLengthPattern = answerLengthPattern;
-			this.answerLengthSubstitutions = answerLengthSubstitutions;
-			this.lineBreak = lineBreak;
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		String				clueReferenceKeyword;
-		String				answerLengthPattern;
-		List<Substitution>	answerLengthSubstitutions;
-		String				lineBreak;
-
-	}
-
-	//==================================================================
-
-
-	// INDICATIONS LABEL CLASS
-
-
-	private static class Label
-		extends FixedWidthLabel
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	String	KEY	= Label.class.getCanonicalName();
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private Label(String text)
-		{
-			super(text);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Class methods
-	////////////////////////////////////////////////////////////////////
-
-		private static void reset()
-		{
-			MaxValueMap.removeAll(KEY);
-		}
-
-		//--------------------------------------------------------------
-
-		private static void update()
-		{
-			MaxValueMap.update(KEY);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		protected String getKey()
-		{
-			return KEY;
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
+	private	boolean				accepted;
+	private	FTextField			clueReferenceKeywordField;
+	private	FTextField			lineBreakField;
+	private	AnswerLengthPanel	answerLengthPanel;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -338,9 +204,6 @@ class IndicationsDialog
 		answerLengthPanel = new AnswerLengthPanel(this, params.answerLengthPattern,
 												  params.answerLengthSubstitutions);
 
-		// Update widths of labels
-		Label.update();
-
 
 		//----  Button panel
 
@@ -413,14 +276,28 @@ class IndicationsDialog
 		// Set content pane
 		setContentPane(mainPanel);
 
+		// Update widths of labels
+		Label.update();
+
 		// Dispose of window explicitly
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-		// Handle window closing
+		// Handle window events
 		addWindowListener(new WindowAdapter()
 		{
 			@Override
-			public void windowClosing(WindowEvent event)
+			public void windowOpened(
+				WindowEvent	event)
+			{
+				// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced downwards
+				// when its location is set.  The error in the y coordinate is the height of the title bar of the
+				// window.  The workaround is to set the location of the window again with an adjustment for the error.
+				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+			}
+
+			@Override
+			public void windowClosing(
+				WindowEvent	event)
 			{
 				onClose();
 			}
@@ -462,15 +339,14 @@ class IndicationsDialog
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void actionPerformed(ActionEvent event)
 	{
-		String command = event.getActionCommand();
-
-		if (command.equals(Command.ACCEPT))
-			onAccept();
-
-		else if (command.equals(Command.CLOSE))
-			onClose();
+		switch (event.getActionCommand())
+		{
+			case Command.ACCEPT -> onAccept();
+			case Command.CLOSE  -> onClose();
+		}
 	}
 
 	//------------------------------------------------------------------
@@ -479,6 +355,7 @@ class IndicationsDialog
 //  Instance methods : AnswerLengthPanel.LabelSource interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public JLabel createLabel(String text)
 	{
 		return new Label(text);
@@ -561,19 +438,136 @@ class IndicationsDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Class variables
+//  Enumerated types
 ////////////////////////////////////////////////////////////////////////
 
-	private static	Point	location;
+
+	// ERROR IDENTIFIERS
+
+
+	private enum ErrorId
+		implements AppException.IId
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		MALFORMED_PATTERN
+		("The pattern is not a well-formed regular expression.\n(%1)");
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	message;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ErrorId(String message)
+		{
+			this.message = message;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : AppException.IId interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getMessage()
+		{
+			return message;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Member records
 ////////////////////////////////////////////////////////////////////////
 
-	private	boolean				accepted;
-	private	FTextField			clueReferenceKeywordField;
-	private	FTextField			lineBreakField;
-	private	AnswerLengthPanel	answerLengthPanel;
+
+	// RECORD: PARAMETERS
+
+
+	public record Params(
+		String				clueReferenceKeyword,
+		String				answerLengthPattern,
+		List<Substitution>	answerLengthSubstitutions,
+		String				lineBreak)
+	{ }
+
+	//==================================================================
+
+////////////////////////////////////////////////////////////////////////
+//  Member classes : non-inner classes
+////////////////////////////////////////////////////////////////////////
+
+
+	// INDICATIONS LABEL CLASS
+
+
+	private static class Label
+		extends FixedWidthLabel
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	String	KEY	= Label.class.getCanonicalName();
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private Label(String text)
+		{
+			super(text);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Class methods
+	////////////////////////////////////////////////////////////////////
+
+		private static void reset()
+		{
+			MaxValueMap.removeAll(KEY);
+		}
+
+		//--------------------------------------------------------------
+
+		private static void update()
+		{
+			MaxValueMap.update(KEY);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		protected String getKey()
+		{
+			return KEY;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

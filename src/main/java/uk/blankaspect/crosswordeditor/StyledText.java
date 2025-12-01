@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.List;
@@ -59,8 +58,8 @@ class StyledText
 	public static final		String	STYLE_PREFIX	= "{@";
 	public static final		String	STYLE_SUFFIX	= "}";
 
-	private static final	String	STYLE_REGEX		= "(\\\\\\\\|(?<!\\\\)\\" + STYLE_PREFIX
-															+ "([a-z]+).|(?<!\\\\)\\" + STYLE_SUFFIX + ")";
+	private static final	String	STYLE_REGEX		=
+			"(\\\\\\\\|(?<!\\\\)\\" + STYLE_PREFIX + "([a-z]+).|(?<!\\\\)\\" + STYLE_SUFFIX + ")";
 
 ////////////////////////////////////////////////////////////////////////
 //  Instance variables
@@ -458,7 +457,7 @@ class StyledText
 						  String className)
 		{
 			this(key, text, attribute, elementName);
-			classAttrList = Collections.singletonList(new Attribute(HtmlConstants.AttrName.CLASS, className));
+			classAttrList = List.of(new Attribute(HtmlConstants.AttrName.CLASS, className));
 		}
 
 		//--------------------------------------------------------------
@@ -664,7 +663,7 @@ class StyledText
 		@Override
 		protected String getPrefix()
 		{
-			return (INDEX_STR + index + SEPARATOR);
+			return INDEX_STR + index + SEPARATOR;
 		}
 
 		//--------------------------------------------------------------

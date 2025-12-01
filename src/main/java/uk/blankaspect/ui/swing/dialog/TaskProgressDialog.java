@@ -78,6 +78,8 @@ import uk.blankaspect.ui.swing.misc.GuiUtils;
 import uk.blankaspect.ui.swing.text.TextRendering;
 import uk.blankaspect.ui.swing.text.TextUtils;
 
+import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
+
 //----------------------------------------------------------------------
 
 
@@ -86,14 +88,14 @@ import uk.blankaspect.ui.swing.text.TextUtils;
 
 public class TaskProgressDialog
 	extends JDialog
-	implements ActionListener, IProgressListener, IProgressView
+	implements IProgressListener, IProgressView
 {
 
 ////////////////////////////////////////////////////////////////////////
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	private static final	int		UPDATE_INTERVAL	= 500;
+	private static final	int		PROGRESS_UPDATE_INTERVAL	= 500;
 
 	private static final	int		INFO_FIELD_WIDTH	= 480;
 
@@ -157,6 +159,17 @@ public class TaskProgressDialog
 		// Initialise instance variables
 		deferredOutputLock = new Object();
 		this.timeProgressIndex = timeProgressIndex;
+
+		// Create handler for 'close' command
+		ActionListener closeCommandHandler = new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent event)
+			{
+				if (event.getActionCommand().equals(Command.CLOSE))
+					onClose();
+			}
+		};
 
 
 		//----  Info field
@@ -259,7 +272,7 @@ public class TaskProgressDialog
 			// Button: cancel
 			cancelButton = new FButton(GuiConstants.CANCEL_STR);
 			cancelButton.setActionCommand(Command.CLOSE);
-			cancelButton.addActionListener(this);
+			cancelButton.addActionListener(closeCommandHandler);
 			buttonPane.add(cancelButton);
 		}
 
@@ -356,7 +369,7 @@ public class TaskProgressDialog
 
 		// Add commands to action map
 		KeyAction.create(mainPane, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
-						 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), Command.CLOSE, this);
+						 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), Command.CLOSE, closeCommandHandler);
 
 
 		//----  Window
@@ -367,13 +380,18 @@ public class TaskProgressDialog
 		// Dispose of window explicitly
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-		// Handle window opening and closing
+		// Handle window events
 		addWindowListener(new WindowAdapter()
 		{
 			@Override
 			public void windowOpened(
 				WindowEvent	event)
 			{
+				// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced downwards
+				// when its location is set.  The error in the y coordinate is the height of the title bar of the
+				// window.  The workaround is to set the location of the window again with an adjustment for the error.
+				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+
 				synchronized (deferredOutputLock)
 				{
 					if (deferredOutput != null)
@@ -440,43 +458,29 @@ public class TaskProgressDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance methods : ActionListener interface
-////////////////////////////////////////////////////////////////////////
-
-	@Override
-	public void actionPerformed(
-		ActionEvent	event)
-	{
-		if (event.getActionCommand().equals(Command.CLOSE))
-			onClose();
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
 //  Instance methods : IProgressView interface
 ////////////////////////////////////////////////////////////////////////
 
 	@Override
 	public void setInfo(
-		String	str)
+		String	text)
 	{
-		setInfo(str, (File)null);
+		setInfo(text, (File)null);
 	}
 
 	//------------------------------------------------------------------
 
 	@Override
 	public void setInfo(
-		String	str,
+		String	text,
 		File	file)
 	{
 		if (isVisible())
 		{
 			SwingUtilities.invokeLater(() ->
 					infoField.setText((file == null)
-											? str
-											: pathnameText(str, getPathname(file), getFileSeparatorChar())));
+											? text
+											: pathnameText(text, getPathname(file), getFileSeparatorChar())));
 		}
 		else
 		{
@@ -484,7 +488,7 @@ public class TaskProgressDialog
 			{
 				if (deferredOutput == null)
 					deferredOutput = new DeferredOutput();
-				deferredOutput.init(str, file, null);
+				deferredOutput.init(text, file, null);
 			}
 		}
 	}
@@ -570,13 +574,13 @@ public class TaskProgressDialog
 ////////////////////////////////////////////////////////////////////////
 
 	public void setInfo(
-		String	str,
+		String	text,
 		URL		url)
 	{
 		if (isVisible())
 		{
 			SwingUtilities.invokeLater(() ->
-					infoField.setText((url == null) ? str : pathnameText(str, url.toString(), '/')));
+					infoField.setText((url == null) ? text : pathnameText(text, url.toString(), '/')));
 		}
 		else
 		{
@@ -584,7 +588,7 @@ public class TaskProgressDialog
 			{
 				if (deferredOutput == null)
 					deferredOutput = new DeferredOutput();
-				deferredOutput.init(str, null, url);
+				deferredOutput.init(text, null, url);
 			}
 		}
 	}
@@ -663,7 +667,7 @@ public class TaskProgressDialog
 					startTime = System.currentTimeMillis();
 					timeElapsedField.setTime(0);
 					timeRemainingField.setText(null);
-					updateTime = startTime + UPDATE_INTERVAL;
+					updateTime = startTime + PROGRESS_UPDATE_INTERVAL;
 				}
 				else
 				{
@@ -673,7 +677,7 @@ public class TaskProgressDialog
 						long timeElapsed = currentTime - startTime;
 						timeElapsedField.setTime((int)timeElapsed);
 						timeRemainingField.setTime((int)Math.round((1.0 / value - 1.0) * (double)timeElapsed) + 500);
-						updateTime = currentTime + UPDATE_INTERVAL;
+						updateTime = currentTime + PROGRESS_UPDATE_INTERVAL;
 					}
 				}
 			}
@@ -861,7 +865,7 @@ public class TaskProgressDialog
 				str = ((hours == 0)
 							? Integer.toString(minutes)
 							: Integer.toString(hours) + SEPARATOR + NumberUtils.uIntToDecString(minutes % 60, 2, '0'))
-						+ SEPARATOR + NumberUtils.uIntToDecString(seconds % 60, 2, '0');
+									+ SEPARATOR + NumberUtils.uIntToDecString(seconds % 60, 2, '0');
 			}
 			setText(str);
 		}
@@ -899,7 +903,7 @@ public class TaskProgressDialog
 	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
-		private	String		str;
+		private	String		text;
 		private	File		file;
 		private	URL			url;
 		private	double[]	progresses;
@@ -920,11 +924,11 @@ public class TaskProgressDialog
 	////////////////////////////////////////////////////////////////////
 
 		private void init(
-			String	str,
+			String	text,
 			File	file,
 			URL		url)
 		{
-			this.str = str;
+			this.text = text;
 			this.file = file;
 			this.url = url;
 		}
@@ -935,9 +939,9 @@ public class TaskProgressDialog
 		{
 			infoField.setText((url == null)
 									? (file == null)
-											? str
-											: pathnameText(str, getPathname(file), getFileSeparatorChar())
-									: pathnameText(str, url.toString(), '/'));
+											? text
+											: pathnameText(text, getPathname(file), getFileSeparatorChar())
+									: pathnameText(text, url.toString(), '/'));
 
 			for (int i = 0; i < progresses.length; i++)
 			{

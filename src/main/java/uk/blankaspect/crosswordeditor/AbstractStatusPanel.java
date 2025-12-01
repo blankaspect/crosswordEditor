@@ -32,6 +32,8 @@ import javax.swing.JPanel;
 
 import uk.blankaspect.ui.swing.colour.Colours;
 
+import uk.blankaspect.ui.swing.misc.GuiUtils;
+
 import uk.blankaspect.ui.swing.text.TextRendering;
 import uk.blankaspect.ui.swing.text.TextUtils;
 
@@ -116,34 +118,34 @@ abstract class AbstractStatusPanel
 		protected void paintComponent(Graphics gr)
 		{
 			// Create copy of graphics context
-			gr = gr.create();
+			Graphics2D gr2d = GuiUtils.copyGraphicsContext(gr);
 
 			// Get dimensions
 			int width = getWidth();
 			int height = getHeight();
 
 			// Draw background
-			gr.setColor(getBackground());
-			gr.fillRect(0, 0, width, height);
+			gr2d.setColor(getBackground());
+			gr2d.fillRect(0, 0, width, height);
 
 			// Draw text
 			if (text != null)
 			{
 				// Set rendering hints for text antialiasing and fractional metrics
-				TextRendering.setHints((Graphics2D)gr);
+				TextRendering.setHints(gr2d);
 
 				// Draw text
-				FontMetrics fontMetrics = gr.getFontMetrics();
+				FontMetrics fontMetrics = gr2d.getFontMetrics();
 				int maxWidth = width - 2 * HORIZONTAL_MARGIN - SEPARATOR_WIDTH;
 				String str = TextUtils.getLimitedWidthString(text, fontMetrics, maxWidth, TextUtils.RemovalMode.END);
-				gr.setColor(AppConfig.INSTANCE.getStatusTextColour());
-				gr.drawString(str, HORIZONTAL_MARGIN, VERTICAL_MARGIN + fontMetrics.getAscent());
+				gr2d.setColor(AppConfig.INSTANCE.getStatusTextColour());
+				gr2d.drawString(str, HORIZONTAL_MARGIN, VERTICAL_MARGIN + fontMetrics.getAscent());
 			}
 
 			// Draw separator
 			int x = width - SEPARATOR_WIDTH;
-			gr.setColor(LINE_COLOUR);
-			gr.drawLine(x, 0, x, height - 1);
+			gr2d.setColor(LINE_COLOUR);
+			gr2d.drawLine(x, 0, x, height - 1);
 		}
 
 		//--------------------------------------------------------------

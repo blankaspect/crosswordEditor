@@ -283,7 +283,7 @@ class Clue
 		{
 			keyword = RegexUtils.escape(keyword);
 			int length = keyword.length();
-			keyword = StringUtils.stripBefore(keyword);
+			keyword = keyword.stripLeading();
 			if (keyword.length() == length)
 				noSpaceKeywords.add(keyword);
 			else
@@ -662,7 +662,7 @@ class Clue
 
 	public boolean isEmpty()
 	{
-		return ((referentId == null) && (text == null));
+		return (referentId == null) && (text == null);
 	}
 
 	//------------------------------------------------------------------
@@ -879,7 +879,7 @@ class Clue
 		@Override
 		public String toString()
 		{
-			return ((index == 0) ? fieldId.toString() : fieldId.toString() + INDEX_PREFIX + index);
+			return (index == 0) ? fieldId.toString() : fieldId.toString() + INDEX_PREFIX + index;
 		}
 
 		//--------------------------------------------------------------
@@ -1003,7 +1003,7 @@ class Clue
 
 		public Grid.Field getField()
 		{
-			return ((index < 0) ? null : fields.get(index));
+			return (index < 0) ? null : fields.get(index);
 		}
 
 		//--------------------------------------------------------------

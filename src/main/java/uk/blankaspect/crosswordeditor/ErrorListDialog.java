@@ -29,7 +29,6 @@ import java.awt.event.KeyEvent;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -77,7 +76,12 @@ class ErrorListDialog
 
 	private static final	String	KEY	= ErrorListDialog.class.getCanonicalName();
 
-	private static final	Map<Direction, String>	DIRECTION_STRS;
+	private static final	Map<Direction, String>	DIRECTION_STRS	= new EnumMap<>(Map.of
+	(
+		Direction.NONE,   "No direction",
+		Direction.ACROSS, "Across",
+		Direction.DOWN,   "Down"
+	));
 
 	// Commands
 	private interface Command
@@ -89,10 +93,15 @@ class ErrorListDialog
 
 	private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS	=
 	{
-		new KeyAction.KeyCommandPair(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), Command.CLOSE)
+		KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), Command.CLOSE)
 	};
 
-	private static final	Map<String, CommandAction>	COMMANDS;
+	private static final	Map<String, CommandAction>	COMMANDS	= Map.of
+	(
+		Command.COPY,   new CommandAction(Command.COPY, COPY_STR, KeyEvent.VK_C, COPY_TOOLTIP_STR),
+		Command.ACCEPT, new CommandAction(Command.ACCEPT, AppConstants.OK_STR, 0, null),
+		Command.CLOSE,  new CommandAction(Command.CLOSE, AppConstants.CANCEL_STR, 0, null)
+	);
 
 ////////////////////////////////////////////////////////////////////////
 //  Instance variables
@@ -102,34 +111,13 @@ class ErrorListDialog
 	private	boolean	cleared;
 
 ////////////////////////////////////////////////////////////////////////
-//  Static initialiser
-////////////////////////////////////////////////////////////////////////
-
-	static
-	{
-		// Direction strings
-		DIRECTION_STRS = new EnumMap<>(Direction.class);
-		DIRECTION_STRS.put(Direction.NONE,   "No direction");
-		DIRECTION_STRS.put(Direction.ACROSS, "Across");
-		DIRECTION_STRS.put(Direction.DOWN,   "Down");
-
-		// Commands
-		COMMANDS = new HashMap<>();
-		COMMANDS.put(Command.COPY,
-					 new CommandAction(Command.COPY, COPY_STR, KeyEvent.VK_C, COPY_TOOLTIP_STR));
-		COMMANDS.put(Command.ACCEPT,
-					 new CommandAction(Command.ACCEPT, AppConstants.OK_STR, 0, null));
-		COMMANDS.put(Command.CLOSE,
-					 new CommandAction(Command.CLOSE, AppConstants.CANCEL_STR, 0, null));
-	}
-
-////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	private ErrorListDialog(Window owner,
-							String title,
-							String closeStr)
+	private ErrorListDialog(
+		Window	owner,
+		String	title,
+		String	closeStr)
 	{
 		// Call superclass constructor
 		super(owner, title, KEY, NUM_COLUMNS, NUM_ROWS, getCommands(closeStr), Command.CLOSE);
@@ -155,10 +143,11 @@ class ErrorListDialog
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static boolean showDialog(Component    parent,
-									 String       title,
-									 String       closeStr,
-									 List<IdList> idLists)
+	public static boolean showDialog(
+		Component		parent,
+		String			title,
+		String			closeStr,
+		List<IdList>	idLists)
 	{
 		// Create dialog
 		ErrorListDialog dialog = new ErrorListDialog(GuiUtils.getWindow(parent), title, closeStr);
@@ -176,7 +165,8 @@ class ErrorListDialog
 
 	//------------------------------------------------------------------
 
-	private static List<Action> getCommands(String closeStr)
+	private static List<Action> getCommands(
+		String	closeStr)
 	{
 		List<Action> commands = new ArrayList<>();
 		commands.add(COMMANDS.get(Command.COPY));
@@ -193,18 +183,16 @@ class ErrorListDialog
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
-	public void actionPerformed(ActionEvent event)
+	@Override
+	public void actionPerformed(
+		ActionEvent	event)
 	{
-		String command = event.getActionCommand();
-
-		if (command.equals(Command.COPY))
-			onCopy();
-
-		else if (command.equals(Command.ACCEPT))
-			onAccept();
-
-		else if (command.equals(Command.CLOSE))
-			onClose();
+		switch (event.getActionCommand())
+		{
+			case Command.COPY   -> onCopy();
+			case Command.ACCEPT -> onAccept();
+			case Command.CLOSE  -> onClose();
+		}
 	}
 
 	//------------------------------------------------------------------
@@ -238,7 +226,8 @@ class ErrorListDialog
 
 	//------------------------------------------------------------------
 
-	private void setText(List<IdList> idLists)
+	private void setText(
+		List<IdList>	idLists)
 	{
 		// Set tab stops
 		StyledDocument document = getTextPane().getStyledDocument();
@@ -342,7 +331,8 @@ class ErrorListDialog
 		)
 		{
 			@Override
-			protected void apply(Style style)
+			protected void apply(
+				Style	style)
 			{
 				StyleConstants.setForeground(style, getColour());
 			}
@@ -355,7 +345,8 @@ class ErrorListDialog
 		)
 		{
 			@Override
-			protected void apply(Style style)
+			protected void apply(
+				Style	style)
 			{
 				StyleConstants.setForeground(style, getColour());
 				StyleConstants.setItalic(style, true);
@@ -369,7 +360,8 @@ class ErrorListDialog
 		)
 		{
 			@Override
-			protected void apply(Style style)
+			protected void apply(
+				Style	style)
 			{
 				StyleConstants.setForeground(style, getColour());
 			}
@@ -390,8 +382,9 @@ class ErrorListDialog
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private SpanStyle(String key,
-						  Color  colour)
+		private SpanStyle(
+			String	key,
+			Color	colour)
 		{
 			this.key = PREFIX + key;
 			this.colour = colour;
@@ -403,7 +396,8 @@ class ErrorListDialog
 	//  Abstract methods
 	////////////////////////////////////////////////////////////////////
 
-		protected abstract void apply(Style style);
+		protected abstract void apply(
+			Style	style);
 
 		//--------------------------------------------------------------
 
@@ -439,7 +433,8 @@ class ErrorListDialog
 		)
 		{
 			@Override
-			protected void apply(Style style)
+			protected void apply(
+				Style	style)
 			{
 				// do nothing
 			}
@@ -451,7 +446,8 @@ class ErrorListDialog
 		)
 		{
 			@Override
-			protected void apply(Style style)
+			protected void apply(
+				Style	style)
 			{
 				StyleConstants.setSpaceAbove(style, (float)StyleConstants.getFontSize(style) * 0.5f);
 			}
@@ -471,7 +467,8 @@ class ErrorListDialog
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private ParagraphStyle(String key)
+		private ParagraphStyle(
+			String	key)
 		{
 			this.key = PREFIX + key;
 		}
@@ -482,7 +479,8 @@ class ErrorListDialog
 	//  Abstract methods
 	////////////////////////////////////////////////////////////////////
 
-		protected abstract void apply(Style style);
+		protected abstract void apply(
+			Style	style);
 
 		//--------------------------------------------------------------
 
@@ -512,8 +510,9 @@ class ErrorListDialog
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		public IdList(String              text,
-					  List<Grid.Field.Id> ids)
+		public IdList(
+			String				text,
+			List<Grid.Field.Id>	ids)
 		{
 			this.text = text;
 			this.ids = ids;
@@ -543,10 +542,11 @@ class ErrorListDialog
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private CommandAction(String command,
-							  String text,
-							  int    mnemonicKey,
-							  String tooltipStr)
+		private CommandAction(
+			String	command,
+			String	text,
+			int		mnemonicKey,
+			String	tooltipStr)
 		{
 			// Call superclass constructor
 			super(text);
@@ -565,7 +565,9 @@ class ErrorListDialog
 	//  Instance methods : ActionListener interface
 	////////////////////////////////////////////////////////////////////
 
-		public void actionPerformed(ActionEvent event)
+		@Override
+		public void actionPerformed(
+			ActionEvent	event)
 		{
 			listener.actionPerformed(event);
 		}

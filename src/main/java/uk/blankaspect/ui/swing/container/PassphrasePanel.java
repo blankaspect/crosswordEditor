@@ -2,7 +2,7 @@
 
 PassphrasePanel.java
 
-Passphrase panel class.
+Class: passphrase panel.
 
 \*====================================================================*/
 
@@ -55,7 +55,7 @@ import uk.blankaspect.ui.swing.textfield.PasswordField;
 //----------------------------------------------------------------------
 
 
-// PASSPHRASE PANEL CLASS
+// CLASS: PASSPHRASE PANEL
 
 
 public class PassphrasePanel
@@ -67,15 +67,14 @@ public class PassphrasePanel
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	private static final	int	BUTTON_VERTICAL_MARGIN		= 2;
-	private static final	int	BUTTON_HORIZONTAL_MARGIN	= 4;
+	private static final	int		BUTTON_VERTICAL_MARGIN		= 2;
+	private static final	int		BUTTON_HORIZONTAL_MARGIN	= 4;
 
 	private static final	String	PASTE_STR						= "Paste";
 	private static final	String	SHOW_STR						= "Show";
 	private static final	String	HIDE_STR						= "Hide";
 	private static final	String	PASSPHRASE_STR					= "Passphrase";
-	private static final	String	FAILED_TO_CLEAR_CLIPBOARD_STR	= "Failed to clear the system " +
-																		"clipboard.";
+	private static final	String	FAILED_TO_CLEAR_CLIPBOARD_STR	= "Failed to clear the system clipboard.";
 
 	private static final	List<String>	SHOW_HIDE_STRS	= List.of(SHOW_STR, HIDE_STR);
 
@@ -87,75 +86,49 @@ public class PassphrasePanel
 	}
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : inner classes
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// COMMAND ACTION CLASS
-
-
-	protected class CommandAction
-		extends AbstractAction
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		protected CommandAction(String command,
-								String text)
-		{
-			super(text);
-			putValue(Action.ACTION_COMMAND_KEY, command);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : ActionListener interface
-	////////////////////////////////////////////////////////////////////
-
-		public void actionPerformed(ActionEvent event)
-		{
-			PassphrasePanel.this.actionPerformed(event);
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
+	private	boolean							warnIfClipboardNotCleared;
+	private	ActionMap						actionMap;
+	private	PasswordField					field;
+	private	AlternativeTextButton<String>	button;
+	private	JPopupMenu						contextMenu;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	public PassphrasePanel(int numColumns)
+	public PassphrasePanel(
+		int	numColumns)
 	{
 		this(0, numColumns, false);
 	}
 
 	//------------------------------------------------------------------
 
-	public PassphrasePanel(int maxLength,
-						   int numColumns)
+	public PassphrasePanel(
+		int	maxLength,
+		int	numColumns)
 	{
 		this(maxLength, numColumns, false);
 	}
 
 	//------------------------------------------------------------------
 
-	public PassphrasePanel(int     numColumns,
-						   boolean warnIfClipboardNotCleared)
+	public PassphrasePanel(
+		int		numColumns,
+		boolean	warnIfClipboardNotCleared)
 	{
 		this(0, numColumns, warnIfClipboardNotCleared);
 	}
 
 	//------------------------------------------------------------------
 
-	public PassphrasePanel(int     maxLength,
-						   int     numColumns,
-						   boolean warnIfClipboardNotCleared)
+	public PassphrasePanel(
+		int		maxLength,
+		int		numColumns,
+		boolean	warnIfClipboardNotCleared)
 	{
 		// Initialise instance variables
 		this.warnIfClipboardNotCleared = warnIfClipboardNotCleared;
@@ -213,7 +186,8 @@ public class PassphrasePanel
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static String escapePassphrase(String passphrase)
+	public static String escapePassphrase(
+		String	passphrase)
 	{
 		StringBuilder buffer = new StringBuilder(128);
 		for (int i = 0; i < passphrase.length(); i++)
@@ -222,8 +196,7 @@ public class PassphrasePanel
 			switch (ch)
 			{
 				case '"':
-					buffer.append('\\');
-					buffer.append(ch);
+					buffer.append('\\').append(ch);
 					break;
 
 				default:
@@ -240,17 +213,17 @@ public class PassphrasePanel
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
-	public void actionPerformed(ActionEvent event)
+	@Override
+	public void actionPerformed(
+		ActionEvent	event)
 	{
 		if (isEnabled())
 		{
-			String command = event.getActionCommand();
-
-			if (command.equals(Command.PASTE))
-				onPaste();
-
-			else if (command.equals(Command.SHOW_HIDE))
-				onShowHide();
+			switch (event.getActionCommand())
+			{
+				case Command.PASTE     -> onPaste();
+				case Command.SHOW_HIDE -> onShowHide();
+			}
 		}
 	}
 
@@ -261,7 +234,8 @@ public class PassphrasePanel
 ////////////////////////////////////////////////////////////////////////
 
 	@Override
-	public void setEnabled(boolean enabled)
+	public void setEnabled(
+		boolean	enabled)
 	{
 		super.setEnabled(enabled);
 		field.setEnabled(enabled);
@@ -311,15 +285,17 @@ public class PassphrasePanel
 
 	//------------------------------------------------------------------
 
-	private CommandAction getAction(String key)
+	private CommandAction getAction(
+		String	key)
 	{
 		return (CommandAction)actionMap.get(key);
 	}
 
 	//------------------------------------------------------------------
 
-	private void addAction(String key,
-						   String text)
+	private void addAction(
+		String	key,
+		String	text)
 	{
 		actionMap.put(key, new CommandAction(key, text));
 	}
@@ -339,8 +315,7 @@ public class PassphrasePanel
 			// ignore
 		}
 		getAction(Command.PASTE).setEnabled(enabled);
-		getAction(Command.SHOW_HIDE).putValue(Action.NAME, field.echoCharIsSet() ? SHOW_STR
-																				 : HIDE_STR);
+		getAction(Command.SHOW_HIDE).putValue(Action.NAME, field.echoCharIsSet() ? SHOW_STR : HIDE_STR);
 	}
 
 	//------------------------------------------------------------------
@@ -361,8 +336,10 @@ public class PassphrasePanel
 		catch (IllegalStateException e)
 		{
 			if (warnIfClipboardNotCleared)
+			{
 				JOptionPane.showMessageDialog(null, FAILED_TO_CLEAR_CLIPBOARD_STR, PASSPHRASE_STR,
 											  JOptionPane.WARNING_MESSAGE);
+			}
 		}
 	}
 
@@ -386,14 +363,47 @@ public class PassphrasePanel
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Member classes : inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	private	boolean							warnIfClipboardNotCleared;
-	private	ActionMap						actionMap;
-	private	PasswordField					field;
-	private	AlternativeTextButton<String>	button;
-	private	JPopupMenu						contextMenu;
+
+	// CLASS: COMMAND ACTION
+
+
+	protected class CommandAction
+		extends AbstractAction
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		protected CommandAction(
+			String	command,
+			String	text)
+		{
+			super(text);
+			putValue(Action.ACTION_COMMAND_KEY, command);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : ActionListener interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void actionPerformed(
+			ActionEvent	event)
+		{
+			PassphrasePanel.this.actionPerformed(event);
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

@@ -26,15 +26,16 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
-import java.util.stream.Stream;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
+
+import javax.swing.filechooser.FileFilter;
 
 import uk.blankaspect.common.build.BuildUtils;
 
@@ -62,6 +63,8 @@ import uk.blankaspect.common.resource.ResourceUtils;
 import uk.blankaspect.common.string.StringUtils;
 
 import uk.blankaspect.ui.swing.dialog.QuestionDialog;
+
+import uk.blankaspect.ui.swing.filechooser.FileChooserUtils;
 
 import uk.blankaspect.ui.swing.misc.GuiUtils;
 
@@ -184,6 +187,13 @@ public class CrosswordEditorApp
 
 	//------------------------------------------------------------------
 
+	private static FileFilter createCrosswordFileFilter()
+	{
+		return new FilenameSuffixFilter(AppConstants.CROSSWORD_FILES_STR, AppConfig.INSTANCE.getFilenameSuffix());
+	}
+
+	//------------------------------------------------------------------
+
 ////////////////////////////////////////////////////////////////////////
 //  Instance methods
 ////////////////////////////////////////////////////////////////////////
@@ -248,7 +258,7 @@ public class CrosswordEditorApp
 	public CrosswordView getView(
 		int	index)
 	{
-		return (hasDocuments() ? documentsViews.get(index).view : null);
+		return hasDocuments() ? documentsViews.get(index).view : null;
 	}
 
 	//------------------------------------------------------------------
@@ -489,7 +499,7 @@ public class CrosswordEditorApp
 		CrosswordDocument document = new CrosswordDocument();
 		TaskProgressDialog.showDialog(mainWindow, READ_FILE_STR, new Task.ReadDocument(document, file));
 		document.validateClues();
-		return ((document.getFile() == null) ? null : document);
+		return (document.getFile() == null) ? null : document;
 	}
 
 	//------------------------------------------------------------------
@@ -550,10 +560,10 @@ public class CrosswordEditorApp
 		String	title)
 	{
 		String[] optionStrs = Utils.getOptionStrings(AppConstants.REPLACE_STR);
-		return (!file.exists() ||
-				(JOptionPane.showOptionDialog(mainWindow, Utils.getPathname(file) + AppConstants.ALREADY_EXISTS_STR,
-											  title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null,
-											  optionStrs, optionStrs[1]) == JOptionPane.OK_OPTION));
+		return !file.exists()
+				|| (JOptionPane.showOptionDialog(mainWindow, Utils.getPathname(file) + AppConstants.ALREADY_EXISTS_STR,
+												 title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null,
+												 optionStrs, optionStrs[1]) == JOptionPane.OK_OPTION);
 	}
 
 	//------------------------------------------------------------------
@@ -663,7 +673,7 @@ public class CrosswordEditorApp
 		}
 
 		// Create list of files from command-line arguments
-		List<File> files = Stream.of(args).map(arg -> new File(PathnameUtils.parsePathname(arg))).toList();
+		List<File> files = Arrays.stream(args).map(arg -> new File(PathnameUtils.parsePathname(arg))).toList();
 
 		// Read TX port number from file
 		int txPort = PortNumber.getValue(NAME_KEY);
@@ -692,10 +702,12 @@ public class CrosswordEditorApp
 					// Add pathnames to list of pending files
 					List<String> pathnames = StringUtils.split(data, '\n');
 					if (!pathnames.isEmpty())
+					{
 						pendingFiles.addAll(pathnames.stream()
-														.filter(pathname -> !pathname.isEmpty())
-														.map(pathname -> new File(pathname))
-														.toList());
+								.filter(pathname -> !pathname.isEmpty())
+								.map(pathname -> new File(pathname))
+								.toList());
+					}
 				});
 			});
 
@@ -735,15 +747,28 @@ public class CrosswordEditorApp
 			}
 		}
 		if (lookAndFeelName != null)
+		{
 			showWarningMessage(SHORT_NAME + " : " + CONFIG_ERROR_STR,
 							   LAF_ERROR1_STR + lookAndFeelName + LAF_ERROR2_STR);
+		}
 
 		// Select all text when a text field gains focus
 		if (config.isSelectTextOnFocusGained())
 			TextFieldUtils.selectAllOnFocusGained();
 
 		// Initialise file choosers
-		initFileChoosers();
+		openFileChooser = new JFileChooser(config.getOpenCrosswordDirectory());
+		openFileChooser.setDialogTitle(OPEN_FILE_STR);
+		openFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+		saveFileChooser = new JFileChooser(config.getSaveCrosswordDirectory());
+		saveFileChooser.setDialogTitle(SAVE_FILE_STR);
+		saveFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+		exportHtmlFileChooser = new JFileChooser(config.getExportHtmlDirectory());
+		exportHtmlFileChooser.setDialogTitle(EXPORT_AS_HTML_STR);
+		exportHtmlFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		FileChooserUtils.setFilter(exportHtmlFileChooser, AppConstants.HTML_FILE_FILTER);
 
 		// Perform remaining initialisation on event-dispatching thread
 		SwingUtilities.invokeLater(() ->
@@ -768,36 +793,14 @@ public class CrosswordEditorApp
 
 	//------------------------------------------------------------------
 
-	private void initFileChoosers()
-	{
-		AppConfig config = AppConfig.INSTANCE;
-
-		openFileChooser = new JFileChooser(config.getOpenCrosswordDirectory());
-		openFileChooser.setDialogTitle(OPEN_FILE_STR);
-		openFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-
-		saveFileChooser = new JFileChooser(config.getSaveCrosswordDirectory());
-		saveFileChooser.setDialogTitle(SAVE_FILE_STR);
-		saveFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-
-		exportHtmlFileChooser = new JFileChooser(config.getExportHtmlDirectory());
-		exportHtmlFileChooser.setDialogTitle(EXPORT_AS_HTML_STR);
-		exportHtmlFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		exportHtmlFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.HTML_FILES_STR,
-																	 AppConstants.HTML_FILENAME_EXTENSION));
-	}
-
-	//------------------------------------------------------------------
-
 	private File chooseOpen()
 	{
-		openFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.CROSSWORD_FILES_STR,
-															   AppConfig.INSTANCE.getFilenameSuffix()));
+		FileChooserUtils.setFilter(openFileChooser, createCrosswordFileFilter());
 		openFileChooser.setSelectedFile(new File(""));
 		openFileChooser.rescanCurrentDirectory();
-		return ((openFileChooser.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION)
-																		? openFileChooser.getSelectedFile()
-																		: null);
+		return (openFileChooser.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION)
+				? openFileChooser.getSelectedFile()
+				: null;
 	}
 
 	//------------------------------------------------------------------
@@ -805,13 +808,12 @@ public class CrosswordEditorApp
 	private File chooseSave(
 		File	file)
 	{
-		String filenameSuffix = AppConfig.INSTANCE.getFilenameSuffix();
-		saveFileChooser.setFileFilter(new FilenameSuffixFilter(AppConstants.CROSSWORD_FILES_STR, filenameSuffix));
+		FileChooserUtils.setFilter(saveFileChooser, createCrosswordFileFilter());
 		saveFileChooser.setSelectedFile((file == null) ? new File("") : file.getAbsoluteFile());
 		saveFileChooser.rescanCurrentDirectory();
-		return ((saveFileChooser.showSaveDialog(mainWindow) == JFileChooser.APPROVE_OPTION)
-								? Utils.appendSuffix(saveFileChooser.getSelectedFile(), filenameSuffix)
-								: null);
+		return (saveFileChooser.showSaveDialog(mainWindow) == JFileChooser.APPROVE_OPTION)
+				? Utils.appendSuffix(saveFileChooser.getSelectedFile(), AppConfig.INSTANCE.getFilenameSuffix())
+				: null;
 	}
 
 	//------------------------------------------------------------------
@@ -819,13 +821,11 @@ public class CrosswordEditorApp
 	private File chooseExportHtml(
 		File	file)
 	{
-		exportHtmlFileChooser.setSelectedFile((file == null) ? new File("")
-															 : file.getAbsoluteFile());
+		exportHtmlFileChooser.setSelectedFile((file == null) ? new File("") : file.getAbsoluteFile());
 		exportHtmlFileChooser.rescanCurrentDirectory();
-		return ((exportHtmlFileChooser.showSaveDialog(mainWindow) == JFileChooser.APPROVE_OPTION)
-									? Utils.appendSuffix(exportHtmlFileChooser.getSelectedFile(),
-														 AppConstants.HTML_FILENAME_EXTENSION)
-									: null);
+		return (exportHtmlFileChooser.showSaveDialog(mainWindow) == JFileChooser.APPROVE_OPTION)
+				? Utils.appendSuffix(exportHtmlFileChooser.getSelectedFile(), AppConstants.HTML_FILENAME_EXTENSION)
+				: null;
 	}
 
 	//------------------------------------------------------------------
@@ -1065,8 +1065,8 @@ public class CrosswordEditorApp
 				return;
 
 			// Update configuration properties
-			config.setHtmlStylesheetKind(result.stylesheetKind);
-			config.setHtmlCellSize(separator, result.cellSize);
+			config.setHtmlStylesheetKind(result.stylesheetKind());
+			config.setHtmlCellSize(separator, result.cellSize());
 
 			// Get pathname of HTML file from current document
 			File file = document.getExportHtmlFile();
@@ -1095,12 +1095,12 @@ public class CrosswordEditorApp
 			// Write HTML file
 			CrosswordDocument.StyleProperties styleProperties =
 							new CrosswordDocument.StyleProperties(config.getHtmlFontNames(), config.getHtmlFontSize(),
-																  result.cellSize, config.getHtmlGridColour(),
+																  result.cellSize(), config.getHtmlGridColour(),
 																  config.getHtmlEntryColour(),
 																  config.getHtmlFieldNumFontSizeFactor());
-			Task task = new Task.ExportDocumentAsHtml(document, file, result.stylesheetKind, styleProperties,
-													  result.writeStylesheet, result.writeBlockImage,
-													  result.writeEntries);
+			Task task = new Task.ExportDocumentAsHtml(document, file, result.stylesheetKind(), styleProperties,
+													  result.writeStylesheet(), result.writeBlockImage(),
+													  result.writeEntries());
 			TaskProgressDialog.showDialog(mainWindow, EXPORT_AS_HTML_STR, task);
 
 			// Show "View HTML file" message
