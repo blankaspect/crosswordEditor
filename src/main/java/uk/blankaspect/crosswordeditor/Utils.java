@@ -305,9 +305,6 @@ class Utils
 		NO_IMAGE_ON_CLIPBOARD
 		("There is no image on the clipboard."),
 
-		FAILED_TO_GET_IMAGE_FROM_CLIPBOARD
-		("Failed to get the image from the clipboard."),
-
 		CANNOT_GET_IMAGE_DIMENSIONS
 		("Cannot get the dimensions of the image.");
 
