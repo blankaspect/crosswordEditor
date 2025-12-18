@@ -372,69 +372,22 @@ public class CrosswordEditorApp
 			{
 				switch (command)
 				{
-					case CHECK_MODIFIED_FILE:
-						onCheckModifiedFile();
-						break;
-
-					case IMPORT_FILES:
-						onImportFiles();
-						break;
-
-					case CREATE_DOCUMENT:
-						onCreateDocument();
-						break;
-
-					case OPEN_DOCUMENT:
-						onOpenDocument();
-						break;
-
-					case REVERT_DOCUMENT:
-						onRevertDocument();
-						break;
-
-					case CLOSE_DOCUMENT:
-						onCloseDocument();
-						break;
-
-					case CLOSE_ALL_DOCUMENTS:
-						onCloseAllDocuments();
-						break;
-
-					case SAVE_DOCUMENT:
-						onSaveDocument();
-						break;
-
-					case SAVE_DOCUMENT_AS:
-						onSaveDocumentAs();
-						break;
-
-					case EXPORT_HTML_FILE:
-						onExportHtmlFile();
-						break;
-
-					case EXIT:
-						onExit();
-						break;
-
-					case CAPTURE_CROSSWORD:
-						onCaptureCrossword();
-						break;
-
-					case CREATE_SOLUTION_DOCUMENT:
-						onCreateSolutionDocument();
-						break;
-
-					case TOGGLE_SHOW_FULL_PATHNAMES:
-						onToggleShowFullPathnames();
-						break;
-
-					case MANAGE_FILE_ASSOCIATION:
-						onManageFileAssociation();
-						break;
-
-					case EDIT_PREFERENCES:
-						onEditPreferences();
-						break;
+					case CHECK_MODIFIED_FILE        -> onCheckModifiedFile();
+					case IMPORT_FILES               -> onImportFiles();
+					case CREATE_DOCUMENT            -> onCreateDocument();
+					case OPEN_DOCUMENT              -> onOpenDocument();
+					case REVERT_DOCUMENT            -> onRevertDocument();
+					case CLOSE_DOCUMENT             -> onCloseDocument();
+					case CLOSE_ALL_DOCUMENTS        -> onCloseAllDocuments();
+					case SAVE_DOCUMENT              -> onSaveDocument();
+					case SAVE_DOCUMENT_AS           -> onSaveDocumentAs();
+					case EXPORT_HTML_FILE           -> onExportHtmlFile();
+					case EXIT                       -> onExit();
+					case CAPTURE_CROSSWORD          -> onCaptureCrossword();
+					case CREATE_SOLUTION_DOCUMENT   -> onCreateSolutionDocument();
+					case TOGGLE_SHOW_FULL_PATHNAMES -> onToggleShowFullPathnames();
+					case MANAGE_FILE_ASSOCIATION    -> onManageFileAssociation();
+					case EDIT_PREFERENCES           -> onEditPreferences();
 				}
 			}
 			catch (AppException e)

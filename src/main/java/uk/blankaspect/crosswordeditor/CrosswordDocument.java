@@ -167,16 +167,16 @@ class CrosswordDocument
 	private static final	String	CLEAR_EDIT_LIST_STR		= "Do you want to clear all the undo/redo actions?";
 	private static final	String	CLEAR_CLUES_STR			= "Clear clues";
 	private static final	String	STYLESHEET_COMMENT_STR	= "Stylesheet for crossword : %s grid, cell size = %d";
-	private static final	String	IMPORT_ENTRIES_STR		= "Do you want to import the grid entries from the "
-																+ "clipboard?";
+	private static final	String	IMPORT_ENTRIES_STR		=
+			"Do you want to import the grid entries from the clipboard?";
 	private static final	String	CLEAR_ENTRIES_STR		= "Do you want to clear all the grid entries?";
 	private static final	String	SOLUTION_AND_PROPS_STR	= "solution and properties";
 	private static final	String	SHOW_SOLUTION1_STR		= "Do you want to show the solution?";
-	private static final	String	SHOW_SOLUTION2_STR		= "Do you want to replace the current entries with the "
-																+ "solution?";
+	private static final	String	SHOW_SOLUTION2_STR		=
+			"Do you want to replace the current entries with the solution?";
 	private static final	String	SHOW_STR				= "Show";
-	private static final	String	SET_SOLUTION_STR		= "Do you want to set the solution to the current grid "
-																+ "entries?";
+	private static final	String	SET_SOLUTION_STR		=
+			"Do you want to set the solution to the current grid entries?";
 	private static final	String	SET_STR					= "Set";
 	private static final	String	IMPORT_SOLUTION_STR		= "Do you want to import the solution from the clipboard?";
 	private static final	String	IMPORT_STR				= "Import";
@@ -190,14 +190,14 @@ class CrosswordDocument
 	private static final	String	MULTIPLE_CLUES_STR		= "Fields for which there are multiple clues";
 	private static final	String	NO_FIELD_STR			= "Clue IDs for which there is no field";
 	private static final	String	NO_REFERENCE_STR		= "Secondary clue IDs for which there is no reference";
-	private static final	String	MULTIPLE_REFERENCES_STR	= "Secondary clue IDs for which there are multiple "
-																+ "references";
+	private static final	String	MULTIPLE_REFERENCES_STR	=
+			"Secondary clue IDs for which there are multiple references";
 	private static final	String	INCORRECT_LENGTH_STR	= "Clues whose length is incorrect";
 	private static final	String	REF_NO_FIELD_STR		= "References to a non-existent field";
 	private static final	String	REF_NO_CLUE_STR			= "References to a non-existent clue";
 	private static final	String	REF_MULTIPLE_CLUES_STR	= "References to multiple clues";
-	private static final	String	REF_NOT_TARGET_ID_STR	= "References that are not a secondary ID of the reference "
-																+ "target";
+	private static final	String	REF_NOT_TARGET_ID_STR	=
+			"References that are not a secondary ID of the reference target";
 
 	private static final	Pattern	WORD_PATTERN		= Pattern.compile("([^ \\t]+?)([ \\t]+|\\z)");
 	private static final	Pattern	WORD_SPACE_PATTERN	= Pattern.compile("([^ \\t]+?[ \\t]*)([ \\t]|\\z)");
@@ -860,116 +860,36 @@ class CrosswordDocument
 		{
 			try
 			{
-				switch (command)
+				edit = switch (command)
 				{
-					case UNDO:
-						edit = onUndo();
-						break;
-
-					case REDO:
-						edit = onRedo();
-						break;
-
-					case CLEAR_EDIT_LIST:
-						edit = onClearEditList();
-						break;
-
-					case EDIT_CLUE:
-						edit = onEditClue();
-						break;
-
-					case EDIT_GRID:
-						edit = onEditGrid();
-						break;
-
-					case EDIT_TEXT_SECTIONS:
-						edit = onEditTextSections();
-						break;
-
-					case EDIT_INDICATIONS:
-						edit = onEditIndications();
-						break;
-
-					case SET_ENTRY_CHARACTER:
-						edit = onSetEntryCharacter();
-						break;
-
-					case COPY_CLUES_TO_CLIPBOARD:
-						edit = onCopyCluesToClipboard();
-						break;
-
-					case IMPORT_CLUES_FROM_CLIPBOARD:
-						edit = onImportCluesFromClipboard();
-						break;
-
-					case CLEAR_CLUES:
-						edit = onClearClues();
-						break;
-
-					case COPY_ENTRIES_TO_CLIPBOARD:
-						edit = onCopyEntriesToClipboard();
-						break;
-
-					case IMPORT_ENTRIES_FROM_CLIPBOARD:
-						edit = onImportEntriesFromClipboard();
-						break;
-
-					case CLEAR_ENTRIES:
-						edit = onClearEntries();
-						break;
-
-					case COPY_FIELD_NUMBERS_TO_CLIPBOARD:
-						edit = onCopyFieldNumbersToClipboard();
-						break;
-
-					case COPY_FIELD_IDS_TO_CLIPBOARD:
-						edit = onCopyFieldIdsToClipboard();
-						break;
-
-					case HIGHLIGHT_INCORRECT_ENTRIES:
-						edit = onHighlightIncorrectEntries();
-						break;
-
-					case SHOW_SOLUTION:
-						edit = onShowSolution();
-						break;
-
-					case SET_SOLUTION:
-						edit = onSetSolution();
-						break;
-
-					case IMPORT_SOLUTION_FROM_CLIPBOARD:
-						edit = onImportSolutionFromClipboard();
-						break;
-
-					case LOAD_SOLUTION:
-						edit = onLoadSolution();
-						break;
-
-					case CLEAR_SOLUTION:
-						edit = onClearSolution();
-						break;
-
-					case COPY_SOLUTION_TO_CLIPBOARD:
-						edit = onCopySolutionToClipboard();
-						break;
-
-					case EDIT_SOLUTION_PROPERTIES:
-						edit = onEditSolutionProperties();
-						break;
-
-					case TOGGLE_FIELD_NUMBERS:
-						edit = onToggleFieldNumbers();
-						break;
-
-					case TOGGLE_CLUES:
-						edit = onToggleClues();
-						break;
-
-					case RESIZE_WINDOW_TO_VIEW:
-						edit = onResizeWindowToView();
-						break;
-				}
+					case UNDO                            -> onUndo();
+					case REDO                            -> onRedo();
+					case CLEAR_EDIT_LIST                 -> onClearEditList();
+					case EDIT_CLUE                       -> onEditClue();
+					case EDIT_GRID                       -> onEditGrid();
+					case EDIT_TEXT_SECTIONS              -> onEditTextSections();
+					case EDIT_INDICATIONS                -> onEditIndications();
+					case SET_ENTRY_CHARACTER             -> onSetEntryCharacter();
+					case COPY_CLUES_TO_CLIPBOARD         -> onCopyCluesToClipboard();
+					case IMPORT_CLUES_FROM_CLIPBOARD     -> onImportCluesFromClipboard();
+					case CLEAR_CLUES                     -> onClearClues();
+					case COPY_ENTRIES_TO_CLIPBOARD       -> onCopyEntriesToClipboard();
+					case IMPORT_ENTRIES_FROM_CLIPBOARD   -> onImportEntriesFromClipboard();
+					case CLEAR_ENTRIES                   -> onClearEntries();
+					case COPY_FIELD_NUMBERS_TO_CLIPBOARD -> onCopyFieldNumbersToClipboard();
+					case COPY_FIELD_IDS_TO_CLIPBOARD     -> onCopyFieldIdsToClipboard();
+					case HIGHLIGHT_INCORRECT_ENTRIES     -> onHighlightIncorrectEntries();
+					case SHOW_SOLUTION                   -> onShowSolution();
+					case SET_SOLUTION                    -> onSetSolution();
+					case IMPORT_SOLUTION_FROM_CLIPBOARD  -> onImportSolutionFromClipboard();
+					case LOAD_SOLUTION                   -> onLoadSolution();
+					case CLEAR_SOLUTION                  -> onClearSolution();
+					case COPY_SOLUTION_TO_CLIPBOARD      -> onCopySolutionToClipboard();
+					case EDIT_SOLUTION_PROPERTIES        -> onEditSolutionProperties();
+					case TOGGLE_FIELD_NUMBERS            -> onToggleFieldNumbers();
+					case TOGGLE_CLUES                    -> onToggleClues();
+					case RESIZE_WINDOW_TO_VIEW           -> onResizeWindowToView();
+				};
 			}
 			catch (OutOfMemoryError e)
 			{

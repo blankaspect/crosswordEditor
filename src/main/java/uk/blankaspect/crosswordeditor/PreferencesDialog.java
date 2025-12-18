@@ -1204,15 +1204,13 @@ class PreferencesDialog
 			viewColours.put(colour, colour.get());
 
 		// List: colours
-		viewColoursList = new SelectionList<CrosswordView.Colour>(CrosswordView.Colour.values(), 0,
-																  VIEW_COLOURS_LIST_NUM_ROWS);
+		viewColoursList = new SelectionList<>(CrosswordView.Colour.values(), 0, VIEW_COLOURS_LIST_NUM_ROWS);
 		viewColoursList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		viewColoursList.setSelectedIndex(0);
 		viewColoursList.addListSelectionListener(this);
 
 		// Scroll pane: colours list
-		JScrollPane coloursListScrollPane = new JScrollPane(viewColoursList,
-															JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+		JScrollPane coloursListScrollPane = new JScrollPane(viewColoursList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 															JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		coloursListScrollPane.getVerticalScrollBar().setFocusable(false);
 		coloursListScrollPane.getHorizontalScrollBar().setFocusable(false);

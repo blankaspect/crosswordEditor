@@ -117,14 +117,15 @@ public class Salsa20
 ////////////////////////////////////////////////////////////////////////
 
 	/**
-	 * Creates an implementation of the Salsa20 stream cipher with a 256-bit key and the specified number of rounds of
-	 * the core hash function.
+	 * Creates a new instance of the Salsa20 stream cipher with a 256-bit key and the specified number of rounds of the
+	 * core hash function.
 	 *
 	 * @param numRounds
 	 *          the number of rounds of the core hash function that will be performed.
 	 */
 
-	public Salsa20(int numRounds)
+	public Salsa20(
+		int	numRounds)
 	{
 		// Initialise instance variables
 		this.numRounds = numRounds;
@@ -135,8 +136,8 @@ public class Salsa20
 	//------------------------------------------------------------------
 
 	/**
-	 * Creates an implementation of the Salsa20 stream cipher with a 256-bit key and the specified number of rounds of
-	 * the core hash function, and initialises the cipher with the specified key and nonce.
+	 * Creates a new instance of the Salsa20 stream cipher with a 256-bit key and the specified number of rounds of the
+	 * core hash function, and initialises the cipher with the specified key and nonce.
 	 *
 	 * @param  numRounds
 	 *           the number of rounds of the core hash function that will be performed.
@@ -152,9 +153,10 @@ public class Salsa20
 	 *           </ul>
 	 */
 
-	public Salsa20(int numRounds,
-				   int key[],
-				   int nonce[])
+	public Salsa20(
+		int	numRounds,
+		int	key[],
+		int	nonce[])
 	{
 		// Call alternative constructor
 		this(numRounds);
@@ -166,8 +168,8 @@ public class Salsa20
 	//------------------------------------------------------------------
 
 	/**
-	 * Creates an implementation of the Salsa20 stream cipher with a 256-bit key and the specified number of rounds of
-	 * the core hash function, and initialises the cipher with the specified key and nonce.
+	 * Creates a new instance of the Salsa20 stream cipher with a 256-bit key and the specified number of rounds of the
+	 * core hash function, and initialises the cipher with the specified key and nonce.
 	 *
 	 * @param  numRounds
 	 *           the number of rounds of the core hash function that will be performed.
@@ -183,9 +185,10 @@ public class Salsa20
 	 *           </ul>
 	 */
 
-	public Salsa20(int  numRounds,
-				   byte key[],
-				   byte nonce[])
+	public Salsa20(
+		int		numRounds,
+		byte	key[],
+		byte	nonce[])
 	{
 		// Call alternative constructor
 		this(numRounds);
@@ -212,7 +215,8 @@ public class Salsa20
 	 *           the Java platform is required to support the SHA-256 algorithm.)
 	 */
 
-	public static byte[] stringToKey(String str)
+	public static byte[] stringToKey(
+		String	str)
 	{
 		try
 		{
@@ -236,8 +240,9 @@ public class Salsa20
 	 * @return the 32-bit word that resulted from converting from the input sequence.
 	 */
 
-	public static int bytesToWord(byte[] data,
-								  int    offset)
+	public static int bytesToWord(
+		byte[]	data,
+		int		offset)
 	{
 		return (data[offset++] & 0xFF) | (data[offset++] & 0xFF) << 8 | (data[offset++] & 0xFF) << 16
 				| (data[offset++] & 0xFF) << 24;
@@ -257,9 +262,10 @@ public class Salsa20
 	 *          the offset in {@code buffer} at which the first byte of the sequence will be stored.
 	 */
 
-	public static void wordToBytes(int    value,
-								   byte[] buffer,
-								   int    offset)
+	public static void wordToBytes(
+		int		value,
+		byte[]	buffer,
+		int		offset)
 	{
 		buffer[offset++] = (byte)value;
 		buffer[offset++] = (byte)(value >>> 8);
@@ -280,9 +286,10 @@ public class Salsa20
 	 *          the number of rounds of the Salsa20 core hash function that will be performed.
 	 */
 
-	public static void hash(int[] inData,
-							int[] outBuffer,
-							int   numRounds)
+	public static void hash(
+		int[]	inData,
+		int[]	outBuffer,
+		int		numRounds)
 	{
 		// Initialise variables from the input data
 		int x0  = inData[0];
@@ -505,17 +512,13 @@ public class Salsa20
 	 */
 
 	@Override
-	public boolean equals(Object obj)
+	public boolean equals(
+		Object	obj)
 	{
 		if (this == obj)
 			return true;
 
-		if (obj instanceof Salsa20)
-		{
-			Salsa20 salsa20 = (Salsa20)obj;
-			return Arrays.equals(getId(), salsa20.getId());
-		}
-		return false;
+		return (obj instanceof Salsa20 other) && Arrays.equals(getId(), other.getId());
 	}
 
 	//------------------------------------------------------------------
@@ -625,7 +628,8 @@ public class Salsa20
 	 * @see   #getNextBlock(byte[], int)
 	 */
 
-	public void setBlockCounter(long counter)
+	public void setBlockCounter(
+		long	counter)
 	{
 		blockCounter = counter;
 	}
@@ -662,8 +666,9 @@ public class Salsa20
 	 * @see    #init(int[], int[])
 	 */
 
-	public void init(byte[] key,
-					 byte[] nonce)
+	public void init(
+		byte[]	key,
+		byte[]	nonce)
 	{
 		// Validate arguments
 		if (key == null)
@@ -715,8 +720,9 @@ public class Salsa20
 	 * @see    #init(byte[], byte[])
 	 */
 
-	public void init(int[] key,
-					 int[] nonce)
+	public void init(
+		int[]	key,
+		int[]	nonce)
 	{
 		// Validate arguments
 		if (key == null)
@@ -747,9 +753,10 @@ public class Salsa20
 	 * @see   #getNextBlock(byte[], int)
 	 */
 
-	public void getBlock(long   blockCounter,
-						 byte[] buffer,
-						 int    offset)
+	public void getBlock(
+		long	blockCounter,
+		byte[]	buffer,
+		int		offset)
 	{
 		// Set block counter in input block
 		inBlock[COUNTER_OFFSET] = (int)blockCounter;
@@ -783,8 +790,9 @@ public class Salsa20
 	 * @see   #getBlockCounter()
 	 */
 
-	public void getNextBlock(byte[] buffer,
-							 int    offset)
+	public void getNextBlock(
+		byte[]	buffer,
+		int		offset)
 	{
 		getBlock(blockCounter++, buffer, offset);
 	}
@@ -800,8 +808,9 @@ public class Salsa20
 	 *          the nonce.
 	 */
 
-	private void initBlock(int[] key,
-						   int[] nonce)
+	private void initBlock(
+		int[]	key,
+		int[]	nonce)
 	{
 		// Reset block counter
 		blockCounter = 0;
