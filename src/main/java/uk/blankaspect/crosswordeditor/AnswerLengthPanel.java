@@ -339,7 +339,7 @@ class AnswerLengthPanel
 	//  Methods
 	////////////////////////////////////////////////////////////////////
 
-		public JLabel createLabel(
+		JLabel createLabel(
 			String	text);
 
 		//--------------------------------------------------------------

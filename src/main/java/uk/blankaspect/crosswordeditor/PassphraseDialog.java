@@ -49,7 +49,7 @@ import uk.blankaspect.ui.swing.action.KeyAction;
 
 import uk.blankaspect.ui.swing.button.FButton;
 
-import uk.blankaspect.ui.swing.container.PassphrasePanel;
+import uk.blankaspect.ui.swing.container.PassphrasePane;
 
 import uk.blankaspect.ui.swing.label.FLabel;
 
@@ -106,7 +106,7 @@ class PassphraseDialog
 ////////////////////////////////////////////////////////////////////////
 
 	private	boolean			accepted;
-	private	PassphrasePanel	passphrasePanel;
+	private	PassphrasePane	passphrasePanel;
 	private	JButton			okButton;
 
 ////////////////////////////////////////////////////////////////////////
@@ -151,7 +151,7 @@ class PassphraseDialog
 		controlPanel.add(passphraseLabel);
 
 		// Panel: passphrase
-		passphrasePanel = new PassphrasePanel(PASSPHRASE_MAX_LENGTH, PASSPHRASE_FIELD_NUM_COLUMNS, true);
+		passphrasePanel = new PassphrasePane(PASSPHRASE_MAX_LENGTH, PASSPHRASE_FIELD_NUM_COLUMNS, true);
 		passphrasePanel.getField().getDocument().addDocumentListener(this);
 		passphrasePanel.getField().addMouseListener(this);
 

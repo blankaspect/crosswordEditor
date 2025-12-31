@@ -100,7 +100,7 @@ public abstract class AbstractDoubleSpinner
 		try
 		{
 			double value = getEditorValue();
-			double boundedValue = getBoundedValue(value);
+			double boundedValue = clampValue(value);
 			setDoubleValue(boundedValue);
 			if (alwaysUpdate || (value != boundedValue) || isEditorInvalid())
 				setEditorValue(boundedValue);
@@ -125,7 +125,7 @@ public abstract class AbstractDoubleSpinner
 	protected void incrementValue(int increment)
 	{
 		double stepSize = (Double)((SpinnerNumberModel)getModel()).getStepSize();
-		setDoubleValue(getBoundedValue(getDoubleValue() + (double)increment * stepSize));
+		setDoubleValue(clampValue(getDoubleValue() + (double)increment * stepSize));
 	}
 
 	//------------------------------------------------------------------
@@ -151,7 +151,7 @@ public abstract class AbstractDoubleSpinner
 	public void setMinimum(double minValue)
 	{
 		((SpinnerNumberModel)getModel()).setMinimum(minValue);
-		setDoubleValue(getBoundedValue(getDoubleValue()));
+		setDoubleValue(clampValue(getDoubleValue()));
 	}
 
 	//------------------------------------------------------------------
@@ -159,7 +159,7 @@ public abstract class AbstractDoubleSpinner
 	public void setMaximum(double maxValue)
 	{
 		((SpinnerNumberModel)getModel()).setMaximum(maxValue);
-		setDoubleValue(getBoundedValue(getDoubleValue()));
+		setDoubleValue(clampValue(getDoubleValue()));
 	}
 
 	//------------------------------------------------------------------
@@ -218,7 +218,7 @@ public abstract class AbstractDoubleSpinner
 
 	//------------------------------------------------------------------
 
-	protected double getBoundedValue(double value)
+	protected double clampValue(double value)
 	{
 		SpinnerNumberModel model = (SpinnerNumberModel)getModel();
 		double minValue = (Double)model.getMinimum();

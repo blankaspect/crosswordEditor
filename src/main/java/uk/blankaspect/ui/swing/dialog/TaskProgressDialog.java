@@ -480,7 +480,7 @@ public class TaskProgressDialog
 			SwingUtilities.invokeLater(() ->
 					infoField.setText((file == null)
 											? text
-											: pathnameText(text, getPathname(file), getFileSeparatorChar())));
+											: pathnameText(text, getPathname(file), File.separatorChar)));
 		}
 		else
 		{
@@ -616,13 +616,6 @@ public class TaskProgressDialog
 			pathname = file.getAbsolutePath();
 		}
 		return pathname;
-	}
-
-	//------------------------------------------------------------------
-
-	protected char getFileSeparatorChar()
-	{
-		return File.separatorChar;
 	}
 
 	//------------------------------------------------------------------
@@ -940,7 +933,7 @@ public class TaskProgressDialog
 			infoField.setText((url == null)
 									? (file == null)
 											? text
-											: pathnameText(text, getPathname(file), getFileSeparatorChar())
+											: pathnameText(text, getPathname(file), File.separatorChar)
 									: pathnameText(text, url.toString(), '/'));
 
 			for (int i = 0; i < progresses.length; i++)

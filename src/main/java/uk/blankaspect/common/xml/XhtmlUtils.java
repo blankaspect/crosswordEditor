@@ -392,7 +392,7 @@ public class XhtmlUtils
 						if (index >= 0)
 							name = CHAR_ENTITIES_SPECIAL[index].value;
 						else
-							name = ENTITY_VALUE_PREFIX + NumberUtils.uIntToHexString(ch, 4, '0');
+							name = ENTITY_VALUE_PREFIX + NumberUtils.uIntToHexStringUpper(ch, 4, '0');
 					}
 				}
 			}

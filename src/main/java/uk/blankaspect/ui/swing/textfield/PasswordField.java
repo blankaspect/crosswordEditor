@@ -2,7 +2,7 @@
 
 PasswordField.java
 
-Password field class.
+Class: password field.
 
 \*====================================================================*/
 
@@ -28,7 +28,7 @@ import javax.swing.text.PlainDocument;
 //----------------------------------------------------------------------
 
 
-// PASSWORD FIELD CLASS
+// CLASS: PASSWORD FIELD
 
 
 public class PasswordField
@@ -36,11 +36,103 @@ public class PasswordField
 {
 
 ////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	int	maxLength;
+
+////////////////////////////////////////////////////////////////////////
+//  Constructors
+////////////////////////////////////////////////////////////////////////
+
+	public PasswordField(
+		int	maxLength)
+	{
+		super(maxLength);
+		this.maxLength = maxLength;
+	}
+
+	//------------------------------------------------------------------
+
+	public PasswordField(
+		int		maxLength,
+		String	text)
+	{
+		this(maxLength);
+		setText(text);
+	}
+
+	//------------------------------------------------------------------
+
+	public PasswordField(
+		int	maxLength,
+		int	columns)
+	{
+		super(columns);
+		this.maxLength = (maxLength == 0) ? Integer.MAX_VALUE : maxLength;
+	}
+
+	//------------------------------------------------------------------
+
+	public PasswordField(
+		int		maxLength,
+		int		columns,
+		String	text)
+	{
+		this(maxLength, columns);
+		setText(text);
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods : overriding methods
+////////////////////////////////////////////////////////////////////////
+
+	@Override
+	protected Document createDefaultModel()
+	{
+		return new PasswordDocument();
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Instance methods
+////////////////////////////////////////////////////////////////////////
+
+	public boolean isEmpty()
+	{
+		Document document = getDocument();
+		return (document == null) ? true : (document.getLength() == 0);
+	}
+
+	//------------------------------------------------------------------
+
+	protected String translateInsertString(
+		String	str,
+		int		offset)
+	{
+		return str;
+	}
+
+	//------------------------------------------------------------------
+
+	protected boolean acceptCharacter(
+		char	ch,
+		int		index)
+	{
+		return !(Character.isISOControl(ch) || Character.isSurrogate(ch));
+	}
+
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
 //  Member classes : inner classes
 ////////////////////////////////////////////////////////////////////////
 
 
-	// PASSWORD DOCUMENT CLASS
+	// CLASS: PASSWORD DOCUMENT
 
 
 	private class PasswordDocument
@@ -68,9 +160,10 @@ public class PasswordField
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public void insertString(int          offset,
-								 String       str,
-								 AttributeSet attrSet)
+		public void insertString(
+			int				offset,
+			String			str,
+			AttributeSet	attrSet)
 			throws BadLocationException
 		{
 			// Test for offset beyond end of text
@@ -123,92 +216,6 @@ public class PasswordField
 	}
 
 	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
-//  Constructors
-////////////////////////////////////////////////////////////////////////
-
-	public PasswordField(int maxLength)
-	{
-		super(maxLength);
-		this.maxLength = maxLength;
-	}
-
-	//------------------------------------------------------------------
-
-	public PasswordField(int    maxLength,
-						 String text)
-	{
-		this(maxLength);
-		setText(text);
-	}
-
-	//------------------------------------------------------------------
-
-	public PasswordField(int maxLength,
-						 int columns)
-	{
-		super(columns);
-		this.maxLength = (maxLength == 0) ? Integer.MAX_VALUE : maxLength;
-	}
-
-	//------------------------------------------------------------------
-
-	public PasswordField(int    maxLength,
-						 int    columns,
-						 String text)
-	{
-		this(maxLength, columns);
-		setText(text);
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods : overriding methods
-////////////////////////////////////////////////////////////////////////
-
-	@Override
-	protected Document createDefaultModel()
-	{
-		return new PasswordDocument();
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods
-////////////////////////////////////////////////////////////////////////
-
-	public boolean isEmpty()
-	{
-		Document document = getDocument();
-		return (document == null) ? true : (document.getLength() == 0);
-	}
-
-	//------------------------------------------------------------------
-
-	protected String translateInsertString(String str,
-										   int    offset)
-	{
-		return str;
-	}
-
-	//------------------------------------------------------------------
-
-	protected boolean acceptCharacter(char ch,
-									  int  index)
-	{
-		return !(Character.isISOControl(ch) || Character.isSurrogate(ch));
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	int	maxLength;
 
 }
 

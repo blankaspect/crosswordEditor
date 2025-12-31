@@ -47,6 +47,8 @@ import uk.blankaspect.common.exception.FileException;
 
 import uk.blankaspect.common.filesystem.PathnameUtils;
 
+import uk.blankaspect.common.misc.SystemUtils;
+
 import uk.blankaspect.common.property.Property;
 import uk.blankaspect.common.property.PropertySet;
 
@@ -143,7 +145,6 @@ class AppConfig
 		String	SELECT_TEXT_ON_FOCUS_GAINED		= "selectTextOnFocusGained";
 		String	SELECTED_CLUE_NUM_COLUMNS		= "selectedClueNumColumns";
 		String	SHOW_FULL_PATHNAMES				= "showFullPathnames";
-		String	SHOW_UNIX_PATHNAMES				= "showUnixPathnames";
 		String	STATUS_TEXT_COLOUR				= "statusTextColour";
 		String	STYLESHEET_KIND					= "stylesheetKind";
 		String	TEXT_ANTIALIASING				= "textAntialiasing";
@@ -625,70 +626,6 @@ class AppConfig
 ////////////////////////////////////////////////////////////////////////
 //  Member classes : inner classes
 ////////////////////////////////////////////////////////////////////////
-
-
-	// PROPERTY CLASS: SHOW UNIX PATHNAMES
-
-
-	private class CPShowUnixPathnames
-		extends Property.BooleanProperty
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		private CPShowUnixPathnames()
-		{
-			super(concatenateKeys(Key.GENERAL, Key.SHOW_UNIX_PATHNAMES));
-			value = false;
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//------------------------------------------------------------------
-
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-//  Instance methods : associated methods in enclosing class
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-	public boolean isShowUnixPathnames()
-	{
-		return cpShowUnixPathnames.getValue();
-	}
-
-	//------------------------------------------------------------------
-
-	public void setShowUnixPathnames(boolean value)
-	{
-		cpShowUnixPathnames.setValue(value);
-	}
-
-	//------------------------------------------------------------------
-
-	public void addShowUnixPathnamesObserver(Property.IObserver observer)
-	{
-		cpShowUnixPathnames.addObserver(observer);
-	}
-
-	//------------------------------------------------------------------
-
-	public void removeShowUnixPathnamesObserver(Property.IObserver observer)
-	{
-		cpShowUnixPathnames.removeObserver(observer);
-	}
-
-	//------------------------------------------------------------------
-
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-//  Instance variables : associated variables in enclosing class
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-	private	CPShowUnixPathnames	cpShowUnixPathnames	= new CPShowUnixPathnames();
-
-	//==================================================================
 
 
 	// PROPERTY CLASS: SELECT TEXT ON FOCUS GAINED
@@ -1274,7 +1211,7 @@ class AppConfig
 		private CPOpenCrosswordPathname()
 		{
 			super(concatenateKeys(Key.PATH, Key.OPEN_CROSSWORD_DIRECTORY));
-			value = PathnameUtils.USER_HOME_PREFIX;
+			value = SystemUtils.userHomeDirectoryPathname();
 		}
 
 		//--------------------------------------------------------------
@@ -1331,7 +1268,7 @@ class AppConfig
 		private CPSaveCrosswordPathname()
 		{
 			super(concatenateKeys(Key.PATH, Key.SAVE_CROSSWORD_DIRECTORY));
-			value = PathnameUtils.USER_HOME_PREFIX;
+			value = SystemUtils.userHomeDirectoryPathname();
 		}
 
 		//--------------------------------------------------------------
@@ -1388,7 +1325,7 @@ class AppConfig
 		private CPExportHtmlPathname()
 		{
 			super(concatenateKeys(Key.PATH, Key.EXPORT_HTML_DIRECTORY));
-			value = PathnameUtils.USER_HOME_PREFIX;
+			value = SystemUtils.userHomeDirectoryPathname();
 		}
 
 		//--------------------------------------------------------------

@@ -97,8 +97,6 @@ class FileAssociationDialog
 
 	private static final	Insets	BUTTON_MARGINS	= new Insets(2, 4, 2, 4);
 
-	private static final	String	KEY	= FileAssociationDialog.class.getCanonicalName();
-
 	private static final	String	JAVA_LAUNCHER_PATHNAME	= "bin\\javaw.exe";
 
 	private static final	String	TITLE_STR				= "Windows file associations";
@@ -320,7 +318,6 @@ class FileAssociationDialog
 
 		// Panel: Java launcher pathname
 		javaLauncherPathnameField = new FPathnameField(javaLauncherPathname);
-		FPathnameField.addObserver(KEY, javaLauncherPathnameField);
 		JPanel javaLauncherPathnamePanel = new PathnamePanel(javaLauncherPathnameField,
 															 Command.CHOOSE_JAVA_LAUNCHER_FILE, this);
 
@@ -388,7 +385,6 @@ class FileAssociationDialog
 
 		// Panel: JAR pathname
 		jarPathnameField = new FPathnameField(jarPathname);
-		FPathnameField.addObserver(KEY, jarPathnameField);
 		JPanel jarPathnamePanel = new PathnamePanel(jarPathnameField, Command.CHOOSE_JAR_FILE, this);
 
 		gbc.gridx = 0;
@@ -439,7 +435,6 @@ class FileAssociationDialog
 
 		// Panel: icon pathname
 		iconPathnameField = new FPathnameField(iconPathname);
-		FPathnameField.addObserver(KEY, iconPathnameField);
 		JPanel iconPathnamePanel = new PathnamePanel(iconPathnameField, Command.CHOOSE_ICON_FILE, this);
 		actionComponents.add(iconPathnamePanel);
 
@@ -829,8 +824,6 @@ class FileAssociationDialog
 
 	private void onClose()
 	{
-		FPathnameField.removeObservers(KEY);
-
 		location = getLocation();
 		action = actionComboBox.getSelectedValue();
 		javaLauncherPathname = javaLauncherPathnameField.getText();

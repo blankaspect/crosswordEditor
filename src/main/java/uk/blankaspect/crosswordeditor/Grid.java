@@ -1425,12 +1425,10 @@ abstract class Grid
 
 		// Write start tag, solution
 		AttributeList attributes = new AttributeList();
-		NumberUtils.setLower();
 		EncryptionKind encryptionKind = passphrase.isEmpty() ? EncryptionKind.NONE : EncryptionKind.SALSA20;
 		attributes.add(AttrName.ENCRYPTION, encryptionKind.key);
-		attributes.add(AttrName.NONCE, NumberUtils.bytesToHexString(encodedSolution.nonce));
-		attributes.add(AttrName.HASH, NumberUtils.bytesToHexString(encodedSolution.hashValue));
-		NumberUtils.setUpper();
+		attributes.add(AttrName.NONCE,      NumberUtils.bytesToHexString(encodedSolution.nonce));
+		attributes.add(AttrName.HASH,       NumberUtils.bytesToHexString(encodedSolution.hashValue));
 		writer.writeElementStart(ElementName.SOLUTION, attributes, indent, true, true);
 
 		// Write solution, encoded as Base64
@@ -1457,10 +1455,8 @@ abstract class Grid
 		throws IOException
 	{
 		AttributeList attributes = new AttributeList();
-		NumberUtils.setLower();
 		attributes.add(AttrName.LOCATION, location, true);
-		attributes.add(AttrName.HASH, NumberUtils.bytesToHexString(hashValue));
-		NumberUtils.setUpper();
+		attributes.add(AttrName.HASH,     NumberUtils.bytesToHexString(hashValue));
 		writer.writeEmptyElement(ElementName.SOLUTION, attributes, indent, true);
 	}
 
@@ -2626,7 +2622,7 @@ abstract class Grid
 		//  Methods
 		////////////////////////////////////////////////////////////////
 
-			public boolean acceptField(
+			boolean acceptField(
 				Field	field);
 
 			//----------------------------------------------------------

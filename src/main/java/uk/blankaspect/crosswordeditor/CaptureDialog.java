@@ -37,8 +37,6 @@ import java.awt.image.BufferedImage;
 
 import java.io.File;
 
-import java.lang.invoke.MethodHandles;
-
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -225,8 +223,6 @@ class CaptureDialog
 			"A grid of %d columns by %d rows was found.\nDo you want to set the grid size to these values?";
 	private static final	String	NO_PARAM_SET_FILE_STR	=
 			"No parameter-set file has been specified in the user preferences.\nDo you want to choose a file?";
-
-	private static final	String	KEY	= MethodHandles.lookup().lookupClass().getName();
 
 	// Commands
 	private interface Command
@@ -1808,7 +1804,6 @@ class CaptureDialog
 
 		// Panel: document directory
 		documentDirectoryField = new FPathnameField();
-		FPathnameField.addObserver(KEY, documentDirectoryField);
 		JPanel documentDirectoryPanel =
 				new PathnamePanel(documentDirectoryField, Command.CHOOSE_DOCUMENT_DIRECTORY, this);
 
@@ -1841,7 +1836,6 @@ class CaptureDialog
 
 		// Panel: HTML directory
 		htmlDirectoryField = new FPathnameField();
-		FPathnameField.addObserver(KEY, htmlDirectoryField);
 		JPanel htmlDirectoryPanel =
 				new PathnamePanel(htmlDirectoryField, Command.CHOOSE_HTML_DIRECTORY, this);
 
@@ -2132,8 +2126,6 @@ class CaptureDialog
 
 	private void onClose()
 	{
-		FPathnameField.removeObservers(KEY);
-
 		location = getLocation();
 		tabIndex = tabbedPanel.getSelectedIndex();
 		setVisible(false);

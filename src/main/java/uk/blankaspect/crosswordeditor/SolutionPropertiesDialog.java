@@ -61,7 +61,7 @@ import uk.blankaspect.ui.swing.button.FButton;
 
 import uk.blankaspect.ui.swing.checkbox.FCheckBox;
 
-import uk.blankaspect.ui.swing.container.PassphrasePanel;
+import uk.blankaspect.ui.swing.container.PassphrasePane;
 
 import uk.blankaspect.ui.swing.label.FLabel;
 
@@ -258,7 +258,7 @@ class SolutionPropertiesDialog
 		controlPanel.add(passphraseLabel);
 
 		// Panel: passphrase
-		passphrasePanel = new PassphrasePanel(PASSPHRASE_MAX_LENGTH, PASSPHRASE_FIELD_NUM_COLUMNS, true);
+		passphrasePanel = new PassphrasePane(PASSPHRASE_MAX_LENGTH, PASSPHRASE_FIELD_NUM_COLUMNS, true);
 		PasswordField field = passphrasePanel.getField();
 		passphraseFieldBackgroundColour = field.getBackground();
 		field.setText(properties.getPassphrase());
@@ -623,7 +623,7 @@ class SolutionPropertiesDialog
 	private	byte[]			hashValue;
 	private	JCheckBox		saveSolutionWithDocumentCheckBox;
 	private	FTextField		locationField;
-	private	PassphrasePanel	passphrasePanel;
+	private	PassphrasePane	passphrasePanel;
 	private	Color			passphraseFieldBackgroundColour;
 
 }
