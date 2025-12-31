@@ -1,8 +1,8 @@
 /*====================================================================*\
 
-PassphrasePanel.java
+PassphrasePane.java
 
-Class: passphrase panel.
+Class: passphrase pane.
 
 \*====================================================================*/
 
@@ -55,10 +55,10 @@ import uk.blankaspect.ui.swing.textfield.PasswordField;
 //----------------------------------------------------------------------
 
 
-// CLASS: PASSPHRASE PANEL
+// CLASS: PASSPHRASE PANE
 
 
-public class PassphrasePanel
+public class PassphrasePane
 	extends JPanel
 	implements ActionListener
 {
@@ -99,7 +99,7 @@ public class PassphrasePanel
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	public PassphrasePanel(
+	public PassphrasePane(
 		int	numColumns)
 	{
 		this(0, numColumns, false);
@@ -107,7 +107,7 @@ public class PassphrasePanel
 
 	//------------------------------------------------------------------
 
-	public PassphrasePanel(
+	public PassphrasePane(
 		int	maxLength,
 		int	numColumns)
 	{
@@ -116,7 +116,7 @@ public class PassphrasePanel
 
 	//------------------------------------------------------------------
 
-	public PassphrasePanel(
+	public PassphrasePane(
 		int		numColumns,
 		boolean	warnIfClipboardNotCleared)
 	{
@@ -125,7 +125,7 @@ public class PassphrasePanel
 
 	//------------------------------------------------------------------
 
-	public PassphrasePanel(
+	public PassphrasePane(
 		int		maxLength,
 		int		numColumns,
 		boolean	warnIfClipboardNotCleared)
@@ -396,7 +396,7 @@ public class PassphrasePanel
 		public void actionPerformed(
 			ActionEvent	event)
 		{
-			PassphrasePanel.this.actionPerformed(event);
+			PassphrasePane.this.actionPerformed(event);
 		}
 
 		//--------------------------------------------------------------
