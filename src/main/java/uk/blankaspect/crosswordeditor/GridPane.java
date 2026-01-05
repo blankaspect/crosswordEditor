@@ -56,6 +56,8 @@ import uk.blankaspect.ui.swing.misc.GuiUtils;
 
 import uk.blankaspect.ui.swing.text.TextRendering;
 
+import uk.blankaspect.ui.swing.workaround.Workarounds01;
+
 //----------------------------------------------------------------------
 
 
@@ -369,25 +371,6 @@ abstract class GridPane
 		// Create copy of graphics context
 		Graphics2D gr2d = GuiUtils.copyGraphicsContext(gr);
 
-// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI monitor with a scale factor of 2
-		// Create procedure to draw rectangle
-		interface RectDrawer
-		{
-			void draw(
-				int	x,
-				int	y,
-				int	width,
-				int	height,
-				int	thickness);
-		}
-		RectDrawer rectDrawer = (x, y, width, height, thickness) ->
-		{
-			gr2d.fillRect(x, y, width, thickness);
-			gr2d.fillRect(x, y, thickness, height);
-			gr2d.fillRect(x + width - thickness, y, thickness, height);
-			gr2d.fillRect(x, y + height - thickness, width, thickness);
-		};
-
 		// Set rendering hints for text antialiasing and fractional metrics
 		TextRendering.setHints(gr2d);
 
@@ -462,9 +445,9 @@ abstract class GridPane
 			if (caretDrawnPosition != null)
 			{
 				gr2d.setColor(CrosswordView.Colour.CARET.get());
-// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI monitor with a scale factor of 2
+// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI display with a scale factor of 2
 //				gr2d.drawRect(x, y, cellSize - 2, cellSize - 2);
-				rectDrawer.draw(x, y, cellSize - 1, cellSize - 1, 1);
+				Workarounds01.drawRect(gr2d, x, y, cellSize - 1, cellSize - 1, 1);
 			}
 		}
 
@@ -542,7 +525,7 @@ abstract class GridPane
 			int y2 = getHeight() - 1;
 			for (column = 0; column <= numColumns; column++)
 			{
-// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI monitor with a scale factor of 2
+// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI display with a scale factor of 2
 //				gr2d.drawLine(x, y1, x, y2);
 				gr2d.fillRect(x, y1, 1, y2 + 1);
 				x += cellSize;
@@ -554,7 +537,7 @@ abstract class GridPane
 			int x2 = getWidth() - 1;
 			for (row = 0; row <= numRows; row++)
 			{
-// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI monitor with a scale factor of 2
+// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI display with a scale factor of 2
 //				gr2d.drawLine(x1, y, x2, y);
 				gr2d.fillRect(x1, y, x2 + 1, 1);
 				y += cellSize;
@@ -570,10 +553,10 @@ abstract class GridPane
 				y = editPosition.row * cellSize;
 				gr2d.setColor(isFocusOwner() ? CrosswordView.Colour.FOCUSED_EDITING_BOX.get()
 											 : CrosswordView.Colour.EDITING_BOX.get());
-// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI monitor with a scale factor of 2
+// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI display with a scale factor of 2
 //				gr2d.drawRect(x, y, cellSize, cellSize);
 //				gr2d.drawRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
-				rectDrawer.draw(x, y, cellSize + 1, cellSize + 1, 2);
+				Workarounds01.drawRect(gr2d, x, y, cellSize + 1, cellSize + 1, 2);
 			}
 
 			// Draw cell contents
@@ -628,9 +611,9 @@ abstract class GridPane
 					x = column * cellSize + 1;
 					y = row * cellSize + 1;
 					gr2d.setColor(CrosswordView.Colour.CARET.get());
-// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI monitor with a scale factor of 2
+// WORKAROUND : AWT/Swing doesn't scale the stroke width for a high-DPI display with a scale factor of 2
 //					gr2d.drawRect(x, y, cellSize - 2, cellSize - 2);
-					rectDrawer.draw(x, y, cellSize - 1, cellSize - 1, 1);
+					Workarounds01.drawRect(gr2d, x, y, cellSize - 1, cellSize - 1, 1);
 				}
 			}
 		}
@@ -1784,7 +1767,7 @@ abstract class GridPane
 	//  Constants
 	////////////////////////////////////////////////////////////////////
 
-		private static final	int	BLINK_INTERVAL	= 400;
+		private static final	int	BLINK_INTERVAL	= 500;
 
 	////////////////////////////////////////////////////////////////////
 	//  Instance variables
