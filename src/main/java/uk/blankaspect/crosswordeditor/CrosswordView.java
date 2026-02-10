@@ -1170,7 +1170,6 @@ class CrosswordView
 		private	Map<Direction, CluePane>	cluePanes;
 		private	TextSectionPane				prologuePane;
 		private	TextSectionPane				epiloguePane;
-		private	JPopupMenu					contextMenu;
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
@@ -1921,41 +1920,38 @@ class CrosswordView
 			if ((event == null) || event.isPopupTrigger())
 			{
 				// Create context menu
-				if (contextMenu == null)
-				{
-					contextMenu = new JPopupMenu();
+				JPopupMenu menu = new JPopupMenu();
 
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.EDIT_CLUE));
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.EDIT_GRID));
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.EDIT_TEXT_SECTIONS));
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.EDIT_INDICATIONS));
+				menu.add(new FMenuItem(CrosswordDocument.Command.EDIT_CLUE));
+				menu.add(new FMenuItem(CrosswordDocument.Command.EDIT_GRID));
+				menu.add(new FMenuItem(CrosswordDocument.Command.EDIT_TEXT_SECTIONS));
+				menu.add(new FMenuItem(CrosswordDocument.Command.EDIT_INDICATIONS));
 
-					contextMenu.addSeparator();
+				menu.addSeparator();
 
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.COPY_CLUES_TO_CLIPBOARD));
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.IMPORT_CLUES_FROM_CLIPBOARD));
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.CLEAR_CLUES));
+				menu.add(new FMenuItem(CrosswordDocument.Command.COPY_CLUES_TO_CLIPBOARD));
+				menu.add(new FMenuItem(CrosswordDocument.Command.IMPORT_CLUES_FROM_CLIPBOARD));
+				menu.add(new FMenuItem(CrosswordDocument.Command.CLEAR_CLUES));
 
-					contextMenu.addSeparator();
+				menu.addSeparator();
 
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.COPY_ENTRIES_TO_CLIPBOARD));
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.IMPORT_ENTRIES_FROM_CLIPBOARD));
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.CLEAR_ENTRIES));
+				menu.add(new FMenuItem(CrosswordDocument.Command.COPY_ENTRIES_TO_CLIPBOARD));
+				menu.add(new FMenuItem(CrosswordDocument.Command.IMPORT_ENTRIES_FROM_CLIPBOARD));
+				menu.add(new FMenuItem(CrosswordDocument.Command.CLEAR_ENTRIES));
 
-					contextMenu.addSeparator();
+				menu.addSeparator();
 
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.COPY_FIELD_NUMBERS_TO_CLIPBOARD));
-					contextMenu.add(new FMenuItem(CrosswordDocument.Command.COPY_FIELD_IDS_TO_CLIPBOARD));
-				}
+				menu.add(new FMenuItem(CrosswordDocument.Command.COPY_FIELD_NUMBERS_TO_CLIPBOARD));
+				menu.add(new FMenuItem(CrosswordDocument.Command.COPY_FIELD_IDS_TO_CLIPBOARD));
 
 				// Update commands for menu items
 				document.updateCommands();
 
 				// Display menu
 				if (event == null)
-					contextMenu.show(this, 0, 0);
+					menu.show(this, 0, 0);
 				else
-					contextMenu.show(event.getComponent(), event.getX(), event.getY());
+					menu.show(event.getComponent(), event.getX(), event.getY());
 			}
 		}
 

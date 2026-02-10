@@ -93,7 +93,6 @@ public class PassphrasePane
 	private	ActionMap						actionMap;
 	private	PasswordField					field;
 	private	AlternativeTextButton<String>	button;
-	private	JPopupMenu						contextMenu;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -268,19 +267,16 @@ public class PassphrasePane
 	public JPopupMenu getContextMenu()
 	{
 		// Create context menu
-		if (contextMenu == null)
-		{
-			contextMenu = new JPopupMenu();
-			contextMenu.add(new FMenuItem(getAction(Command.PASTE)));
-			contextMenu.addSeparator();
-			contextMenu.add(new FMenuItem(getAction(Command.SHOW_HIDE)));
-		}
+		JPopupMenu menu = new JPopupMenu();
+		menu.add(new FMenuItem(getAction(Command.PASTE)));
+		menu.addSeparator();
+		menu.add(new FMenuItem(getAction(Command.SHOW_HIDE)));
 
 		// Update actions for menu items
 		updateActions();
 
 		// Return menu
-		return contextMenu;
+		return menu;
 	}
 
 	//------------------------------------------------------------------

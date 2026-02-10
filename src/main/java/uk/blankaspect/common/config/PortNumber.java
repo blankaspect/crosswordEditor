@@ -44,10 +44,17 @@ public class PortNumber
 
 	private interface ErrorMsg
 	{
-		String	INVALID_PORT_NUMBER	= "The port number is invalid.";
-		String	NOT_A_FILE			= "The location does not denote a regular file";
-		String	ERROR_READING_FILE	= "An error occurred when reading the file";
-		String	ERROR_WRITING_FILE	= "An error occurred when writing the file";
+		String	INVALID_PORT_NUMBER =
+				"The port number is invalid.";
+
+		String	NOT_A_FILE =
+				"The location does not denote a regular file";
+
+		String	ERROR_READING_FILE =
+				"An error occurred when reading the file";
+
+		String	ERROR_WRITING_FILE =
+				"An error occurred when writing the file";
 	}
 
 ////////////////////////////////////////////////////////////////////////

@@ -2,7 +2,7 @@
 
 AbstractStatusPanel.java
 
-Abstract status panel class.
+Class: abstract status panel.
 
 \*====================================================================*/
 
@@ -40,7 +40,7 @@ import uk.blankaspect.ui.swing.text.TextUtils;
 //----------------------------------------------------------------------
 
 
-// ABSTRACT STATUS PANEL CLASS
+// CLASS: ABSTRACT STATUS PANEL
 
 
 abstract class AbstractStatusPanel
@@ -57,135 +57,17 @@ abstract class AbstractStatusPanel
 	private static final	int		VERTICAL_MARGIN	= 1;
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
+//  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-
-	// STATUS FIELD CLASS
-
-
-	protected static class StatusField
-		extends JComponent
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Constants
-	////////////////////////////////////////////////////////////////////
-
-		private static final	int		VERTICAL_MARGIN		= 1;
-		private static final	int		HORIZONTAL_MARGIN	= 6;
-		private static final	int		SEPARATOR_WIDTH		= 1;
-
-		private static final	Color	LINE_COLOUR	= Color.GRAY;
-
-		private static final	String	PROTOTYPE_STR	= " ".repeat(4);
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		protected StatusField()
-		{
-			// Set font
-			AppFont.MAIN.apply(this);
-
-			// Initialise instance variables
-			FontMetrics fontMetrics = getFontMetrics(getFont());
-			preferredWidth = 2 * HORIZONTAL_MARGIN + SEPARATOR_WIDTH +
-																fontMetrics.stringWidth(PROTOTYPE_STR);
-			preferredHeight = 2 * VERTICAL_MARGIN + fontMetrics.getAscent() + fontMetrics.getDescent();
-
-			// Set properties
-			setOpaque(true);
-			setFocusable(false);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
-	////////////////////////////////////////////////////////////////////
-
-		@Override
-		public Dimension getPreferredSize()
-		{
-			return new Dimension(preferredWidth, preferredHeight);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		protected void paintComponent(Graphics gr)
-		{
-			// Create copy of graphics context
-			Graphics2D gr2d = GuiUtils.copyGraphicsContext(gr);
-
-			// Get dimensions
-			int width = getWidth();
-			int height = getHeight();
-
-			// Draw background
-			gr2d.setColor(getBackground());
-			gr2d.fillRect(0, 0, width, height);
-
-			// Draw text
-			if (text != null)
-			{
-				// Set rendering hints for text antialiasing and fractional metrics
-				TextRendering.setHints(gr2d);
-
-				// Draw text
-				FontMetrics fontMetrics = gr2d.getFontMetrics();
-				int maxWidth = width - 2 * HORIZONTAL_MARGIN - SEPARATOR_WIDTH;
-				String str = TextUtils.getLimitedWidthString(text, fontMetrics, maxWidth, TextUtils.RemovalMode.END);
-				gr2d.setColor(AppConfig.INSTANCE.getStatusTextColour());
-				gr2d.drawString(str, HORIZONTAL_MARGIN, VERTICAL_MARGIN + fontMetrics.getAscent());
-			}
-
-			// Draw separator
-			int x = width - SEPARATOR_WIDTH;
-			gr2d.setColor(LINE_COLOUR);
-			gr2d.drawLine(x, 0, x, height - 1);
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance methods
-	////////////////////////////////////////////////////////////////////
-
-		protected void setText(String text)
-		{
-			if (!Objects.equals(text, this.text))
-			{
-				this.text = text;
-				int textWidth = getFontMetrics(getFont()).
-													stringWidth((text == null) ? PROTOTYPE_STR : text);
-				preferredWidth = 2 * HORIZONTAL_MARGIN + SEPARATOR_WIDTH + textWidth;
-				revalidate();
-				repaint();
-			}
-		}
-
-		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	int		preferredWidth;
-		private	int		preferredHeight;
-		private	String	text;
-
-	}
-
-	//==================================================================
+	private	boolean	topBorder;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	protected AbstractStatusPanel(boolean topBorder)
+	protected AbstractStatusPanel(
+		boolean	topBorder)
 	{
 		// Initialise instance variables
 		this.topBorder = topBorder;
@@ -258,7 +140,8 @@ abstract class AbstractStatusPanel
 	//------------------------------------------------------------------
 
 	@Override
-	protected void paintComponent(Graphics gr)
+	protected void paintComponent(
+		Graphics	gr)
 	{
 		// Call superclass method
 		super.paintComponent(gr);
@@ -274,10 +157,129 @@ abstract class AbstractStatusPanel
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Instance variables
+//  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
-	private	boolean	topBorder;
+
+	// CLASS: STATUS FIELD
+
+
+	protected static class StatusField
+		extends JComponent
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		private static final	int		VERTICAL_MARGIN		= 1;
+		private static final	int		HORIZONTAL_MARGIN	= 6;
+		private static final	int		SEPARATOR_WIDTH		= 1;
+
+		private static final	Color	LINE_COLOUR	= Color.GRAY;
+
+		private static final	String	PROTOTYPE_TEXT	= " ".repeat(4);
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	int		preferredWidth;
+		private	int		preferredHeight;
+		private	String	text;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		protected StatusField()
+		{
+			// Set font
+			AppFont.MAIN.apply(this);
+
+			// Initialise instance variables
+			FontMetrics fontMetrics = getFontMetrics(getFont());
+			preferredWidth = 2 * HORIZONTAL_MARGIN + SEPARATOR_WIDTH + fontMetrics.stringWidth(PROTOTYPE_TEXT);
+			preferredHeight = 2 * VERTICAL_MARGIN + fontMetrics.getAscent() + fontMetrics.getDescent();
+
+			// Set properties
+			setOpaque(true);
+			setFocusable(false);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public Dimension getPreferredSize()
+		{
+			return new Dimension(preferredWidth, preferredHeight);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		protected void paintComponent(
+			Graphics	gr)
+		{
+			// Create copy of graphics context
+			Graphics2D gr2d = GuiUtils.copyGraphicsContext(gr);
+
+			// Get dimensions
+			int width = getWidth();
+			int height = getHeight();
+
+			// Draw background
+			gr2d.setColor(getBackground());
+			gr2d.fillRect(0, 0, width, height);
+
+			// Draw text
+			if (text != null)
+			{
+				// Set rendering hints for text antialiasing and fractional metrics
+				TextRendering.setHints(gr2d);
+
+				// Draw text
+				FontMetrics fontMetrics = gr2d.getFontMetrics();
+				int maxWidth = width - 2 * HORIZONTAL_MARGIN - SEPARATOR_WIDTH;
+				String str = TextUtils.getLimitedWidthString(text, fontMetrics, maxWidth, TextUtils.RemovalMode.END);
+				gr2d.setColor(AppConfig.INSTANCE.getStatusTextColour());
+				gr2d.drawString(str, HORIZONTAL_MARGIN, VERTICAL_MARGIN + fontMetrics.getAscent());
+			}
+
+			// Draw separator
+			int x = width - SEPARATOR_WIDTH;
+			gr2d.setColor(LINE_COLOUR);
+			gr2d.drawLine(x, 0, x, height - 1);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		protected void setText(
+			String	text)
+		{
+			if (!Objects.equals(text, this.text))
+			{
+				this.text = text;
+				int textWidth = getFontMetrics(getFont()).stringWidth((text == null) ? PROTOTYPE_TEXT : text);
+				preferredWidth = 2 * HORIZONTAL_MARGIN + SEPARATOR_WIDTH + textWidth;
+				revalidate();
+				repaint();
+			}
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
 
 }
 

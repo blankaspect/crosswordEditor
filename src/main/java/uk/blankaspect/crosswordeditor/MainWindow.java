@@ -92,7 +92,6 @@ class MainWindow
 
 	private	TabbedPane	tabbedPanel;
 	private	StatusPanel	statusPanel;
-	private	JPopupMenu	contextMenu;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -526,23 +525,20 @@ class MainWindow
 		if (event.isPopupTrigger())
 		{
 			// Create context menu
-			if (contextMenu == null)
-			{
-				contextMenu = new JPopupMenu();
+			JPopupMenu menu = new JPopupMenu();
 
-				contextMenu.add(new FMenuItem(AppCommand.CREATE_DOCUMENT));
-				contextMenu.add(new FMenuItem(AppCommand.OPEN_DOCUMENT));
+			menu.add(new FMenuItem(AppCommand.CREATE_DOCUMENT));
+			menu.add(new FMenuItem(AppCommand.OPEN_DOCUMENT));
 
-				contextMenu.addSeparator();
+			menu.addSeparator();
 
-				contextMenu.add(new FMenuItem(AppCommand.CAPTURE_CROSSWORD));
-			}
+			menu.add(new FMenuItem(AppCommand.CAPTURE_CROSSWORD));
 
 			// Update commands for menu items
 			CrosswordEditorApp.INSTANCE.updateCommands();
 
 			// Display menu
-			contextMenu.show(event.getComponent(), event.getX(), event.getY());
+			menu.show(event.getComponent(), event.getX(), event.getY());
 		}
 	}
 

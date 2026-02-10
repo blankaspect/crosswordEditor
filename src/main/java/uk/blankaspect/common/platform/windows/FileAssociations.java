@@ -268,12 +268,23 @@ public class FileAssociations
 	/** Error messages. */
 	private interface ErrorMsg
 	{
-		String	FAILED_TO_CREATE_TEMPORARY_DIRECTORY	= "Failed to create a temporary directory.";
-		String	ERROR_WRITING_SCRIPT_FILE				= "An error occurred when writing the script file.";
-		String	FAILED_TO_EXECUTE_SCRIPT				= "Failed to execute the script.";
-		String	ERROR_EXECUTING_SCRIPT					= "An error occurred when executing the script.";
-		String	FAILED_TO_DELETE_SCRIPT_FILE			= "Failed to delete the script file.";
-		String	FAILED_TO_DELETE_TEMPORARY_DIRECTORY	= "Failed to delete the temporary directory.";
+		String	FAILED_TO_CREATE_TEMPORARY_DIRECTORY =
+				"Failed to create a temporary directory.";
+
+		String	ERROR_WRITING_SCRIPT_FILE =
+				"An error occurred when writing the script file.";
+
+		String	FAILED_TO_EXECUTE_SCRIPT =
+				"Failed to execute the script.";
+
+		String	ERROR_EXECUTING_SCRIPT =
+				"An error occurred when executing the script.";
+
+		String	FAILED_TO_DELETE_SCRIPT_FILE =
+				"Failed to delete the script file.";
+
+		String	FAILED_TO_DELETE_TEMPORARY_DIRECTORY =
+				"Failed to delete the temporary directory.";
 	}
 
 ////////////////////////////////////////////////////////////////////////

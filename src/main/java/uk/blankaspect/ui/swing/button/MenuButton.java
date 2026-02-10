@@ -116,6 +116,7 @@ public class MenuButton
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void actionPerformed(ActionEvent event)
 	{
 		if (event.getActionCommand().equals(Command.SHOW_MENU))
@@ -128,6 +129,7 @@ public class MenuButton
 //  Instance methods : ComponentListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void componentHidden(ComponentEvent event)
 	{
 		// do nothing
@@ -135,6 +137,7 @@ public class MenuButton
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void componentMoved(ComponentEvent event)
 	{
 		// do nothing
@@ -142,16 +145,17 @@ public class MenuButton
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void componentResized(ComponentEvent event)
 	{
 		// Update icon-text gap
-		int gap = (getWidth() - textWidth) / 2 - getIcon().getIconWidth() -
-																getBorder().getBorderInsets(this).right;
+		int gap = (getWidth() - textWidth) / 2 - getIcon().getIconWidth() - getBorder().getBorderInsets(this).right;
 		setIconTextGap(Math.max(MIN_ICON_TEXT_GAP, gap));
 	}
 
 	//------------------------------------------------------------------
 
+	@Override
 	public void componentShown(ComponentEvent event)
 	{
 		// do nothing

@@ -141,7 +141,6 @@ class GridDialog
 	private	JCheckBox					highlightFullyIntersectingCheckBox;
 	private	GridPane					gridPane;
 	private	Map<Direction, NumberField>	numFieldsFields;
-	private	JPopupMenu					contextMenu;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -529,13 +528,10 @@ class GridDialog
 		if ((event == null) || event.isPopupTrigger())
 		{
 			// Create context menu
-			if (contextMenu == null)
-			{
-				contextMenu = new JPopupMenu();
+			JPopupMenu menu = new JPopupMenu();
 
-				contextMenu.add(new FMenuItem(COMMANDS.get(Command.UNDO)));
-				contextMenu.add(new FMenuItem(COMMANDS.get(Command.REDO)));
-			}
+			menu.add(new FMenuItem(COMMANDS.get(Command.UNDO)));
+			menu.add(new FMenuItem(COMMANDS.get(Command.REDO)));
 
 			// Update commands
 			Grid grid = gridPane.getGrid();
@@ -544,9 +540,9 @@ class GridDialog
 
 			// Display menu
 			if (event == null)
-				contextMenu.show(getContentPane(), 0, 0);
+				menu.show(getContentPane(), 0, 0);
 			else
-				contextMenu.show(event.getComponent(), event.getX(), event.getY());
+				menu.show(event.getComponent(), event.getX(), event.getY());
 		}
 	}
 
@@ -629,7 +625,7 @@ class GridDialog
 		private static final	Color	BACKGROUND_COLOUR	= new Color(236, 244, 236);
 		private static final	Color	BORDER_COLOUR		= new Color(192, 196, 192);
 
-		private static final	String	PROTOTYPE_STR	= "000";
+		private static final	String	PROTOTYPE_TEXT	= "0".repeat(3);
 
 	////////////////////////////////////////////////////////////////////
 	//  Instance variables
@@ -651,7 +647,7 @@ class GridDialog
 
 			// Set preferred size
 			FontMetrics fontMetrics = getFontMetrics(getFont());
-			int width = 2 * HORIZONTAL_MARGIN + fontMetrics.stringWidth(PROTOTYPE_STR);
+			int width = 2 * HORIZONTAL_MARGIN + fontMetrics.stringWidth(PROTOTYPE_TEXT);
 			int height = 2 * VERTICAL_MARGIN + fontMetrics.getAscent() + fontMetrics.getDescent();
 			setPreferredSize(new Dimension(width, height));
 

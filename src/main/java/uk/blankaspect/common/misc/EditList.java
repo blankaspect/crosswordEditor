@@ -26,26 +26,28 @@ import java.util.LinkedList;
 // CLASS: EDIT LIST
 
 
-public class EditList<T>
+public class EditList
 {
 
 ////////////////////////////////////////////////////////////////////////
 //  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-	private	int						maxLength;
-	private	int						currentIndex;
-	private	int						unchangedIndex;
-	private	LinkedList<Element<T>>	elements;
+	protected	int					maxLength;
+	protected	int					currentIndex;
+	protected	int					unchangedIndex;
+	protected	LinkedList<IEdit>	edits;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	public EditList(int maxLength)
+	public EditList(
+		int	maxLength)
 	{
+		// Initialise instance variables
 		this.maxLength = maxLength;
-		elements = new LinkedList<>();
+		edits = new LinkedList<>();
 	}
 
 	//------------------------------------------------------------------
@@ -54,30 +56,30 @@ public class EditList<T>
 //  Instance methods
 ////////////////////////////////////////////////////////////////////////
 
-	public Element<T> getUndo()
+	public IEdit getUndo()
 	{
-		return canUndo() ? elements.get(currentIndex - 1) : null;
+		return canUndo() ? edits.get(currentIndex - 1) : null;
 	}
 
 	//------------------------------------------------------------------
 
-	public Element<T> getRedo()
+	public IEdit getRedo()
 	{
-		return canRedo() ? elements.get(currentIndex) : null;
+		return canRedo() ? edits.get(currentIndex) : null;
 	}
 
 	//------------------------------------------------------------------
 
-	public Element<T> removeUndo()
+	public IEdit removeUndo()
 	{
-		return canUndo() ? elements.get(--currentIndex) : null;
+		return canUndo() ? edits.get(--currentIndex) : null;
 	}
 
 	//------------------------------------------------------------------
 
-	public Element<T> removeRedo()
+	public IEdit removeRedo()
 	{
-		return canRedo() ? elements.get(currentIndex++) : null;
+		return canRedo() ? edits.get(currentIndex++) : null;
 	}
 
 	//------------------------------------------------------------------
@@ -91,14 +93,14 @@ public class EditList<T>
 
 	public boolean canRedo()
 	{
-		return (currentIndex < elements.size());
+		return (currentIndex < edits.size());
 	}
 
 	//------------------------------------------------------------------
 
 	public boolean isEmpty()
 	{
-		return elements.isEmpty();
+		return edits.isEmpty();
 	}
 
 	//------------------------------------------------------------------
@@ -117,20 +119,28 @@ public class EditList<T>
 
 	//------------------------------------------------------------------
 
-	public void add(Element<T> edit)
+	public void add(
+		IEdit	edit)
 	{
+		// Test whether to accept edit
+		if (!acceptEdit(edit))
+			return;
+
 		// Remove redos
-		while (elements.size() > currentIndex)
-			elements.removeLast();
+		while (edits.size() > currentIndex)
+			edits.removeLast();
 
 		// Preserve changed status if unchanged state cannot be recovered
 		if (unchangedIndex > currentIndex)
 			unchangedIndex = -1;
 
+		// Process edit
+		edit = processEdit(edit);
+
 		// Remove oldest edits while list is full
-		while (elements.size() >= maxLength)
+		while (edits.size() >= maxLength)
 		{
-			elements.removeFirst();
+			edits.removeFirst();
 			if (--unchangedIndex < 0)
 				unchangedIndex = -1;
 			if (--currentIndex < 0)
@@ -138,7 +148,7 @@ public class EditList<T>
 		}
 
 		// Add new edit
-		elements.add(edit);
+		edits.add(edit);
 		++currentIndex;
 	}
 
@@ -146,7 +156,7 @@ public class EditList<T>
 
 	public void clear()
 	{
-		elements.clear();
+		edits.clear();
 		unchangedIndex = currentIndex = 0;
 	}
 
@@ -154,48 +164,57 @@ public class EditList<T>
 
 	public void reset()
 	{
-		while (elements.size() > currentIndex)
-			elements.removeLast();
+		while (edits.size() > currentIndex)
+			edits.removeLast();
 
 		unchangedIndex = currentIndex;
 	}
 
 	//------------------------------------------------------------------
 
-////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
-////////////////////////////////////////////////////////////////////////
-
-
-	// CLASS: ELEMENT OF EDIT LIST
-
-
-	public static abstract class Element<T>
+	protected boolean acceptEdit(
+		IEdit	edit)
 	{
+		return true;
+	}
 
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
+	//------------------------------------------------------------------
 
-		protected Element()
-		{
-		}
+	protected IEdit processEdit(
+		IEdit	edit)
+	{
+		return edit;
+	}
 
-		//--------------------------------------------------------------
+	//------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////
+//  Member interfaces
+////////////////////////////////////////////////////////////////////////
+
+
+	// INTERFACE: EDIT
+
+
+	public interface IEdit
+	{
 
 	////////////////////////////////////////////////////////////////////
 	//  Abstract methods
 	////////////////////////////////////////////////////////////////////
 
-		public abstract String getText();
+		void undo();
 
 		//--------------------------------------------------------------
 
-		public abstract void undo(T model);
+		void redo();
 
 		//--------------------------------------------------------------
 
-		public abstract void redo(T model);
+		default String text()
+		{
+			return null;
+		}
 
 		//--------------------------------------------------------------
 

@@ -12,6 +12,8 @@ Class: CSS selector.
 
 package uk.blankaspect.common.css;
 
+import uk.blankaspect.common.string.StringUtils;
+
 //----------------------------------------------------------------------
 
 
@@ -98,6 +100,18 @@ public class CssSelector
 	//  Instance methods
 	////////////////////////////////////////////////////////////////////
 
+		public Builder element(
+			String	elementName)
+		{
+			// Add element name
+			buffer.append(elementName);
+
+			// Return this builder
+			return this;
+		}
+
+		//--------------------------------------------------------------
+
 		public Builder id(
 			String	id)
 		{
@@ -111,10 +125,26 @@ public class CssSelector
 		//--------------------------------------------------------------
 
 		public Builder cls(
-			String	name)
+			String	className)
 		{
 			// Add prefix and name of class
-			buffer.append(CLASS).append(name);
+			buffer.append(CLASS).append(className);
+
+			// Return this builder
+			return this;
+		}
+
+		//--------------------------------------------------------------
+
+		public Builder cls(
+			String	elementName,
+			String	className)
+		{
+			// Add element name
+			buffer.append(elementName);
+
+			// Add prefix and name of class
+			buffer.append(CLASS).append(className);
 
 			// Return this builder
 			return this;
@@ -123,10 +153,27 @@ public class CssSelector
 		//--------------------------------------------------------------
 
 		public Builder pseudo(
-			String...	names)
+			String...	pseudoClassNames)
 		{
 			// Add prefix and name of each pseudo-class
-			for (String name : names)
+			for (String name : pseudoClassNames)
+				buffer.append(PSEUDO_CLASS).append(name);
+
+			// Return this builder
+			return this;
+		}
+
+		//--------------------------------------------------------------
+
+		public Builder elementPseudo(
+			String		elementName,
+			String...	pseudoClassNames)
+		{
+			// Add element name
+			buffer.append(elementName);
+
+			// Add prefix and name of each pseudo-class
+			for (String name : pseudoClassNames)
 				buffer.append(PSEUDO_CLASS).append(name);
 
 			// Return this builder
@@ -136,13 +183,26 @@ public class CssSelector
 		//--------------------------------------------------------------
 
 		public Builder child(
-			String	name)
+			String	className)
 		{
 			// Add combinator
 			buffer.append(CHILD);
 
 			// Add prefix and name of class; return this builder
-			return cls(name);
+			return cls(className);
+		}
+
+		//--------------------------------------------------------------
+
+		public Builder child(
+			String	elementName,
+			String	className)
+		{
+			// Add combinator
+			buffer.append(CHILD);
+
+			// Add name of element, prefix and name of class; return this builder
+			return StringUtils.isNullOrEmpty(className) ? element(elementName) : cls(elementName, className);
 		}
 
 		//--------------------------------------------------------------
@@ -160,13 +220,26 @@ public class CssSelector
 		//--------------------------------------------------------------
 
 		public Builder desc(
-			String	name)
+			String	className)
 		{
 			// Add combinator
 			buffer.append(DESCENDANT);
 
 			// Add prefix and name of class; return this builder
-			return cls(name);
+			return cls(className);
+		}
+
+		//--------------------------------------------------------------
+
+		public Builder desc(
+			String	elementName,
+			String	className)
+		{
+			// Add combinator
+			buffer.append(DESCENDANT);
+
+			// Add name of element, prefix and name of class; return this builder
+			return StringUtils.isNullOrEmpty(className) ? element(elementName) : cls(elementName, className);
 		}
 
 		//--------------------------------------------------------------

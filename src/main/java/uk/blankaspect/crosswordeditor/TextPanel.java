@@ -172,7 +172,6 @@ class TextPanel
 	private	TextAreaUndoManager	undoManager;
 	private	FTextArea			textArea;
 	private	StyleButtonPanel	styleButtonPanel;
-	private	JPopupMenu			contextMenu;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -518,19 +517,16 @@ class TextPanel
 		if ((event == null) || event.isPopupTrigger())
 		{
 			// Create context menu
-			if (contextMenu == null)
-			{
-				contextMenu = new JPopupMenu();
+			JPopupMenu menu = new JPopupMenu();
 
-				contextMenu.add(new FMenuItem(COMMANDS.get(Command.UNDO)));
-				contextMenu.add(new FMenuItem(COMMANDS.get(Command.REDO)));
+			menu.add(new FMenuItem(COMMANDS.get(Command.UNDO)));
+			menu.add(new FMenuItem(COMMANDS.get(Command.REDO)));
 
-				contextMenu.addSeparator();
+			menu.addSeparator();
 
-				contextMenu.add(new FMenuItem(COMMANDS.get(Command.CUT)));
-				contextMenu.add(new FMenuItem(COMMANDS.get(Command.COPY)));
-				contextMenu.add(new FMenuItem(COMMANDS.get(Command.PASTE)));
-			}
+			menu.add(new FMenuItem(COMMANDS.get(Command.CUT)));
+			menu.add(new FMenuItem(COMMANDS.get(Command.COPY)));
+			menu.add(new FMenuItem(COMMANDS.get(Command.PASTE)));
 
 			// Update commands
 			COMMANDS.get(Command.UNDO).setEnabled(undoManager.canUndo());
@@ -541,9 +537,9 @@ class TextPanel
 
 			// Display menu
 			if (event == null)
-				contextMenu.show(this, 0, 0);
+				menu.show(this, 0, 0);
 			else
-				contextMenu.show(event.getComponent(), event.getX(), event.getY());
+				menu.show(event.getComponent(), event.getX(), event.getY());
 		}
 	}
 

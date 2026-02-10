@@ -85,6 +85,13 @@ class BarGrid
 	}
 
 ////////////////////////////////////////////////////////////////////////
+//  Instance variables
+////////////////////////////////////////////////////////////////////////
+
+	private	Cell[][]	cells;
+	private	EditList	editList;
+
+////////////////////////////////////////////////////////////////////////
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
@@ -229,7 +236,7 @@ class BarGrid
 		// Initialise instance variables
 		this(grid.numColumns, grid.numRows);
 		symmetry = grid.symmetry;
-		editList = new EditList<>(AppConfig.INSTANCE.getMaxEditListLength());
+		editList = new EditList(AppConfig.INSTANCE.getMaxEditListLength());
 
 		// Initialise cells
 		for (int row = 0; row < numRows; row++)
@@ -535,9 +542,9 @@ class BarGrid
 	@Override
 	public void undoEdit()
 	{
-		EditList.Element<BarGrid> edit = editList.removeUndo();
+		EditList.IEdit edit = editList.removeUndo();
 		if (edit != null)
-			edit.undo(this);
+			edit.undo();
 	}
 
 	//------------------------------------------------------------------
@@ -553,9 +560,9 @@ class BarGrid
 	@Override
 	public void redoEdit()
 	{
-		EditList.Element<BarGrid> edit = editList.removeRedo();
+		EditList.IEdit edit = editList.removeRedo();
 		if (edit != null)
-			edit.redo(this);
+			edit.redo();
 	}
 
 	//------------------------------------------------------------------
@@ -853,13 +860,6 @@ class BarGrid
 	}
 
 	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance variables
-////////////////////////////////////////////////////////////////////////
-
-	private	Cell[][]			cells;
-	private	EditList<BarGrid>	editList;
 
 ////////////////////////////////////////////////////////////////////////
 //  Enumerated types
@@ -1255,12 +1255,16 @@ class BarGrid
 
 	//==================================================================
 
+////////////////////////////////////////////////////////////////////////
+//  Member classes : inner classes
+////////////////////////////////////////////////////////////////////////
+
 
 	// CLASS: EDIT
 
 
-	private static class Edit
-		extends EditList.Element<BarGrid>
+	private class Edit
+		implements EditList.IEdit
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -1291,37 +1295,27 @@ class BarGrid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
+	//  Instance methods : EditList.IEdit interface
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public String getText()
-		{
-			return null;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(
-			BarGrid	grid)
+		public void undo()
 		{
 			if (oldSymmetry != null)
-				grid.symmetry = oldSymmetry;
-			grid.cells = oldCells;
-			grid.initFields();
+				symmetry = oldSymmetry;
+			cells = oldCells;
+			initFields();
 		}
 
 		//--------------------------------------------------------------
 
 		@Override
-		public void redo(
-			BarGrid	grid)
+		public void redo()
 		{
 			if (newSymmetry != null)
-				grid.symmetry = newSymmetry;
-			grid.cells = newCells;
-			grid.initFields();
+				symmetry = newSymmetry;
+			cells = newCells;
+			initFields();
 		}
 
 		//--------------------------------------------------------------

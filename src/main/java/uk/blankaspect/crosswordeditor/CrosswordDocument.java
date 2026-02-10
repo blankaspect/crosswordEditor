@@ -2,7 +2,7 @@
 
 CrosswordDocument.java
 
-Crossword document class.
+Class: crossword document.
 
 \*====================================================================*/
 
@@ -97,7 +97,7 @@ import uk.blankaspect.ui.swing.image.PngOutputFile;
 //----------------------------------------------------------------------
 
 
-// CROSSWORD DOCUMENT CLASS
+// CLASS: CROSSWORD DOCUMENT
 
 
 class CrosswordDocument
@@ -370,7 +370,7 @@ class CrosswordDocument
 	private	Grid						grid;
 	private	Map<Direction, List<Clue>>	clueLists;
 	private	SolutionProperties			solutionProperties;
-	private	EditList<CrosswordDocument>	editList;
+	private	EditList					editList;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -389,7 +389,7 @@ class CrosswordDocument
 		showClues = true;
 		clueLists = new EnumMap<>(Direction.class);
 		solutionProperties = new SolutionProperties();
-		editList = new EditList<>(config.getMaxEditListLength());
+		editList = new EditList(config.getMaxEditListLength());
 	}
 
 	//------------------------------------------------------------------
@@ -817,14 +817,14 @@ class CrosswordDocument
 		boolean isEntries = !grid.isEntriesEmpty();
 
 		Command.UNDO.setEnabled(editList.canUndo());
-		EditList.Element<CrosswordDocument> edit = editList.getUndo();
-		String text = (edit == null) ? null : edit.getText();
+		EditList.IEdit edit = editList.getUndo();
+		String text = (edit == null) ? null : edit.text();
 		text = StringUtils.isNullOrEmpty(text) ? UNDO_STR : UNDO_STR + " " + text;
 		Command.UNDO.putValue(Action.NAME, text);
 
 		Command.REDO.setEnabled(editList.canRedo());
 		edit = editList.getRedo();
-		text = (edit == null) ? null : edit.getText();
+		text = (edit == null) ? null : edit.text();
 		text = StringUtils.isNullOrEmpty(text) ? REDO_STR : REDO_STR + " " + text;
 		Command.REDO.putValue(Action.NAME, text);
 
@@ -855,7 +855,7 @@ class CrosswordDocument
 		executingCommand = true;
 
 		// Perform command
-		EditList.Element<CrosswordDocument> edit = null;
+		EditList.IEdit edit = null;
 		try
 		{
 			try
@@ -2049,8 +2049,8 @@ class CrosswordDocument
 			}
 			catch (AppException e)
 			{
-				if (e instanceof XmlParseException)
-					e = xmlParseExceptionExtender.extend((XmlParseException)e);
+				if (e instanceof XmlParseException xpe)
+					e = xmlParseExceptionExtender.extend(xpe);
 				if (solutionRequired)
 				{
 					CrosswordEditorApp.INSTANCE.showErrorMessage(READ_SOLUTION_STR, e);
@@ -2475,27 +2475,27 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onUndo()
+	private EditList.IEdit onUndo()
 	{
-		EditList.Element<CrosswordDocument> edit = editList.removeUndo();
+		EditList.IEdit edit = editList.removeUndo();
 		if (edit != null)
-			edit.undo(this);
+			edit.undo();
 		return null;
 	}
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onRedo()
+	private EditList.IEdit onRedo()
 	{
-		EditList.Element<CrosswordDocument> edit = editList.removeRedo();
+		EditList.IEdit edit = editList.removeRedo();
 		if (edit != null)
-			edit.redo(this);
+			edit.redo();
 		return null;
 	}
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onClearEditList()
+	private EditList.IEdit onClearEditList()
 	{
 		String[] optionStrs = Utils.getOptionStrings(AppConstants.CLEAR_STR);
 		if (JOptionPane.showOptionDialog(getWindow(), CLEAR_EDIT_LIST_STR, CrosswordEditorApp.SHORT_NAME,
@@ -2510,9 +2510,9 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onEditClue()
+	private CluesEdit onEditClue()
 	{
-		EditList.Element<CrosswordDocument> edit = null;
+		CluesEdit edit = null;
 
 		// Get selected clue
 		Clue.Id clueId = getView().getSelectedClueId();
@@ -2616,9 +2616,9 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onEditGrid()
+	private GridEdit onEditGrid()
 	{
-		EditList.Element<CrosswordDocument> edit = null;
+		GridEdit edit = null;
 		Grid grid = GridDialog.showDialog(getWindow(), this);
 		if (grid != null)
 		{
@@ -2633,7 +2633,7 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onEditTextSections()
+	private TextSectionsEdit onEditTextSections()
 	{
 		TextSectionsEdit edit = null;
 		TextSectionsDialog.Result result = TextSectionsDialog.showDialog(getWindow(), title, lineBreak,
@@ -2667,7 +2667,7 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onEditIndications()
+	private IndicationsEdit onEditIndications()
 	{
 		IndicationsEdit edit = null;
 		IndicationsDialog.Params params = new IndicationsDialog.Params(clueReferenceKeyword, answerLengthPattern,
@@ -2688,7 +2688,7 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onSetEntryCharacter()
+	private GridEntryCharEdit onSetEntryCharacter()
 	{
 		Grid.EntryValue entryValue = (Grid.EntryValue)Command.SET_ENTRY_CHARACTER
 																		.getValue(Command.Property.GRID_ENTRY_VALUE);
@@ -2700,7 +2700,7 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onCopyCluesToClipboard()
+	private EditList.IEdit onCopyCluesToClipboard()
 		throws AppException
 	{
 		StringBuilder buffer = new StringBuilder(4096);
@@ -2723,10 +2723,10 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onImportCluesFromClipboard()
+	private ClueListsEdit onImportCluesFromClipboard()
 		throws AppException
 	{
-		EditList.Element<CrosswordDocument> edit = null;
+		ClueListsEdit edit = null;
 		Clue.AnswerLengthParser answerLengthParser =
 				(answerLengthPattern == null)
 						? null
@@ -2776,9 +2776,9 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onClearClues()
+	private CluesEdit onClearClues()
 	{
-		EditList.Element<CrosswordDocument> edit = null;
+		CluesEdit edit = null;
 		Boolean clearWithEmptyClue = ClearCluesDialog.showDialog(getWindow());
 		if (clearWithEmptyClue != null)
 		{
@@ -2812,7 +2812,7 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onCopyEntriesToClipboard()
+	private EditList.IEdit onCopyEntriesToClipboard()
 		throws AppException
 	{
 		Utils.putClipboardText(grid.getEntriesString("\n") + "\n");
@@ -2821,10 +2821,10 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onImportEntriesFromClipboard()
+	private GridEntriesEdit onImportEntriesFromClipboard()
 		throws AppException
 	{
-		EditList.Element<CrosswordDocument> edit = null;
+		GridEntriesEdit edit = null;
 		String[] optionStrs = Utils.getOptionStrings(IMPORT_STR);
 		if (JOptionPane.showOptionDialog(getWindow(), IMPORT_ENTRIES_STR, CrosswordEditorApp.SHORT_NAME,
 										 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, optionStrs,
@@ -2840,9 +2840,9 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onClearEntries()
+	private GridEntriesEdit onClearEntries()
 	{
-		EditList.Element<CrosswordDocument> edit = null;
+		GridEntriesEdit edit = null;
 		String[] optionStrs = Utils.getOptionStrings(AppConstants.CLEAR_STR);
 		if (JOptionPane.showOptionDialog(getWindow(), CLEAR_ENTRIES_STR, CrosswordEditorApp.SHORT_NAME,
 										 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, optionStrs,
@@ -2860,7 +2860,7 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onCopyFieldNumbersToClipboard()
+	private EditList.IEdit onCopyFieldNumbersToClipboard()
 		throws AppException
 	{
 		StringBuilder buffer = new StringBuilder(256);
@@ -2880,7 +2880,7 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onCopyFieldIdsToClipboard()
+	private EditList.IEdit onCopyFieldIdsToClipboard()
 		throws AppException
 	{
 		StringBuilder buffer = new StringBuilder(256);
@@ -2900,7 +2900,7 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onHighlightIncorrectEntries()
+	private EditList.IEdit onHighlightIncorrectEntries()
 	{
 		grid.checkEntries();
 		getView().redrawGrid();
@@ -2909,9 +2909,9 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onShowSolution()
+	private GridEntriesEdit onShowSolution()
 	{
-		EditList.Element<CrosswordDocument> edit = null;
+		GridEntriesEdit edit = null;
 		String messageStr = grid.isEntriesEmpty() ? SHOW_SOLUTION1_STR : SHOW_SOLUTION2_STR;
 		String[] optionStrs = Utils.getOptionStrings(SHOW_STR);
 		if (JOptionPane.showOptionDialog(getWindow(), messageStr, CrosswordEditorApp.SHORT_NAME,
@@ -2929,9 +2929,9 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onSetSolution()
+	private EditList.IEdit onSetSolution()
 	{
-		EditList.Element<CrosswordDocument> edit = null;
+		EditList.IEdit edit = null;
 		String[] optionStrs = Utils.getOptionStrings(SET_STR);
 		if (JOptionPane.showOptionDialog(getWindow(), SET_SOLUTION_STR, CrosswordEditorApp.SHORT_NAME,
 										 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, optionStrs,
@@ -2953,10 +2953,10 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onImportSolutionFromClipboard()
+	private SolutionEdit onImportSolutionFromClipboard()
 		throws AppException
 	{
-		EditList.Element<CrosswordDocument> edit = null;
+		SolutionEdit edit = null;
 		String[] optionStrs = Utils.getOptionStrings(IMPORT_STR);
 		if (JOptionPane.showOptionDialog(getWindow(), IMPORT_SOLUTION_STR, CrosswordEditorApp.SHORT_NAME,
 										 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, optionStrs,
@@ -2971,10 +2971,10 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onLoadSolution()
+	private SolutionEdit onLoadSolution()
 		throws AppException
 	{
-		EditList.Element<CrosswordDocument> edit = null;
+		SolutionEdit edit = null;
 		String[] optionStrs = Utils.getOptionStrings(LOAD_STR);
 		String messageStr = LOCATION_STR + solutionProperties.location + "\n" + LOAD_SOLUTION2_STR;
 		if (JOptionPane.showOptionDialog(getWindow(), messageStr, CrosswordEditorApp.SHORT_NAME,
@@ -3013,9 +3013,9 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onClearSolution()
+	private SolutionEdit onClearSolution()
 	{
-		EditList.Element<CrosswordDocument> edit = null;
+		SolutionEdit edit = null;
 		String[] optionStrs = Utils.getOptionStrings(AppConstants.CLEAR_STR);
 		if (JOptionPane.showOptionDialog(getWindow(), CLEAR_SOLUTION_STR, CrosswordEditorApp.SHORT_NAME,
 										 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, optionStrs,
@@ -3030,7 +3030,7 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onCopySolutionToClipboard()
+	private EditList.IEdit onCopySolutionToClipboard()
 		throws AppException
 	{
 		Utils.putClipboardText(grid.getSolutionString("\n") + "\n");
@@ -3039,9 +3039,9 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onEditSolutionProperties()
+	private SolutionPropertiesEdit onEditSolutionProperties()
 	{
-		EditList.Element<CrosswordDocument> edit = null;
+		SolutionPropertiesEdit edit = null;
 		SolutionProperties result = SolutionPropertiesDialog.showDialog(getWindow(), solutionProperties);
 		if (result != null)
 		{
@@ -3054,7 +3054,7 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onToggleFieldNumbers()
+	private EditList.IEdit onToggleFieldNumbers()
 	{
 		showFieldNumbers = !showFieldNumbers;
 		CrosswordView view = getView();
@@ -3065,7 +3065,7 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onToggleClues()
+	private EditList.IEdit onToggleClues()
 	{
 		showClues = !showClues;
 		CrosswordView view = getView();
@@ -3079,7 +3079,7 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private EditList.Element<CrosswordDocument> onResizeWindowToView()
+	private EditList.IEdit onResizeWindowToView()
 	{
 		CrosswordView view = getView();
 		if (view != null)
@@ -3736,12 +3736,16 @@ class CrosswordDocument
 
 	//==================================================================
 
+////////////////////////////////////////////////////////////////////////
+//  Member classes : inner classes
+////////////////////////////////////////////////////////////////////////
+
 
 	// GRID EDIT CLASS
 
 
-	private static class GridEdit
-		extends EditList.Element<CrosswordDocument>
+	private class GridEdit
+		implements EditList.IEdit
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -3786,29 +3790,29 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
+	//  Instance methods : EditList.IEdit interface
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public String getText()
+		public void undo()
+		{
+			setGrid(oldSymmetry, oldDefinition);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo()
+		{
+			setGrid(newSymmetry, newDefinition);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public String text()
 		{
 			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			setGrid(document, oldSymmetry, oldDefinition);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			setGrid(document, newSymmetry, newDefinition);
 		}
 
 		//--------------------------------------------------------------
@@ -3817,14 +3821,13 @@ class CrosswordDocument
 	//  Instance methods
 	////////////////////////////////////////////////////////////////////
 
-		private void setGrid(CrosswordDocument document,
-							 Grid.Symmetry     symmetry,
-							 String            definition)
+		private void setGrid(Grid.Symmetry symmetry,
+							 String        definition)
 		{
 			try
 			{
-				document.setGrid(separator.createGrid(numColumns, numRows, symmetry, definition));
-				document.getView().updateGrid();
+				CrosswordDocument.this.setGrid(separator.createGrid(numColumns, numRows, symmetry, definition));
+				getView().updateGrid();
 			}
 			catch (AppException e)
 			{
@@ -3842,8 +3845,8 @@ class CrosswordDocument
 	// GRID ENTRY CHARACTER EDIT CLASS
 
 
-	private static class GridEntryCharEdit
-		extends EditList.Element<CrosswordDocument>
+	private class GridEntryCharEdit
+		implements EditList.IEdit
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -3882,31 +3885,31 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
+	//  Instance methods : EditList.IEdit interface
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public String getText()
+		public void undo()
+		{
+			grid.setEntryValue(row, column, oldValue);
+			getView().setGridCaretPosition(row, column, direction);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo()
+		{
+			grid.setEntryValue(row, column, newValue);
+			getView().setGridCaretPosition(row, column, direction);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public String text()
 		{
 			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			document.grid.setEntryValue(row, column, oldValue);
-			document.getView().setGridCaretPosition(row, column, direction);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			document.grid.setEntryValue(row, column, newValue);
-			document.getView().setGridCaretPosition(row, column, direction);
 		}
 
 		//--------------------------------------------------------------
@@ -3919,8 +3922,8 @@ class CrosswordDocument
 	// GRID ENTRIES EDIT CLASS
 
 
-	private static class GridEntriesEdit
-		extends EditList.Element<CrosswordDocument>
+	private class GridEntriesEdit
+		implements EditList.IEdit
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -3950,31 +3953,31 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
+	//  Instance methods : EditList.IEdit interface
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public String getText()
+		public void undo()
+		{
+			grid.setEntries(oldEntries);
+			getView().redrawGrid();
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo()
+		{
+			grid.setEntries(newEntries);
+			getView().redrawGrid();
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public String text()
 		{
 			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			document.grid.setEntries(oldEntries);
-			document.getView().redrawGrid();
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			document.grid.setEntries(newEntries);
-			document.getView().redrawGrid();
 		}
 
 		//--------------------------------------------------------------
@@ -3987,8 +3990,8 @@ class CrosswordDocument
 	// SOLUTION EDIT CLASS
 
 
-	private static class SolutionEdit
-		extends EditList.Element<CrosswordDocument>
+	private class SolutionEdit
+		implements EditList.IEdit
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -4020,29 +4023,29 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
+	//  Instance methods : EditList.IEdit interface
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public String getText()
+		public void undo()
+		{
+			grid.setSolution(oldSolution);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo()
+		{
+			grid.setSolution(newSolution);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public String text()
 		{
 			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			document.grid.setSolution(oldSolution);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			document.grid.setSolution(newSolution);
 		}
 
 		//--------------------------------------------------------------
@@ -4055,8 +4058,8 @@ class CrosswordDocument
 	// SOLUTION PROPERTIES EDIT CLASS
 
 
-	private static class SolutionPropertiesEdit
-		extends EditList.Element<CrosswordDocument>
+	private class SolutionPropertiesEdit
+		implements EditList.IEdit
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -4086,29 +4089,29 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
+	//  Instance methods : EditList.IEdit interface
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public String getText()
+		public void undo()
+		{
+			solutionProperties = oldProperties;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo()
+		{
+			solutionProperties = newProperties;
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public String text()
 		{
 			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			document.solutionProperties = oldProperties;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			document.solutionProperties = newProperties;
 		}
 
 		//--------------------------------------------------------------
@@ -4121,8 +4124,8 @@ class CrosswordDocument
 	// CLUES EDIT CLASS
 
 
-	private static class CluesEdit
-		extends EditList.Element<CrosswordDocument>
+	private class CluesEdit
+		implements EditList.IEdit
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -4152,29 +4155,29 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
+	//  Instance methods : EditList.IEdit interface
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public String getText()
+		public void undo()
+		{
+			setClues(oldClues);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo()
+		{
+			setClues(newClues);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public String text()
 		{
 			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			document.setClues(oldClues);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			document.setClues(newClues);
 		}
 
 		//--------------------------------------------------------------
@@ -4187,8 +4190,8 @@ class CrosswordDocument
 	// CLUE LISTS EDIT CLASS
 
 
-	private static class ClueListsEdit
-		extends EditList.Element<CrosswordDocument>
+	private class ClueListsEdit
+		implements EditList.IEdit
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -4218,37 +4221,37 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
+	//  Instance methods : EditList.IEdit interface
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public String getText()
+		public void undo()
+		{
+			clueLists.clear();
+			for (Direction direction : oldClueLists.keySet())
+				clueLists.put(direction, new ArrayList<>(oldClueLists.get(direction)));
+			for (Direction direction : Direction.DEFINED_DIRECTIONS)
+				getView().updateClues(direction);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo()
+		{
+			clueLists.clear();
+			for (Direction direction : newClueLists.keySet())
+				clueLists.put(direction, new ArrayList<>(newClueLists.get(direction)));
+			for (Direction direction : Direction.DEFINED_DIRECTIONS)
+				getView().updateClues(direction);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public String text()
 		{
 			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			document.clueLists.clear();
-			for (Direction direction : oldClueLists.keySet())
-				document.clueLists.put(direction, new ArrayList<>(oldClueLists.get(direction)));
-			for (Direction direction : Direction.DEFINED_DIRECTIONS)
-				document.getView().updateClues(direction);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			document.clueLists.clear();
-			for (Direction direction : newClueLists.keySet())
-				document.clueLists.put(direction, new ArrayList<>(newClueLists.get(direction)));
-			for (Direction direction : Direction.DEFINED_DIRECTIONS)
-				document.getView().updateClues(direction);
 		}
 
 		//--------------------------------------------------------------
@@ -4261,8 +4264,8 @@ class CrosswordDocument
 	// TEXT SECTIONS EDIT CLASS
 
 
-	private static class TextSectionsEdit
-		extends EditList.Element<CrosswordDocument>
+	private class TextSectionsEdit
+		implements EditList.IEdit
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -4306,29 +4309,29 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
+	//  Instance methods : EditList.IEdit interface
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public String getText()
+		public void undo()
+		{
+			setTextSections(oldTitle, oldPrologue, oldEpilogue);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo()
+		{
+			setTextSections(newTitle, newPrologue, newEpilogue);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public String text()
 		{
 			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			setTextSections(document, oldTitle, oldPrologue, oldEpilogue);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			setTextSections(document, newTitle, newPrologue, newEpilogue);
 		}
 
 		//--------------------------------------------------------------
@@ -4337,11 +4340,11 @@ class CrosswordDocument
 	//  Instance methods
 	////////////////////////////////////////////////////////////////////
 
-		private void setTextSections(CrosswordDocument document,
-									 String            title,
-									 List<String>      prologue,
-									 List<String>      epilogue)
+		private void setTextSections(String       title,
+									 List<String> prologue,
+									 List<String> epilogue)
 		{
+			CrosswordDocument document = CrosswordDocument.this;
 			document.setTitle(title);
 			document.setPrologue(prologue);
 			document.setEpilogue(epilogue);
@@ -4358,8 +4361,8 @@ class CrosswordDocument
 	// INDICATIONS EDIT CLASS
 
 
-	private static class IndicationsEdit
-		extends EditList.Element<CrosswordDocument>
+	private class IndicationsEdit
+		implements EditList.IEdit
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -4411,31 +4414,29 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
+	//  Instance methods : EditList.IEdit interface
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public String getText()
+		public void undo()
+		{
+			setIndications(oldClueReferenceKeyword, oldAnswerLengthPattern, oldAnswerLengthSubstitutions, oldLineBreak);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public void redo()
+		{
+			setIndications(newClueReferenceKeyword, newAnswerLengthPattern, newAnswerLengthSubstitutions, newLineBreak);
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public String text()
 		{
 			return TEXT;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
-		{
-			setIndications(document, oldClueReferenceKeyword, oldAnswerLengthPattern,
-						   oldAnswerLengthSubstitutions, oldLineBreak);
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void redo(CrosswordDocument document)
-		{
-			setIndications(document, newClueReferenceKeyword, newAnswerLengthPattern,
-						   newAnswerLengthSubstitutions, newLineBreak);
 		}
 
 		//--------------------------------------------------------------
@@ -4444,12 +4445,12 @@ class CrosswordDocument
 	//  Instance methods
 	////////////////////////////////////////////////////////////////////
 
-		private void setIndications(CrosswordDocument  document,
-									String             clueReferenceKeyword,
+		private void setIndications(String             clueReferenceKeyword,
 									String             answerLengthPattern,
 									List<Substitution> answerLengthSubstitutions,
 									String             lineBreak)
 		{
+			CrosswordDocument document = CrosswordDocument.this;
 			document.clueReferenceKeyword = clueReferenceKeyword;
 			document.answerLengthPattern = answerLengthPattern;
 			document.answerLengthSubstitutions = answerLengthSubstitutions;
@@ -4466,9 +4467,16 @@ class CrosswordDocument
 	// COMPOUND EDIT CLASS
 
 
-	private static class CompoundEdit
-		extends EditList.Element<CrosswordDocument>
+	private class CompoundEdit
+		implements EditList.IEdit
 	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String					text;
+		private	List<EditList.IEdit>	edits;
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
@@ -4483,31 +4491,31 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
+	//  Instance methods : EditList.IEdit interface
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public String getText()
-		{
-			return text;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(CrosswordDocument document)
+		public void undo()
 		{
 			for (int i = edits.size() - 1; i >= 0; i--)
-				edits.get(i).undo(document);
+				edits.get(i).undo();
 		}
 
 		//--------------------------------------------------------------
 
 		@Override
-		public void redo(CrosswordDocument document)
+		public void redo()
 		{
-			for (EditList.Element<CrosswordDocument> edit : edits)
-				edit.redo(document);
+			for (EditList.IEdit edit : edits)
+				edit.redo();
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public String text()
+		{
+			return text;
 		}
 
 		//--------------------------------------------------------------
@@ -4516,19 +4524,12 @@ class CrosswordDocument
 	//  Instance methods
 	////////////////////////////////////////////////////////////////////
 
-		public void addEdit(EditList.Element<CrosswordDocument> edit)
+		public void addEdit(EditList.IEdit edit)
 		{
 			edits.add(edit);
 		}
 
 		//--------------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String										text;
-		private	List<EditList.Element<CrosswordDocument>>	edits;
 
 	}
 

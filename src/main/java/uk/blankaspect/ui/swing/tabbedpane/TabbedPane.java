@@ -228,7 +228,6 @@ public class TabbedPane
 	private	MouseSelectionListWindow	mouseSelectionListWindow;
 	private	List<ChangeListener>		changeListeners;
 	private	ChangeEvent					changeEvent;
-	private	JPopupMenu					contextMenu;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -1754,15 +1753,11 @@ public class TabbedPane
 			if (event.isPopupTrigger())
 			{
 				// Create context menu
-				if (contextMenu == null)
-					contextMenu = new JPopupMenu();
-				else
-					contextMenu.removeAll();
-
-				contextMenu.add(new FMenuItem(new TabAction(Command.CLOSE, GuiConstants.CLOSE_STR)));
+				JPopupMenu menu = new JPopupMenu();
+				menu.add(new FMenuItem(new TabAction(Command.CLOSE, GuiConstants.CLOSE_STR)));
 
 				// Display menu
-				contextMenu.show(event.getComponent(), event.getX(), event.getY());
+				menu.show(event.getComponent(), event.getX(), event.getY());
 			}
 		}
 

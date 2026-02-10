@@ -350,8 +350,8 @@ class CaptureDialog
 		captureButtonPanel.add(clearButton);
 
 		// Button: get grid image
-		getGridImageButton = new Button(GET_GRID_IMAGE_STR + AppConstants.ELLIPSIS_STR, Command.GET_GRID_IMAGE,
-										KeyEvent.VK_G);
+		getGridImageButton =
+				new Button(GET_GRID_IMAGE_STR + AppConstants.ELLIPSIS_STR, Command.GET_GRID_IMAGE, KeyEvent.VK_G);
 		captureButtonPanel.add(getGridImageButton);
 
 		// Button: get clues

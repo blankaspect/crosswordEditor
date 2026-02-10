@@ -106,8 +106,8 @@ class BlockGrid
 //  Instance variables
 ////////////////////////////////////////////////////////////////////////
 
-	private	Cell[][]			cells;
-	private	EditList<BlockGrid>	editList;
+	private	Cell[][]	cells;
+	private	EditList	editList;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -233,7 +233,7 @@ class BlockGrid
 		// Initialise instance variables
 		this(grid.numColumns, grid.numRows);
 		symmetry = grid.symmetry;
-		editList = new EditList<>(AppConfig.INSTANCE.getMaxEditListLength());
+		editList = new EditList(AppConfig.INSTANCE.getMaxEditListLength());
 
 		// Initialise cells
 		for (int row = 0; row < numRows; row++)
@@ -451,9 +451,9 @@ class BlockGrid
 	@Override
 	public void undoEdit()
 	{
-		EditList.Element<BlockGrid> edit = editList.removeUndo();
+		EditList.IEdit edit = editList.removeUndo();
 		if (edit != null)
-			edit.undo(this);
+			edit.undo();
 	}
 
 	//------------------------------------------------------------------
@@ -469,9 +469,9 @@ class BlockGrid
 	@Override
 	public void redoEdit()
 	{
-		EditList.Element<BlockGrid> edit = editList.removeRedo();
+		EditList.IEdit edit = editList.removeRedo();
 		if (edit != null)
-			edit.redo(this);
+			edit.redo();
 	}
 
 	//------------------------------------------------------------------
@@ -840,12 +840,16 @@ class BlockGrid
 
 	//==================================================================
 
+////////////////////////////////////////////////////////////////////////
+//  Member classes : inner classes
+////////////////////////////////////////////////////////////////////////
+
 
 	// CLASS: EDIT
 
 
-	private static class Edit
-		extends EditList.Element<BlockGrid>
+	private class Edit
+		implements EditList.IEdit
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -876,37 +880,27 @@ class BlockGrid
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance methods : overriding methods
+	//  Instance methods : EditList.IEdit interface
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public String getText()
-		{
-			return null;
-		}
-
-		//--------------------------------------------------------------
-
-		@Override
-		public void undo(
-			BlockGrid	grid)
+		public void undo()
 		{
 			if (oldSymmetry != null)
-				grid.symmetry = oldSymmetry;
-			grid.cells = oldCells;
-			grid.initFields();
+				symmetry = oldSymmetry;
+			cells = oldCells;
+			initFields();
 		}
 
 		//--------------------------------------------------------------
 
 		@Override
-		public void redo(
-			BlockGrid	grid)
+		public void redo()
 		{
 			if (newSymmetry != null)
-				grid.symmetry = newSymmetry;
-			grid.cells = newCells;
-			grid.initFields();
+				symmetry = newSymmetry;
+			cells = newCells;
+			initFields();
 		}
 
 		//--------------------------------------------------------------

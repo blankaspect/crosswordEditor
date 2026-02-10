@@ -785,7 +785,8 @@ public class TaskProgressDialog
 
 		private static final	String	SEPARATOR	= ":";
 
-		private static final	String	PROTOTYPE_STR		= "00" + SEPARATOR + "00" + SEPARATOR + "00";
+		private static final	String	PROTOTYPE_TEXT	= "00" + SEPARATOR + "00" + SEPARATOR + "00";
+
 		private static final	String	OUT_OF_RANGE_STR	= "--";
 
 		private static final	Color	TEXT_COLOUR	= new Color(0, 0, 144);
@@ -804,7 +805,7 @@ public class TaskProgressDialog
 		{
 			FontUtils.setAppFont(FontKey.MAIN, this);
 			FontMetrics fontMetrics = getFontMetrics(getFont());
-			setPreferredSize(new Dimension(fontMetrics.stringWidth(PROTOTYPE_STR),
+			setPreferredSize(new Dimension(fontMetrics.stringWidth(PROTOTYPE_TEXT),
 										   fontMetrics.getAscent() + fontMetrics.getDescent()));
 			setOpaque(true);
 			setFocusable(false);
