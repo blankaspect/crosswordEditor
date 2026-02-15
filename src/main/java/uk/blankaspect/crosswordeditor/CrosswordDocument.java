@@ -1198,9 +1198,6 @@ class CrosswordDocument
 		grid = null;
 		clueLists.clear();
 
-		// Run garbage collector to maximise available memory
-		System.gc();
-
 		// Read and parse file
 		try
 		{
@@ -2501,10 +2498,7 @@ class CrosswordDocument
 		if (JOptionPane.showOptionDialog(getWindow(), CLEAR_EDIT_LIST_STR, CrosswordEditorApp.SHORT_NAME,
 										 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, optionStrs,
 										 optionStrs[1]) == JOptionPane.OK_OPTION)
-		{
 			editList.clear();
-			System.gc();
-		}
 		return null;
 	}
 
