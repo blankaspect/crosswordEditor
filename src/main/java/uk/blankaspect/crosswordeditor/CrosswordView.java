@@ -100,15 +100,27 @@ class CrosswordView
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	public static final		int	MIN_SELECTED_CLUE_NUM_COLUMNS		= 16;
-	public static final		int	MAX_SELECTED_CLUE_NUM_COLUMNS		= 1024;
-	public static final		int	DEFAULT_SELECTED_CLUE_NUM_COLUMNS	= 50;
+	public static final		int		MIN_SELECTED_CLUE_NUM_COLUMNS		= 16;
+	public static final		int		MAX_SELECTED_CLUE_NUM_COLUMNS		= 1024;
+	public static final		int		DEFAULT_SELECTED_CLUE_NUM_COLUMNS	= 50;
 
-	private static final	int	MIN_WIDTH	= 128;
-	private static final	int	MIN_HEIGHT	= 64;
+	private static final	int		MIN_WIDTH	= 128;
+	private static final	int		MIN_HEIGHT	= 64;
 
-	private static final	int	SCROLL_UNIT_INCREMENT_FACTOR	= 1;
-	private static final	int	SCROLL_BLOCK_INCREMENT_FACTOR	= 10;
+	private static final	int		SCROLL_UNIT_INCREMENT_FACTOR	= 1;
+	private static final	int		SCROLL_BLOCK_INCREMENT_FACTOR	= 10;
+
+	private static final	String	SPAN_PREFIX	= "span.";
+
+	private interface StyleKey
+	{
+		String	BASE					= "base";
+		String	COLOURS					= "colours";
+		String	COLOURS_EMPTY			= "colours.empty";
+		String	COLOURS_SELECTED		= "colours.selected";
+		String	COLOURS_SELECTED_EMPTY	= "colours.selected.empty";
+		String	PARAGRAPH				= "paragraph";
+	}
 
 ////////////////////////////////////////////////////////////////////////
 //  Instance variables
@@ -257,17 +269,9 @@ class CrosswordView
 		{
 			switch (textSection)
 			{
-				case TITLE:
-					crosswordPane.updateTitle();
-					break;
-
-				case PROLOGUE:
-					crosswordPane.updatePrologue();
-					break;
-
-				case EPILOGUE:
-					crosswordPane.updateEpilogue();
-					break;
+				case TITLE    -> crosswordPane.updateTitle();
+				case PROLOGUE -> crosswordPane.updatePrologue();
+				case EPILOGUE -> crosswordPane.updateEpilogue();
 			}
 		}
 		revalidate();
@@ -277,7 +281,7 @@ class CrosswordView
 	//------------------------------------------------------------------
 
 	public void setGridCaretPosition(
-		int	row,
+		int			row,
 		int			column,
 		Direction	direction)
 	{
@@ -364,6 +368,13 @@ class CrosswordView
 		(
 			"text",
 			"Text",
+			Colours.FOREGROUND
+		),
+
+		PROLOGUE_EPILOGUE_TEXT
+		(
+			"prologueEpilogueText",
+			"Text, prologue and epilogue",
 			Colours.FOREGROUND
 		),
 
@@ -694,14 +705,9 @@ class CrosswordView
 		private static final	int		MAX_HEIGHT	= 1 << 16;  // 65536
 
 		private static final	String	SEPARATOR			= "  ";
-		private static final	String	SPAN_PREFIX			= "span.";
 		private static final	String	PARAGRAPH_PREFIX	= "paragraph.";
 
-		private static final	String	BOLD_KEY					= SPAN_PREFIX + StyledText.StyleAttr.BOLD.getKey();
-		private static final	String	COLOURS_KEY					= "colours";
-		private static final	String	EMPTY_COLOURS_KEY			= "emptyColours";
-		private static final	String	SELECTED_COLOURS_KEY		= "selectedColours";
-		private static final	String	SELECTED_EMPTY_COLOURS_KEY	= "selectedEmptyColours";
+		private static final	String	STYLE_KEY_BOLD	= SPAN_PREFIX + StyledText.StyleAttr.BOLD.getKey();
 
 		private static final	String	NO_CLUE_STR	= "(no clue)";
 
@@ -778,14 +784,14 @@ class CrosswordView
 
 			// Add paragraph styles to styled document
 			StyledDocument styledDoc = getStyledDocument();
-			Style defStyle = styledDoc.getStyle(StyleContext.DEFAULT_STYLE);
+			Style baseStyle = styledDoc.addStyle(StyleKey.BASE, styledDoc.getStyle(StyleContext.DEFAULT_STYLE));
 			List<String> paragraphStyleKeys = new ArrayList<>();
 			for (int w : widths)
 			{
 				String key = PARAGRAPH_PREFIX + Integer.toString(w);
 				if (!paragraphStyleKeys.contains(key))
 				{
-					Style style = styledDoc.addStyle(key, defStyle);
+					Style style = styledDoc.addStyle(key, baseStyle);
 					StyleConstants.setLeftIndent(style, (float)(indent1 + indent2));
 					StyleConstants.setFirstLineIndent(style, (float)-(w + indent2));
 					StyleConstants.setSpaceBelow(style, 1.0f);
@@ -795,23 +801,23 @@ class CrosswordView
 
 			// Add bold span style to styled document
 			List<String> spanStyleKeys = new ArrayList<>();
-			spanStyleKeys.add(BOLD_KEY);
-			StyledText.StyleAttr.BOLD.apply(styledDoc.addStyle(BOLD_KEY, defStyle));
+			spanStyleKeys.add(STYLE_KEY_BOLD);
+			StyledText.StyleAttr.BOLD.apply(styledDoc.addStyle(STYLE_KEY_BOLD, baseStyle));
 
 			// Add background and foreground colour styles to styled document
-			Style style = styledDoc.addStyle(COLOURS_KEY, null);
+			Style style = styledDoc.addStyle(StyleKey.COLOURS, null);
 			StyleConstants.setBackground(style, Colour.BACKGROUND.get());
 			StyleConstants.setForeground(style, Colour.CLUE_TEXT.get());
 
-			style = styledDoc.addStyle(EMPTY_COLOURS_KEY, null);
+			style = styledDoc.addStyle(StyleKey.COLOURS_EMPTY, null);
 			StyleConstants.setBackground(style, Colour.BACKGROUND.get());
 			StyleConstants.setForeground(style, Colour.EMPTY_CLUE_TEXT.get());
 
-			style = styledDoc.addStyle(SELECTED_COLOURS_KEY, null);
+			style = styledDoc.addStyle(StyleKey.COLOURS_SELECTED, null);
 			StyleConstants.setBackground(style, Colour.SELECTED_CLUE_BACKGROUND.get());
 			StyleConstants.setForeground(style, Colour.CLUE_TEXT.get());
 
-			style = styledDoc.addStyle(SELECTED_EMPTY_COLOURS_KEY, null);
+			style = styledDoc.addStyle(StyleKey.COLOURS_SELECTED_EMPTY, null);
 			StyleConstants.setBackground(style, Colour.SELECTED_EMPTY_CLUE_BACKGROUND.get());
 			StyleConstants.setForeground(style, Colour.EMPTY_CLUE_TEXT.get());
 
@@ -822,7 +828,7 @@ class CrosswordView
 				{
 					// Append LF
 					if (i > 0)
-						styledDoc.insertString(styledDoc.getLength(), "\n", defStyle);
+						styledDoc.insertString(styledDoc.getLength(), "\n", baseStyle);
 
 					// Add element to map
 					Clue clue = clues.get(i);
@@ -834,13 +840,13 @@ class CrosswordView
 					// Append clue IDs
 					Direction direction = clueId.fieldId.direction;
 					styledDoc.insertString(styledDoc.getLength(), document.getClueIdString(direction, clue) + SEPARATOR,
-										   styledDoc.getStyle(BOLD_KEY));
+										   styledDoc.getStyle(STYLE_KEY_BOLD));
 
 					// If reference, append reference ...
 					if (clue.isReference())
 					{
 						styledDoc.insertString(styledDoc.getLength(), document.getClueReferenceString(direction, clue),
-											   defStyle);
+											   baseStyle);
 					}
 
 					// ... otherwise, append clue
@@ -853,13 +859,13 @@ class CrosswordView
 							StyledText.Span span = text.getSpan(j);
 							String key = span.getAttributeKey();
 							if (key.isEmpty())
-								style = defStyle;
+								style = baseStyle;
 							else
 							{
 								key = SPAN_PREFIX + key;
 								if (!spanStyleKeys.contains(key))
 								{
-									span.setAttributes(styledDoc.addStyle(key, defStyle));
+									span.setAttributes(styledDoc.addStyle(key, baseStyle));
 									spanStyleKeys.add(key);
 								}
 								style = styledDoc.getStyle(key);
@@ -870,11 +876,11 @@ class CrosswordView
 						}
 					}
 					else
-						styledDoc.insertString(styledDoc.getLength(), NO_CLUE_STR, defStyle);
+						styledDoc.insertString(styledDoc.getLength(), NO_CLUE_STR, baseStyle);
 
 					// Set background and foreground colours
 					int offset = styledDoc.getLength();
-					String key = clue.isEmpty() ? EMPTY_COLOURS_KEY : COLOURS_KEY;
+					String key = clue.isEmpty() ? StyleKey.COLOURS_EMPTY : StyleKey.COLOURS;
 					styledDoc.setCharacterAttributes(startOffset, offset - startOffset, styledDoc.getStyle(key), false);
 
 					// Set paragraph attributes
@@ -918,10 +924,7 @@ class CrosswordView
 	//  Constants
 	////////////////////////////////////////////////////////////////////
 
-		private static final	int		MAX_HEIGHT	= 50000;
-
-		private static final	String	SPAN_PREFIX		= "span.";
-		private static final	String	PARAGRAPH_KEY	= "paragraph";
+		private static final	int	MAX_HEIGHT	= 50000;
 
 	////////////////////////////////////////////////////////////////////
 	//  Instance variables
@@ -940,7 +943,7 @@ class CrosswordView
 
 			// Set properties
 			setBackground(null);
-			setForeground(Colour.CLUE_TEXT.get());
+			setForeground(Colour.PROLOGUE_EPILOGUE_TEXT.get());
 			setBorder(null);
 			setEditable(false);
 			setFocusable(false);
@@ -966,8 +969,8 @@ class CrosswordView
 			StyledDocument styledDoc = new DefaultStyledDocument(new StyleContext());
 
 			// Add paragraph style to document
-			Style defStyle = styledDoc.getStyle(StyleContext.DEFAULT_STYLE);
-			Style style = styledDoc.addStyle(PARAGRAPH_KEY, defStyle);
+			Style baseStyle = styledDoc.addStyle(StyleKey.BASE, styledDoc.getStyle(StyleContext.DEFAULT_STYLE));
+			Style style = styledDoc.addStyle(StyleKey.PARAGRAPH, baseStyle);
 			float space = (float)StyleConstants.getFontSize(style) * 0.5f;
 			if (spaceAbove)
 				StyleConstants.setSpaceAbove(style, space);
@@ -983,7 +986,7 @@ class CrosswordView
 				{
 					// Append LF
 					if (i > 0)
-						styledDoc.insertString(styledDoc.getLength(), "\n", defStyle);
+						styledDoc.insertString(styledDoc.getLength(), "\n", baseStyle);
 
 					// Add element to map
 					int startOffset = styledDoc.getLength();
@@ -995,13 +998,13 @@ class CrosswordView
 						StyledText.Span span = text.getSpan(j);
 						String key = span.getAttributeKey();
 						if (key.isEmpty())
-							style = defStyle;
+							style = baseStyle;
 						else
 						{
 							key = SPAN_PREFIX + key;
 							if (!spanStyleKeys.contains(key))
 							{
-								span.setAttributes(styledDoc.addStyle(key, defStyle));
+								span.setAttributes(styledDoc.addStyle(key, baseStyle));
 								spanStyleKeys.add(key);
 							}
 							style = styledDoc.getStyle(key);
@@ -1021,8 +1024,8 @@ class CrosswordView
 
 							// Set paragraph attributes
 							Style paraStyle = (spaceAbove && (numLineBreaks == 0))
-																	? styledDoc.getStyle(PARAGRAPH_KEY)
-																	: defStyle;
+													? styledDoc.getStyle(StyleKey.PARAGRAPH)
+													: baseStyle;
 							styledDoc.setParagraphAttributes(startOffset, styledDoc.getLength() - startOffset,
 															 paraStyle, true);
 
@@ -1037,8 +1040,9 @@ class CrosswordView
 					}
 
 					// Set paragraph attributes
-					Style paraStyle = (!spaceAbove || (numLineBreaks == 0)) ? styledDoc.getStyle(PARAGRAPH_KEY)
-																			: defStyle;
+					Style paraStyle = (!spaceAbove || (numLineBreaks == 0))
+											? styledDoc.getStyle(StyleKey.PARAGRAPH)
+											: baseStyle;
 					styledDoc.setParagraphAttributes(startOffset, styledDoc.getLength() - startOffset, paraStyle, true);
 				}
 				catch (StyledText.ParseException | BadLocationException e)
@@ -1093,8 +1097,8 @@ class CrosswordView
 	//  Constants
 	////////////////////////////////////////////////////////////////////
 
-		private static final	int	CLUES_VERTICAL_MARGIN	= 2;
-		private static final	int	HORIZONTAL_GAP			= 16;
+		private static final	int		CLUES_VERTICAL_MARGIN	= 2;
+		private static final	int		HORIZONTAL_GAP			= 16;
 
 		private static final	float	FONT_SIZE_FACTOR	= 1.125f;
 
@@ -1817,8 +1821,7 @@ class CrosswordView
 							if (entry != null)
 							{
 								cluePane.setElementStyle(entry.element,
-														  entry.isEmpty() ? CluePane.EMPTY_COLOURS_KEY
-																		  : CluePane.COLOURS_KEY);
+														 entry.isEmpty() ? StyleKey.COLOURS_EMPTY : StyleKey.COLOURS);
 								break;
 							}
 						}
@@ -1839,9 +1842,9 @@ class CrosswordView
 							if (entry != null)
 							{
 								cluePane.setElementStyle(entry.element,
-														  entry.isEmpty()
-																	? CluePane.SELECTED_EMPTY_COLOURS_KEY
-																	: CluePane.SELECTED_COLOURS_KEY);
+														 entry.isEmpty()
+																? StyleKey.COLOURS_SELECTED_EMPTY
+																: StyleKey.COLOURS_SELECTED);
 								break;
 							}
 						}
@@ -1852,7 +1855,7 @@ class CrosswordView
 					selectedClueId = clueId;
 				}
 
-				// Update "edit clue" command
+				// Update 'edit clue' command
 				CrosswordDocument.Command.EDIT_CLUE.setEnabled(selectedClueId != null);
 			}
 		}
@@ -1878,8 +1881,7 @@ class CrosswordView
 				Grid grid = document.getGrid();
 				Grid.Field field = grid.getField(clueId.fieldId);
 				Clue clue = document.findPrimaryClue(clueId);
-				fields = (clue == null) ? new Clue.FieldList(field)
-										: new Clue.FieldList(grid.getFields(clue), field);
+				fields = (clue == null) ? new Clue.FieldList(field) : new Clue.FieldList(grid.getFields(clue), field);
 			}
 			gridPane.requestFocusInWindow();
 			gridPane.setSelection(fields);
