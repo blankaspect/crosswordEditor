@@ -304,6 +304,99 @@ class CrosswordView
 ////////////////////////////////////////////////////////////////////////
 
 
+	// ENUMERATION: COLOUR SCHEMES
+
+
+	enum ColourScheme
+		implements IStringKeyed
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constants
+	////////////////////////////////////////////////////////////////////
+
+		LIGHT
+		(
+			"Light"
+		),
+
+		DARK
+		(
+			"Dark"
+		);
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance variables
+	////////////////////////////////////////////////////////////////////
+
+		private	String	key;
+		private	String	text;
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private ColourScheme(
+			String	text)
+		{
+			key = name().toLowerCase();
+			this.text = text;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Class methods
+	////////////////////////////////////////////////////////////////////
+
+		public static ColourScheme forKey(
+			String	key)
+		{
+			return Arrays.stream(values()).filter(value -> value.key.equals(key)).findFirst().orElse(null);
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : IStringKeyed interface
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String getKey()
+		{
+			return key;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public String toString()
+		{
+			return text;
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		public String lcText()
+		{
+			return text.toLowerCase();
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//==================================================================
+
+
 	// ENUMERATION: COLOURS
 
 
@@ -319,6 +412,7 @@ class CrosswordView
 		(
 			"background",
 			"Background",
+			new Color(16, 16, 16),
 			Colours.BACKGROUND
 		),
 
@@ -326,6 +420,7 @@ class CrosswordView
 		(
 			"selectedFieldBackground",
 			"Background, selected field",
+			new Color(80, 80, 80),
 			Colours.SELECTION_BACKGROUND
 		),
 
@@ -333,6 +428,7 @@ class CrosswordView
 		(
 			"focusedSelectedFieldBackground",
 			"Background, focused selected field",
+			new Color(96, 48, 32),
 			new Color(248, 224, 128)
 		),
 
@@ -340,6 +436,7 @@ class CrosswordView
 		(
 			"fullyIntersectingFieldBackground",
 			"Background, fully intersecting field",
+			new Color(112, 80, 144),
 			new Color(200, 224, 248)
 		),
 
@@ -347,6 +444,7 @@ class CrosswordView
 		(
 			"isolatedCellBackground",
 			"Background, isolated cell",
+			new Color(160, 48, 48),
 			new Color(240, 192, 192)
 		),
 
@@ -354,6 +452,7 @@ class CrosswordView
 		(
 			"selectedClueBackground",
 			"Background, selected clue",
+			new Color(104, 52, 32),
 			new Color(248, 232, 160)
 		),
 
@@ -361,6 +460,7 @@ class CrosswordView
 		(
 			"selectedEmptyClueBackground",
 			"Background, selected empty clue",
+			new Color(32, 32, 48),
 			new Color(232, 232, 224)
 		),
 
@@ -368,6 +468,7 @@ class CrosswordView
 		(
 			"text",
 			"Text",
+			new Color(255, 255, 255),
 			Colours.FOREGROUND
 		),
 
@@ -375,6 +476,7 @@ class CrosswordView
 		(
 			"prologueEpilogueText",
 			"Text, prologue and epilogue",
+			new Color(208, 224, 224),
 			Colours.FOREGROUND
 		),
 
@@ -382,6 +484,7 @@ class CrosswordView
 		(
 			"fieldNumberText",
 			"Text, field number",
+			new Color(216, 192, 240),
 			Colours.FOREGROUND
 		),
 
@@ -389,6 +492,7 @@ class CrosswordView
 		(
 			"gridEntryText",
 			"Text, grid entry",
+			new Color(255, 248, 200),
 			Colours.FOREGROUND
 		),
 
@@ -396,6 +500,7 @@ class CrosswordView
 		(
 			"clueText",
 			"Text, clue",
+			new Color(255, 255, 255),
 			Colours.FOREGROUND
 		),
 
@@ -403,13 +508,31 @@ class CrosswordView
 		(
 			"emptyClueText",
 			"Text, empty clue",
+			new Color(128, 128, 128),
 			new Color(160, 160, 160)
 		),
 
 		GRID_LINE
 		(
 			"gridLine",
-			"Grid line and separator",
+			"Grid line",
+			new Color(88, 92, 96),
+			Color.DARK_GRAY
+		),
+
+		GRID_SEPARATOR_BAR
+		(
+			"gridSeparatorBar",
+			"Grid separator, bar",
+			new Color(32, 120, 96),
+			Color.DARK_GRAY
+		),
+
+		GRID_SEPARATOR_BLOCK
+		(
+			"gridSeparatorBlock",
+			"Grid separator, block",
+			new Color(88, 96, 104),
 			Color.DARK_GRAY
 		),
 
@@ -417,6 +540,7 @@ class CrosswordView
 		(
 			"titleSeparator",
 			"Title separator",
+			new Color(144, 144, 144),
 			new Color(160, 160, 160)
 		),
 
@@ -424,6 +548,7 @@ class CrosswordView
 		(
 			"caret",
 			"Caret",
+			new Color(112, 255, 192),
 			Color.RED
 		),
 
@@ -431,6 +556,7 @@ class CrosswordView
 		(
 			"editingBox",
 			"Editing box",
+			new Color(144, 144, 176),
 			new Color(128, 128, 160)
 		),
 
@@ -438,6 +564,7 @@ class CrosswordView
 		(
 			"focusedEditingBox",
 			"Editing box, focused",
+			new Color(255, 216, 96),
 			Color.RED
 		);
 
@@ -447,7 +574,8 @@ class CrosswordView
 
 		private	String	key;
 		private	String	text;
-		private	Color	defaultColour;
+		private	Color	defaultDark;
+		private	Color	defaultLight;
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
@@ -456,11 +584,13 @@ class CrosswordView
 		private Colour(
 			String	key,
 			String	text,
-			Color	defaultColour)
+			Color	defaultDark,
+			Color	defaultLight)
 		{
 			this.key = key;
 			this.text = text;
-			this.defaultColour = defaultColour;
+			this.defaultDark = defaultDark;
+			this.defaultLight = defaultLight;
 		}
 
 		//--------------------------------------------------------------
@@ -507,14 +637,44 @@ class CrosswordView
 
 		public Color get()
 		{
-			return AppConfig.INSTANCE.getViewColour(this);
+			return get(AppConfig.INSTANCE.getViewColourScheme());
 		}
 
 		//--------------------------------------------------------------
 
-		public Color getDefaultColour()
+		public Color get(
+			ColourScheme	scheme)
 		{
-			return defaultColour;
+			return switch (scheme)
+			{
+				case LIGHT -> AppConfig.INSTANCE.getViewColourLight(this);
+				case DARK  -> AppConfig.INSTANCE.getViewColourDark(this);
+			};
+		}
+
+		//--------------------------------------------------------------
+
+		public void set(
+			ColourScheme	scheme,
+			Color			colour)
+		{
+			switch (scheme)
+			{
+				case LIGHT -> AppConfig.INSTANCE.setViewColourLight(this, colour);
+				case DARK  -> AppConfig.INSTANCE.setViewColourDark(this, colour);
+			};
+		}
+
+		//--------------------------------------------------------------
+
+		public Color getDefault(
+			ColourScheme	scheme)
+		{
+			return switch (scheme)
+			{
+				case LIGHT -> defaultLight;
+				case DARK  -> defaultDark;
+			};
 		}
 
 		//--------------------------------------------------------------
@@ -913,7 +1073,7 @@ class CrosswordView
 	//==================================================================
 
 
-	// CLASS: TEXT SECTION PANE
+	// CLASS: TEXT-SECTION PANE
 
 
 	private static class TextSectionPane
@@ -1267,6 +1427,7 @@ class CrosswordView
 				directionLabels.put(direction, directionLabel);
 				Font font = AppFont.MAIN.getFont();
 				directionLabel.setFont(font.deriveFont(Font.BOLD, FONT_SIZE_FACTOR * font.getSize2D()));
+				directionLabel.setForeground(CrosswordView.Colour.TEXT.get());
 				directionLabel.setVisible(document.isShowClues());
 
 				gbc.gridx = gridX;

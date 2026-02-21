@@ -409,7 +409,6 @@ abstract class GridPane
 			gr2d.fillRect(rect.x, rect.y, rect.width, rect.height);
 
 			// Draw separator
-			gr2d.setColor(CrosswordView.Colour.GRID_LINE.get());
 			drawSeparator(gr2d, row, column);
 
 			// Draw field number
@@ -1335,6 +1334,7 @@ abstract class GridPane
 		protected void drawSeparators(
 			Graphics	gr)
 		{
+			gr.setColor(CrosswordView.Colour.GRID_SEPARATOR_BLOCK.get());
 			for (int row = 0; row < numRows; row++)
 			{
 				for (int column = 0; column < numColumns; column++)
@@ -1354,7 +1354,10 @@ abstract class GridPane
 			int			column)
 		{
 			if (grid.getCell(row, column).isBlocked())
+			{
+				gr.setColor(CrosswordView.Colour.GRID_SEPARATOR_BLOCK.get());
 				gr.fillRect(column * cellSize + 1, row * cellSize + 1, cellSize - 1, cellSize - 1);
+			}
 		}
 
 		//--------------------------------------------------------------
@@ -1434,13 +1437,13 @@ abstract class GridPane
 
 		private static final	KeyAction.KeyCommandPair[]	KEY_COMMANDS	=
 		{
-			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_UP, KeyEvent.ALT_DOWN_MASK),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_UP,    KeyEvent.SHIFT_DOWN_MASK),
 							  Command.TOGGLE_BAR_TOP),
-			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.SHIFT_DOWN_MASK),
 							  Command.TOGGLE_BAR_RIGHT),
-			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, KeyEvent.ALT_DOWN_MASK),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,  KeyEvent.SHIFT_DOWN_MASK),
 							  Command.TOGGLE_BAR_BOTTOM),
-			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, KeyEvent.ALT_DOWN_MASK),
+			KeyAction.command(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT,  KeyEvent.SHIFT_DOWN_MASK),
 							  Command.TOGGLE_BAR_LEFT),
 		};
 
@@ -1553,6 +1556,7 @@ abstract class GridPane
 		protected void drawSeparators(
 			Graphics	gr)
 		{
+			gr.setColor(CrosswordView.Colour.GRID_SEPARATOR_BAR.get());
 			int barWidth = AppConfig.INSTANCE.getBarGridBarWidth();
 			int barWidthIn = (barWidth - 1) / 2;
 			int barWidthOut = barWidth / 2;
@@ -1617,6 +1621,7 @@ abstract class GridPane
 			int			row,
 			int			column)
 		{
+			gr.setColor(CrosswordView.Colour.GRID_SEPARATOR_BAR.get());
 			int barWidth = AppConfig.INSTANCE.getBarGridBarWidth();
 			int barWidthIn = (barWidth - 1) / 2;
 			int barWidthOut = barWidth / 2;

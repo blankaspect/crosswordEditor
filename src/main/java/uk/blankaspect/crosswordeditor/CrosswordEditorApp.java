@@ -18,6 +18,7 @@ package uk.blankaspect.crosswordeditor;
 // IMPORTS
 
 
+import java.awt.Color;
 import java.awt.Point;
 
 import java.io.File;
@@ -96,10 +97,6 @@ public class CrosswordEditorApp
 
 	private static final	String	BUILD_PROPERTIES_FILENAME	= "build.properties";
 
-	private static final	String	VIEW_KEY		= "view";
-	private static final	String	DO_NOT_VIEW_KEY	= "doNotView";
-	private static final	String	OS_NAME_KEY		= "os.name";
-
 	private static final	String	RX_ID	= MethodHandles.lookup().lookupClass().getCanonicalName();
 
 	private static final	String	ASSOC_FILE_KIND_KEY		= "BlankAspect." + SHORT_NAME + ".document";
@@ -108,43 +105,69 @@ public class CrosswordEditorApp
 	private static final	String	ASSOC_SCRIPT_DIR_PREFIX	= NAME_KEY + "_";
 	private static final	String	ASSOC_SCRIPT_FILENAME	= NAME_KEY + "Associations";
 
-	private static final	String	CONFIG_ERROR_STR		= "Configuration error";
-	private static final	String	LAF_ERROR1_STR			= "Look-and-feel: ";
-	private static final	String	LAF_ERROR2_STR			= "\nThe look-and-feel is not installed.";
-	private static final	String	OPEN_FILE_STR			= "Open file";
-	private static final	String	REVERT_FILE_STR			= "Revert file";
-	private static final	String	SAVE_FILE_STR			= "Save file";
-	private static final	String	SAVE_FILE_AS_STR		= "Save file as";
-	private static final	String	SAVE_CLOSE_FILE_STR		= "Save file before closing";
-	private static final	String	EXPORT_AS_HTML_STR		= "Export document as HTML";
-	private static final	String	MODIFIED_FILE_STR		= "Modified file";
-	private static final	String	READ_FILE_STR			= "Read file";
-	private static final	String	WRITE_FILE_STR			= "Write file";
-	private static final	String	NEW_CROSSWORD_STR		= "New crossword";
-	private static final	String	REVERT_STR				= "Revert";
-	private static final	String	SAVE_STR				= "Save";
-	private static final	String	DISCARD_STR				= "Discard";
-	private static final	String	REVERT_MESSAGE_STR		=
+	private static final	String	CONFIG_ERROR_STR			= "Configuration error";
+	private static final	String	LAF_ERROR1_STR				= "Look-and-feel: ";
+	private static final	String	LAF_ERROR2_STR				= "\nThe look-and-feel is not installed.";
+	private static final	String	OPEN_FILE_STR				= "Open file";
+	private static final	String	REVERT_FILE_STR				= "Revert file";
+	private static final	String	SAVE_FILE_STR				= "Save file";
+	private static final	String	SAVE_FILE_AS_STR			= "Save file as";
+	private static final	String	SAVE_CLOSE_FILE_STR			= "Save file before closing";
+	private static final	String	EXPORT_AS_HTML_STR			= "Export document as HTML";
+	private static final	String	MODIFIED_FILE_STR			= "Modified file";
+	private static final	String	READ_FILE_STR				= "Read file";
+	private static final	String	WRITE_FILE_STR				= "Write file";
+	private static final	String	NEW_CROSSWORD_STR			= "New crossword";
+	private static final	String	REVERT_STR					= "Revert";
+	private static final	String	SAVE_STR					= "Save";
+	private static final	String	DISCARD_STR					= "Discard";
+	private static final	String	REVERT_MESSAGE_STR			=
 			"\nDo you want discard the changes to the current document and reopen the original file?";
-	private static final	String	MODIFIED_MESSAGE_STR	=
+	private static final	String	MODIFIED_MESSAGE_STR		=
 			"\nThe file has been modified externally.\nDo you want to open the modified file?";
-	private static final	String	UNNAMED_FILE_STR		= "The unnamed file";
-	private static final	String	CHANGED_MESSAGE1_STR	= "\nThe file";
-	private static final	String	CHANGED_MESSAGE2_STR	= " has changed.\nDo you want to save the changed file?";
-	private static final	String	VIEW_FILE_STR			= "View file";
-	private static final	String	DO_NOT_VIEW_FILE_STR	= "Don't view file";
-	private static final	String	VIEW_HTML_FILE_STR		=
+	private static final	String	UNNAMED_FILE_STR			= "The unnamed file";
+	private static final	String	FILE_STR					= "\nThe file";
+	private static final	String	FILE_CHANGED_STR			=
+			" has changed.\nDo you want to save the changed file?";
+	private static final	String	VIEW_FILE_STR				= "View file";
+	private static final	String	DO_NOT_VIEW_FILE_STR		= "Don't view file";
+	private static final	String	VIEW_HTML_FILE_STR			=
 			"Do you want to view the HTML file in an external browser?";
-	private static final	String	DO_NOT_SHOW_AGAIN_STR	= "Do not show this dialog again";
-	private static final	String	WINDOWS_STR				= "Windows";
-	private static final	String	FILE_ASSOCIATION_STR	= "File association";
+	private static final	String	DO_NOT_SHOW_AGAIN_STR		= "Do not show this dialog again";
+	private static final	String	WINDOWS_STR					= "Windows";
+	private static final	String	FILE_ASSOCIATION_STR		= "File association";
+	private static final	String	CHOOSE_COLOUR_SCHEME_STR	= "Choose colour scheme";
+	private static final	String	SCHEME_STR					= " scheme.";
+	private static final	String	EXIT_STR					= "Exit";
 
-	private static final	QuestionDialog.Option[]	VIEW_FILE_OPTIONS	=
+	private static final	List<String>	COLOUR_SCHEME_STRS	= List.of
+	(
+		"This version of the application supports two colour schemes for a crossword view",
+		"(light and dark), but it was launched with a configuration file that contains",
+		"colours from a single colour scheme.  You must assign the old colours to one of",
+		"the two new schemes.  If you don't want to choose now, select the 'Exit' option",
+		"to quit the application; otherwise, select either 'Light' or 'Dark'.",
+		"",
+		"It is recommended, based on the old background colour, that you choose the"
+	);
+
+	private static final	List<QuestionDialog.Option>	VIEW_FILE_OPTIONS	= List.of
+	(
+		new QuestionDialog.Option(QuestionDialogKey.VIEW,        VIEW_FILE_STR),
+		new QuestionDialog.Option(QuestionDialogKey.DO_NOT_VIEW, DO_NOT_VIEW_FILE_STR),
+		new QuestionDialog.Option(QuestionDialog.CANCEL_KEY,     AppConstants.CANCEL_STR)
+	);
+
+	private interface SystemPropertyKey
 	{
-		new QuestionDialog.Option(VIEW_KEY,                  VIEW_FILE_STR),
-		new QuestionDialog.Option(DO_NOT_VIEW_KEY,           DO_NOT_VIEW_FILE_STR),
-		new QuestionDialog.Option(QuestionDialog.CANCEL_KEY, AppConstants.CANCEL_STR)
-	};
+		String	OS_NAME	= "os.name";
+	}
+
+	private interface QuestionDialogKey
+	{
+		String	DO_NOT_VIEW	= "doNotView";
+		String	VIEW		= "view";
+	}
 
 ////////////////////////////////////////////////////////////////////////
 //  Instance variables
@@ -332,14 +355,13 @@ public class CrosswordEditorApp
 		CrosswordDocument document = getDocument();
 		boolean isDocument = (document != null);
 		boolean notFull = !isDocumentsFull();
-		boolean isWindows = System.getProperty(OS_NAME_KEY, "").contains(WINDOWS_STR);
+		boolean isWindows = System.getProperty(SystemPropertyKey.OS_NAME, "").contains(WINDOWS_STR);
 
 		AppCommand.CHECK_MODIFIED_FILE.setEnabled(true);
 		AppCommand.IMPORT_FILES.setEnabled(true);
 		AppCommand.CREATE_DOCUMENT.setEnabled(notFull);
 		AppCommand.OPEN_DOCUMENT.setEnabled(notFull);
-		AppCommand.REVERT_DOCUMENT.setEnabled(isDocument && document.isChanged() &&
-											   (document.getFile() != null));
+		AppCommand.REVERT_DOCUMENT.setEnabled(isDocument && document.isChanged() && (document.getFile() != null));
 		AppCommand.CLOSE_DOCUMENT.setEnabled(isDocument);
 		AppCommand.CLOSE_ALL_DOCUMENTS.setEnabled(isDocument);
 		AppCommand.SAVE_DOCUMENT.setEnabled(isDocument && document.isChanged());
@@ -347,11 +369,9 @@ public class CrosswordEditorApp
 		AppCommand.EXPORT_HTML_FILE.setEnabled(isDocument);
 		AppCommand.EXIT.setEnabled(true);
 		AppCommand.CAPTURE_CROSSWORD.setEnabled(notFull);
-		AppCommand.CREATE_SOLUTION_DOCUMENT.setEnabled(notFull && isDocument &&
-														document.getGrid().hasSolution());
+		AppCommand.CREATE_SOLUTION_DOCUMENT.setEnabled(notFull && isDocument && document.getGrid().hasSolution());
 		AppCommand.TOGGLE_SHOW_FULL_PATHNAMES.setEnabled(true);
-		AppCommand.TOGGLE_SHOW_FULL_PATHNAMES.
-											setSelected(AppConfig.INSTANCE.isShowFullPathnames());
+		AppCommand.TOGGLE_SHOW_FULL_PATHNAMES.setSelected(AppConfig.INSTANCE.isShowFullPathnames());
 		AppCommand.MANAGE_FILE_ASSOCIATION.setEnabled(isWindows);
 		AppCommand.EDIT_PREFERENCES.setEnabled(true);
 	}
@@ -536,14 +556,12 @@ public class CrosswordEditorApp
 
 		// Display prompt to save changed document
 		File file = document.getFile();
-		String messageStr =
-					((file == null) ? UNNAMED_FILE_STR : Utils.getPathname(file) + CHANGED_MESSAGE1_STR) +
-																					CHANGED_MESSAGE2_STR;
+		String message = ((file == null) ? UNNAMED_FILE_STR : Utils.getPathname(file) + FILE_STR)
+				+ FILE_CHANGED_STR;
 		String[] optionStrs = Utils.getOptionStrings(SAVE_STR, DISCARD_STR);
-		int result = JOptionPane.showOptionDialog(mainWindow, messageStr, SAVE_CLOSE_FILE_STR,
-												  JOptionPane.YES_NO_CANCEL_OPTION,
-												  JOptionPane.QUESTION_MESSAGE, null, optionStrs,
-												  optionStrs[0]);
+		int result = JOptionPane.showOptionDialog(mainWindow, message, SAVE_CLOSE_FILE_STR,
+												  JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+												  optionStrs, optionStrs[0]);
 
 		// Discard changed document
 		if (result == JOptionPane.NO_OPTION)
@@ -560,8 +578,8 @@ public class CrosswordEditorApp
 					return false;
 				if (file.exists())
 				{
-					messageStr = Utils.getPathname(file) + AppConstants.ALREADY_EXISTS_STR;
-					result = JOptionPane.showConfirmDialog(mainWindow, messageStr, SAVE_CLOSE_FILE_STR,
+					message = Utils.getPathname(file) + AppConstants.ALREADY_EXISTS_STR;
+					result = JOptionPane.showConfirmDialog(mainWindow, message, SAVE_CLOSE_FILE_STR,
 														   JOptionPane.YES_NO_CANCEL_OPTION,
 														   JOptionPane.WARNING_MESSAGE);
 					if (result == JOptionPane.NO_OPTION)
@@ -724,6 +742,32 @@ public class CrosswordEditorApp
 		{
 			// Create main window
 			mainWindow = new MainWindow();
+
+			// If there are legacy view colours
+			if (config.hasLegacyViewColours())
+			{
+				List<QuestionDialog.Option> options = new ArrayList<>();
+				for (CrosswordView.ColourScheme scheme : CrosswordView.ColourScheme.values())
+					options.add(new QuestionDialog.Option(scheme.getKey(), scheme.toString()));
+				options.add(new QuestionDialog.Option(QuestionDialog.CANCEL_KEY, EXIT_STR));
+
+				CrosswordView.ColourScheme scheme = CrosswordView.ColourScheme.LIGHT;
+				List<String> messageLines = new ArrayList<>(COLOUR_SCHEME_STRS);
+				Color colour = config.legacyViewBackgroundColour();
+				if (colour != null)
+				{
+					scheme = ((colour.getRed() > 127) || (colour.getGreen() > 127) || (colour.getBlue() > 127))
+									? CrosswordView.ColourScheme.LIGHT
+									: CrosswordView.ColourScheme.DARK;
+					messageLines.add(scheme.lcText() + SCHEME_STR);
+				}
+
+				String key = QuestionDialog.showDialog(mainWindow, CHOOSE_COLOUR_SCHEME_STR, messageLines, options, 0,
+													   scheme.getKey(), null).selectedKey();
+				if (key == QuestionDialog.CANCEL_KEY)
+					System.exit(0);
+				config.setViewColourSchemeToLegacy(CrosswordView.ColourScheme.forKey(key));
+			}
 
 			// Start file-check timer
 			new Timer(FILE_CHECK_TIMER_INTERVAL, AppCommand.CHECK_MODIFIED_FILE).start();
@@ -1052,18 +1096,19 @@ public class CrosswordEditorApp
 													  result.writeEntries());
 			TaskProgressDialog.showDialog(mainWindow, EXPORT_AS_HTML_STR, task);
 
-			// Show "View HTML file" message
+			// Show 'view HTML file' message
 			if (showViewHtmlFileMessage)
 			{
-				QuestionDialog.Result viewResult = QuestionDialog.showDialog(mainWindow, VIEW_FILE_STR,
-																			 new String[] { VIEW_HTML_FILE_STR },
-																			 VIEW_FILE_OPTIONS, 0, DO_NOT_VIEW_KEY,
-																			 DO_NOT_SHOW_AGAIN_STR);
+				QuestionDialog.Result viewResult =
+						QuestionDialog.showDialog(mainWindow, VIEW_FILE_STR, List.of(VIEW_HTML_FILE_STR),
+												  VIEW_FILE_OPTIONS, 0, QuestionDialogKey.DO_NOT_VIEW,
+												  DO_NOT_SHOW_AGAIN_STR);
 				if (viewResult.checkBoxSelected())
 					showViewHtmlFileMessage = false;
-				if (QuestionDialog.CANCEL_KEY.equals(viewResult.selectedKey()))
+				String key = viewResult.selectedKey();
+				if (QuestionDialog.CANCEL_KEY.equals(key))
 					return;
-				viewHtmlFile = VIEW_KEY.equals(viewResult.selectedKey());
+				viewHtmlFile = QuestionDialogKey.VIEW.equals(key);
 			}
 
 			// View output file

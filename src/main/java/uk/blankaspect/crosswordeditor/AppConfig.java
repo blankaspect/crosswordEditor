@@ -109,7 +109,9 @@ class AppConfig
 		String	CLEAR_EDIT_LIST_ON_SAVE			= "clearEditListOnSave";
 		String	CLUE							= "clue";
 		String	COLOUR							= "colour";
+		String	COLOUR_SCHEME					= "colourScheme";
 		String	CONFIGURATION					= CrosswordEditorApp.NAME_KEY + "Configuration";
+		String	DARK							= "dark";
 		String	DIRECTION_KEYWORDS				= "directionKeywords";
 		String	ENTRY_CHARACTERS				= "entryCharacters";
 		String	ENTRY_COLOUR					= "entryColour";
@@ -128,6 +130,7 @@ class AppConfig
 		String	HTML							= "html";
 		String	IMPLICIT_FIELD_DIRECTION		= "implicitFieldDirection";
 		String	IMAGE_VIEWPORT_SIZE				= "imageViewportSize";
+		String	LIGHT							= "light";
 		String	LINE_BREAK						= "lineBreak";
 		String	LINE_WIDTH						= "lineWidth";
 		String	LOOK_AND_FEEL					= "lookAndFeel";
@@ -396,6 +399,40 @@ class AppConfig
 
 	//------------------------------------------------------------------
 
+	public boolean hasLegacyViewColours()
+	{
+		return !cpViewColour.getValues().isEmpty();
+	}
+
+	//------------------------------------------------------------------
+
+	public Color legacyViewBackgroundColour()
+	{
+		return cpViewColour.getValue(CrosswordView.Colour.BACKGROUND);
+	}
+
+	//------------------------------------------------------------------
+
+	public void setViewColourSchemeToLegacy(
+		CrosswordView.ColourScheme	scheme)
+	{
+		// Set colours of scheme
+		for (CrosswordView.Colour key : CrosswordView.Colour.values())
+		{
+			Color colour = cpViewColour.getValue(key);
+			if (colour != null)
+				key.set(scheme, colour);
+		}
+
+		// Update colour scheme
+		cpViewColourScheme.setValue(scheme);
+
+		// Set 'changed' flag so that configuration can be written to file
+		cpViewColourScheme.setChanged(true);
+	}
+
+	//------------------------------------------------------------------
+
 	private void getProperties(Property.ISource... propertySources)
 	{
 		for (Property property : getProperties())
@@ -416,7 +453,10 @@ class AppConfig
 	private void putProperties(Property.ITarget propertyTarget)
 	{
 		for (Property property : getProperties())
-			property.put(propertyTarget);
+		{
+			if (!cpViewColour.getKey().equals(property.getKey()))
+				property.put(propertyTarget);
+		}
 	}
 
 	//------------------------------------------------------------------
@@ -1110,8 +1150,7 @@ class AppConfig
 
 		private CPTextAntialiasing()
 		{
-			super(concatenateKeys(Key.APPEARANCE, Key.TEXT_ANTIALIASING),
-				  TextRendering.Antialiasing.class);
+			super(concatenateKeys(Key.APPEARANCE, Key.TEXT_ANTIALIASING), TextRendering.Antialiasing.class);
 			value = TextRendering.Antialiasing.DEFAULT;
 		}
 
@@ -2069,8 +2108,68 @@ class AppConfig
 	//==================================================================
 
 
+	// PROPERTY CLASS: VIEW COLOUR SCHEME
+
+
+	private class CPViewColourScheme
+		extends Property.EnumProperty<CrosswordView.ColourScheme>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private CPViewColourScheme()
+		{
+			super(concatenateKeys(Key.VIEW, Key.COLOUR_SCHEME), CrosswordView.ColourScheme.class);
+			value = CrosswordView.ColourScheme.LIGHT;
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//------------------------------------------------------------------
+
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+	public CrosswordView.ColourScheme getViewColourScheme()
+	{
+		return cpViewColourScheme.getValue();
+	}
+
+	//------------------------------------------------------------------
+
+	public void setViewColourScheme(
+		CrosswordView.ColourScheme	value)
+	{
+		cpViewColourScheme.setValue(value);
+	}
+
+	//------------------------------------------------------------------
+
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+	private	CPViewColourScheme	cpViewColourScheme	= new CPViewColourScheme();
+
+	//==================================================================
+
+
 	// PROPERTY CLASS: VIEW COLOUR
 
+
+	/**
+	 * This class is associated with a legacy colour scheme.  It is retained only to allow the colours from the old
+	 * scheme to be assigned to one of the new colour schemes, which are associated with {@link CPViewColourLight} and
+	 * {@link CPViewColourDark}.  The constructor of this class does not initialise the map of property values with
+	 * default values; the map is populated only by reading a configuration file.  The instance of this class, {@link
+	 * AppConfig#cpViewColour}, is omitted from the properties that are collected by {@link
+	 * AppConfig#putProperties(ITarget)}.
+	 */
 
 	private class CPViewColour
 		extends Property.PropertyMap<CrosswordView.Colour, Color>
@@ -2083,8 +2182,6 @@ class AppConfig
 		private CPViewColour()
 		{
 			super(concatenateKeys(Key.VIEW, Key.COLOUR), CrosswordView.Colour.class);
-			for (CrosswordView.Colour key : CrosswordView.Colour.values())
-				values.put(key, key.getDefaultColour());
 		}
 
 		//--------------------------------------------------------------
@@ -2094,8 +2191,9 @@ class AppConfig
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public void parse(Input                input,
-						  CrosswordView.Colour key)
+		public void parse(
+			Input					input,
+			CrosswordView.Colour	key)
 		{
 			try
 			{
@@ -2110,7 +2208,71 @@ class AppConfig
 		//--------------------------------------------------------------
 
 		@Override
-		public String toString(CrosswordView.Colour key)
+		public String toString(
+			CrosswordView.Colour	key)
+		{
+			return ColourUtils.colourToRgbString(getValue(key));
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//------------------------------------------------------------------
+
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+	private	CPViewColour	cpViewColour	= new CPViewColour();
+
+	//==================================================================
+
+
+	// PROPERTY CLASS: VIEW COLOUR, LIGHT COLOUR SCHEME
+
+
+	private class CPViewColourLight
+		extends Property.PropertyMap<CrosswordView.Colour, Color>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private CPViewColourLight()
+		{
+			super(concatenateKeys(Key.VIEW, Key.COLOUR, Key.LIGHT), CrosswordView.Colour.class);
+			for (CrosswordView.Colour colour : CrosswordView.Colour.values())
+				values.put(colour, colour.getDefault(CrosswordView.ColourScheme.LIGHT));
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void parse(
+			Input					input,
+			CrosswordView.Colour	key)
+		{
+			try
+			{
+				values.put(key, ColourProperty.parseColour(input));
+			}
+			catch (AppException e)
+			{
+				showWarningMessage(e);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public String toString(
+			CrosswordView.Colour	key)
 		{
 			return ColourUtils.colourToRgbString(getValue(key));
 		}
@@ -2125,17 +2287,19 @@ class AppConfig
 //  Instance methods : associated methods in enclosing class
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-	public Color getViewColour(CrosswordView.Colour key)
+	public Color getViewColourLight(
+		CrosswordView.Colour	key)
 	{
-		return cpViewColour.getValue(key);
+		return cpViewColourLight.getValue(key);
 	}
 
 	//------------------------------------------------------------------
 
-	public void setViewColour(CrosswordView.Colour key,
-							  Color                value)
+	public void setViewColourLight(
+		CrosswordView.Colour	key,
+		Color					value)
 	{
-		cpViewColour.setValue(key, value);
+		cpViewColourLight.setValue(key, value);
 	}
 
 	//------------------------------------------------------------------
@@ -2144,7 +2308,91 @@ class AppConfig
 //  Instance variables : associated variables in enclosing class
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-	private	CPViewColour	cpViewColour	= new CPViewColour();
+	private	CPViewColourLight	cpViewColourLight	= new CPViewColourLight();
+
+	//==================================================================
+
+
+	// PROPERTY CLASS: VIEW COLOUR, DARK COLOUR SCHEME
+
+
+	private class CPViewColourDark
+		extends Property.PropertyMap<CrosswordView.Colour, Color>
+	{
+
+	////////////////////////////////////////////////////////////////////
+	//  Constructors
+	////////////////////////////////////////////////////////////////////
+
+		private CPViewColourDark()
+		{
+			super(concatenateKeys(Key.VIEW, Key.COLOUR, Key.DARK), CrosswordView.Colour.class);
+			for (CrosswordView.Colour colour : CrosswordView.Colour.values())
+				values.put(colour, colour.getDefault(CrosswordView.ColourScheme.DARK));
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods : overriding methods
+	////////////////////////////////////////////////////////////////////
+
+		@Override
+		public void parse(
+			Input					input,
+			CrosswordView.Colour	key)
+		{
+			try
+			{
+				values.put(key, ColourProperty.parseColour(input));
+			}
+			catch (AppException e)
+			{
+				showWarningMessage(e);
+			}
+		}
+
+		//--------------------------------------------------------------
+
+		@Override
+		public String toString(
+			CrosswordView.Colour	key)
+		{
+			return ColourUtils.colourToRgbString(getValue(key));
+		}
+
+		//--------------------------------------------------------------
+
+	}
+
+	//------------------------------------------------------------------
+
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance methods : associated methods in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+	public Color getViewColourDark(
+		CrosswordView.Colour	key)
+	{
+		return cpViewColourDark.getValue(key);
+	}
+
+	//------------------------------------------------------------------
+
+	public void setViewColourDark(
+		CrosswordView.Colour	key,
+		Color					value)
+	{
+		cpViewColourDark.setValue(key, value);
+	}
+
+	//------------------------------------------------------------------
+
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//  Instance variables : associated variables in enclosing class
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+	private	CPViewColourDark	cpViewColourDark	= new CPViewColourDark();
 
 	//==================================================================
 

@@ -33,6 +33,7 @@ import java.awt.Window;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -65,11 +66,11 @@ import javax.swing.UIManager;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 import uk.blankaspect.common.exception.AppException;
 import uk.blankaspect.common.exception.FileException;
+
+import uk.blankaspect.common.function.IProcedure0;
 
 import uk.blankaspect.common.misc.MaxValueMap;
 
@@ -129,7 +130,7 @@ import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
 
 class PreferencesDialog
 	extends JDialog
-	implements ActionListener, ChangeListener, ListSelectionListener
+	implements ActionListener, ChangeListener
 {
 
 ////////////////////////////////////////////////////////////////////////
@@ -160,7 +161,9 @@ class PreferencesDialog
 
 	// View panel
 	private	FIntegerSpinner							selClueNumColumnsSpinner;
-	private	Map<CrosswordView.Colour, Color>		viewColours;
+	private	FComboBox<CrosswordView.ColourScheme>	colourSchemeComboBox;
+	private	Map<CrosswordView.ColourScheme,
+			Map<CrosswordView.Colour, Color>>		viewColours;
 	private	SelectionList<CrosswordView.Colour>		viewColoursList;
 	private	ColourButton							viewColourButton;
 
@@ -236,10 +239,17 @@ class PreferencesDialog
 	private static final	int		SELECTED_CLUE_NUM_COLUMNS_FIELD_LENGTH	= 3;
 	private static final	int		VIEW_COLOURS_LIST_NUM_ROWS				= 6;
 
+	private static final	Insets	RESTORE_DEFAULTS_BUTTON_MARGINS	= new Insets(2, 4, 2, 4);
+
 	private static final	String	SELECTED_CLUE_NUM_COLUMNS_STR	= "Width of selected clue";
 	private static final	String	COLUMNS_STR						= "columns";
 	private static final	String	COLOURS_STR						= "Colours";
-	private static final	String	VIEW_COLOUR_STR					= "View colour : ";
+	private static final	String	COLOUR_SCHEME_STR				= "Colour scheme";
+	private static final	String	RESTORE_DEFAULTS_STR			= "Restore defaults";
+	private static final	String	RESTORE_COLOURS_STR				=
+			"Do you want to restore the default colours of the %s colour scheme?";
+	private static final	String	RESTORE_STR						= "Restore";
+	private static final	String	VIEW_COLOUR_STR					= "View colour";
 
 	// Grid panel
 	private static final	int		GRID_IMAGE_VIEWPORT_FIELD_LENGTH	= 4;
@@ -258,7 +268,7 @@ class PreferencesDialog
 	private static final	int		DIRECTION_KEYWORDS_FIELD_NUM_COLUMNS		= 48;
 	private static final	int		CLUE_REFERENCE_KEYWORD_FIELD_NUM_COLUMNS	= 12;
 
-	private static final	Insets	EDIT_BUTTON_MARGINS		= new Insets(2, 4, 2, 4);
+	private static final	Insets	EDIT_BUTTON_MARGINS	= new Insets(2, 4, 2, 4);
 
 	private static final	String	DIRECTION_KEYWORDS_STR			= "Direction keywords";
 	private static final	String	EDIT_DIRECTION_KEYWORDS_STR		= "Edit direction keywords : ";
@@ -326,7 +336,6 @@ class PreferencesDialog
 		String	EDIT_DIRECTION_KEYWORDS		= "editDirectionKeywords.";
 		String	EDIT_HTML_FONT_NAMES		= "editHtmlFontNames";
 		String	CHOOSE_STATUS_TEXT_COLOUR	= "chooseStatusTextColour";
-		String	CHOOSE_VIEW_COLOUR			= "chooseViewColour";
 		String	CHOOSE_HTML_GRID_COLOUR		= "chooseHtmlGridColour";
 		String	CHOOSE_HTML_ENTRY_COLOUR	= "chooseHtmlEntryColour";
 		String	CHOOSE_BLOCK_IMAGE_COLOUR	= "chooseBlockImageColour";
@@ -534,7 +543,6 @@ class PreferencesDialog
 			{
 				case Command.EDIT_HTML_FONT_NAMES      -> onEditHtmlFontNames();
 				case Command.CHOOSE_STATUS_TEXT_COLOUR -> onChooseStatusTextColour();
-				case Command.CHOOSE_VIEW_COLOUR        -> onChooseViewColour();
 				case Command.CHOOSE_HTML_GRID_COLOUR   -> onChooseHtmlGridColour();
 				case Command.CHOOSE_HTML_ENTRY_COLOUR  -> onChooseHtmlEntryColour();
 				case Command.CHOOSE_BLOCK_IMAGE_COLOUR -> onChooseBlockImageColour();
@@ -557,19 +565,6 @@ class PreferencesDialog
 	public void stateChanged(ChangeEvent event)
 	{
 		updateBlockImage();
-	}
-
-	//------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
-//  Instance methods : ListSelectionListener interface
-////////////////////////////////////////////////////////////////////////
-
-	@Override
-	public void valueChanged(ListSelectionEvent event)
-	{
-		if (!event.getValueIsAdjusting())
-			viewColourButton.setForeground(viewColours.get(viewColoursList.getSelectedValue()));
 	}
 
 	//------------------------------------------------------------------
@@ -625,19 +620,6 @@ class PreferencesDialog
 		Color colour = JColorChooser.showDialog(this, STATUS_TEXT_COLOUR_STR, statusTextColourButton.getForeground());
 		if (colour != null)
 			statusTextColourButton.setForeground(colour);
-	}
-
-	//------------------------------------------------------------------
-
-	private void onChooseViewColour()
-	{
-		CrosswordView.Colour colourId = viewColoursList.getSelectedValue();
-		Color colour = JColorChooser.showDialog(this, VIEW_COLOUR_STR + colourId, viewColourButton.getForeground());
-		if (colour != null)
-		{
-			viewColourButton.setForeground(colour);
-			viewColours.put(colourId, colour);
-		}
 	}
 
 	//------------------------------------------------------------------
@@ -1157,21 +1139,90 @@ class PreferencesDialog
 		numColumnsPanel.add(columnsLabel);
 
 
-		//----  Colours panel
-
-		JPanel coloursPanel = new JPanel(gridBag);
-		TitledBorder.setPaddedBorder(coloursPanel, COLOURS_STR, 6, 8);
+		//----  Colours pane
 
 		// Initialise colours
-		viewColours = new EnumMap<>(CrosswordView.Colour.class);
-		for (CrosswordView.Colour colour : CrosswordView.Colour.values())
-			viewColours.put(colour, colour.get());
+		viewColours = new EnumMap<>(CrosswordView.ColourScheme.class);
+		for (CrosswordView.ColourScheme scheme : CrosswordView.ColourScheme.values())
+		{
+			Map<CrosswordView.Colour, Color> schemeColours = new EnumMap<>(CrosswordView.Colour.class);
+			viewColours.put(scheme, schemeColours);
+			for (CrosswordView.Colour colour : CrosswordView.Colour.values())
+				schemeColours.put(colour, colour.get(scheme));
+		}
+
+		// Create pane
+		JPanel coloursPane = new JPanel(gridBag);
+		TitledBorder.setPaddedBorder(coloursPane, COLOURS_STR, 6, 8);
+
+		// Reset y index
+		gridY = 0;
+
+		// Create procedure to update colour button
+		IProcedure0 updateColourButton = () ->
+		{
+			viewColourButton.setForeground(viewColours.get(colourSchemeComboBox.getSelectedValue())
+						.get(viewColoursList.getSelectedValue()));
+		};
+
+		// Combo box: colour scheme
+		colourSchemeComboBox = new FComboBox<>(CrosswordView.ColourScheme.values());
+		colourSchemeComboBox.setSelectedValue(config.getViewColourScheme());
+		colourSchemeComboBox.addItemListener(event ->
+		{
+			if (event.getStateChange() == ItemEvent.SELECTED)
+				updateColourButton.invoke();
+		});
+
+		// Button: restore defaults
+		FButton restoreDefaultsButton = new FButton(RESTORE_DEFAULTS_STR);
+		restoreDefaultsButton.setMargin(RESTORE_DEFAULTS_BUTTON_MARGINS);
+		restoreDefaultsButton.addActionListener(event ->
+		{
+			CrosswordView.ColourScheme scheme = colourSchemeComboBox.getSelectedValue();
+			String message = String.format(RESTORE_COLOURS_STR, scheme.lcText());
+			String[] options = { RESTORE_STR, AppConstants.CANCEL_STR };
+			if (JOptionPane.showOptionDialog(this, message, RESTORE_DEFAULTS_STR, JOptionPane.OK_CANCEL_OPTION,
+											 JOptionPane.QUESTION_MESSAGE, null, options, options[1])
+													== JOptionPane.OK_OPTION)
+			{
+				Map<CrosswordView.Colour, Color> schemeColours = viewColours.get(scheme);
+				for (CrosswordView.Colour key : schemeColours.keySet())
+					schemeColours.put(key, key.getDefault(scheme));
+
+				updateColourButton.invoke();
+			}
+		});
+
+		// Pane: colour scheme
+		Box colourSchemePane = Box.createHorizontalBox();
+		colourSchemePane.add(new FLabel(COLOUR_SCHEME_STR));
+		colourSchemePane.add(Box.createHorizontalStrut(6));
+		colourSchemePane.add(colourSchemeComboBox);
+		colourSchemePane.add(Box.createHorizontalStrut(8));
+		colourSchemePane.add(restoreDefaultsButton);
+
+		gbc.gridx = 0;
+		gbc.gridy = gridY++;
+		gbc.gridwidth = 2;
+		gbc.gridheight = 1;
+		gbc.weightx = 0.0;
+		gbc.weighty = 0.0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = new Insets(0, 0, 8, 0);
+		gridBag.setConstraints(colourSchemePane, gbc);
+		coloursPane.add(colourSchemePane);
 
 		// List: colours
 		viewColoursList = new SelectionList<>(CrosswordView.Colour.values(), 0, VIEW_COLOURS_LIST_NUM_ROWS);
 		viewColoursList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		viewColoursList.setSelectedIndex(0);
-		viewColoursList.addListSelectionListener(this);
+		viewColoursList.addListSelectionListener(event ->
+		{
+			if (!event.getValueIsAdjusting())
+				updateColourButton.invoke();
+		});
 
 		// Scroll pane: colours list
 		JScrollPane coloursListScrollPane = new JScrollPane(viewColoursList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -1180,7 +1231,7 @@ class PreferencesDialog
 		coloursListScrollPane.getHorizontalScrollBar().setFocusable(false);
 
 		gbc.gridx = 0;
-		gbc.gridy = 0;
+		gbc.gridy = gridY;
 		gbc.gridwidth = 1;
 		gbc.gridheight = 1;
 		gbc.weightx = 0.0;
@@ -1189,15 +1240,26 @@ class PreferencesDialog
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.insets = new Insets(0, 0, 0, 0);
 		gridBag.setConstraints(coloursListScrollPane, gbc);
-		coloursPanel.add(coloursListScrollPane);
+		coloursPane.add(coloursListScrollPane);
 
 		// Button: colour
-		viewColourButton = new ColourButton(CrosswordView.Colour.values()[0].get());
-		viewColourButton.setActionCommand(Command.CHOOSE_VIEW_COLOUR);
-		viewColourButton.addActionListener(this);
+		viewColourButton = new ColourButton(Color.BLACK);
+		viewColourButton.addActionListener(event ->
+		{
+			CrosswordView.ColourScheme scheme = colourSchemeComboBox.getSelectedValue();
+			Map<CrosswordView.Colour, Color> schemeColours = viewColours.get(scheme);
+			CrosswordView.Colour colourKey = viewColoursList.getSelectedValue();
+			String title = VIEW_COLOUR_STR + " : " + scheme.lcText() + " | " + colourKey;
+			Color colour = JColorChooser.showDialog(this, title, schemeColours.get(colourKey));
+			if (colour != null)
+			{
+				viewColourButton.setForeground(colour);
+				schemeColours.put(colourKey, colour);
+			}
+		});
 
 		gbc.gridx = 1;
-		gbc.gridy = 0;
+		gbc.gridy = gridY++;
 		gbc.gridwidth = 1;
 		gbc.gridheight = 1;
 		gbc.weightx = 0.0;
@@ -1206,7 +1268,10 @@ class PreferencesDialog
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.insets = new Insets(0, 8, 0, 0);
 		gridBag.setConstraints(viewColourButton, gbc);
-		coloursPanel.add(viewColourButton);
+		coloursPane.add(viewColourButton);
+
+		// Initialise colour button
+		updateColourButton.invoke();
 
 
 		//----  Outer panel
@@ -1237,8 +1302,8 @@ class PreferencesDialog
 		gbc.anchor = GridBagConstraints.NORTH;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(3, 0, 0, 0);
-		gridBag.setConstraints(coloursPanel, gbc);
-		outerPanel.add(coloursPanel);
+		gridBag.setConstraints(coloursPane, gbc);
+		outerPanel.add(coloursPane);
 
 		return outerPanel;
 	}
@@ -1571,7 +1636,7 @@ class PreferencesDialog
 			panel.add(field);
 
 			// Button: edit
-			JButton button = new FButton(EDIT_STR + AppConstants.ELLIPSIS_STR);
+			JButton button = new FButton(EDIT_STR);
 			button.setMargin(EDIT_BUTTON_MARGINS);
 			button.setActionCommand(Command.EDIT_DIRECTION_KEYWORDS + direction.getKey());
 			button.addActionListener(this);
@@ -1886,7 +1951,7 @@ class PreferencesDialog
 		fontNamesPanel.add(htmlFontNamesField);
 
 		// Button: edit
-		JButton editButton = new FButton(EDIT_STR + AppConstants.ELLIPSIS_STR);
+		JButton editButton = new FButton(EDIT_STR);
 		editButton.setMargin(EDIT_BUTTON_MARGINS);
 		editButton.setActionCommand(Command.EDIT_HTML_FONT_NAMES);
 		editButton.addActionListener(this);
@@ -2978,8 +3043,13 @@ class PreferencesDialog
 	{
 		AppConfig config = AppConfig.INSTANCE;
 		config.setSelectedClueNumColumns(selClueNumColumnsSpinner.getIntValue());
-		for (CrosswordView.Colour key : viewColours.keySet())
-			config.setViewColour(key, viewColours.get(key));
+		config.setViewColourScheme(colourSchemeComboBox.getSelectedValue());
+		for (CrosswordView.ColourScheme scheme : viewColours.keySet())
+		{
+			Map<CrosswordView.Colour, Color> schemeColours = viewColours.get(scheme);
+			for (CrosswordView.Colour key : schemeColours.keySet())
+				key.set(scheme, schemeColours.get(key));
+		}
 	}
 
 	//------------------------------------------------------------------

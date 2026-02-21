@@ -32,7 +32,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import java.util.List;
+
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -102,13 +105,13 @@ public class QuestionDialog
 ////////////////////////////////////////////////////////////////////////
 
 	private QuestionDialog(
-		Window		owner,
-		String		title,
-		String[]	messageStrs,
-		Option[]	options,
-		int			numColumns,
-		String		defaultOptionKey,
-		String		checkBoxStr)
+		Window			owner,
+		String			title,
+		List<String>	messageLines,
+		List<Option>	options,
+		int				numColumns,
+		String			defaultOptionKey,
+		String			checkBoxStr)
 	{
 		// Call superclass constructor
 		super(owner, title, ModalityType.APPLICATION_MODAL);
@@ -144,9 +147,14 @@ public class QuestionDialog
 		topPanel.add(questionIcon);
 
 		// Message panel
-		JPanel messagePanel = new JPanel(new GridLayout(0, 1, 0, 2));
-		for (String messageStr : messageStrs)
-			messagePanel.add(new FLabel(messageStr));
+		Box messagePanel = Box.createVerticalBox();
+		for (String messageLine : messageLines)
+		{
+			if (messageLine.isEmpty())
+				messagePanel.add(Box.createVerticalStrut(4));
+			else
+				messagePanel.add(new FLabel(messageLine));
+		}
 
 		gbc.gridx = 1;
 		gbc.gridy = 0;
@@ -184,19 +192,20 @@ public class QuestionDialog
 		JPanel buttonPanel = new JPanel(new GridLayout((numColumns > 0) ? 0 : 1, numColumns, 8, 6));
 
 		JButton defaultButton = null;
-		for (int i = 0; i < options.length; i++)
+		for (int i = 0; i < options.size(); i++)
 		{
-			if (options[i] == null)
+			Option option = options.get(i);
+			if (option == null)
 				buttonPanel.add(GuiUtils.spacer());
 			else
 			{
-				JButton button = new FButton(options[i].text);
-				String key = options[i].key;
+				JButton button = new FButton(option.text);
+				String key = option.key;
 				button.setActionCommand(CANCEL_KEY.equals(key) ? Command.CANCEL : Command.ACCEPT + key);
 				if ((key != null) && (defaultButton == null) && key.equals(defaultOptionKey))
 					defaultButton = button;
-				if (options[i].mnemonic != 0)
-					button.setMnemonic(options[i].mnemonic);
+				if (option.mnemonic != 0)
+					button.setMnemonic(option.mnemonic);
 				button.addActionListener(this);
 				buttonPanel.add(button);
 			}
@@ -228,7 +237,7 @@ public class QuestionDialog
 		gbc.gridheight = 1;
 		gbc.weightx = 0.0;
 		gbc.weighty = 0.0;
-		gbc.anchor = GridBagConstraints.NORTH;
+		gbc.anchor = (numColumns == 0) ? GridBagConstraints.EAST : GridBagConstraints.NORTH;
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.insets = new Insets(10, 0, 0, 0);
 		gridBag.setConstraints(buttonPanel, gbc);
@@ -299,13 +308,28 @@ public class QuestionDialog
 	public static Result showDialog(
 		Component	parent,
 		String		title,
-		String[]	messageStrs,
+		String[]	messageLines,
 		Option[]	options,
 		int			numColumns,
 		String		defaultOptionKey,
 		String		checkBoxStr)
 	{
-		return new QuestionDialog(GuiUtils.getWindow(parent), title, messageStrs, options, numColumns, defaultOptionKey,
+		return showDialog(GuiUtils.getWindow(parent), title, List.of(messageLines), List.of(options), numColumns,
+						  defaultOptionKey, checkBoxStr);
+	}
+
+	//------------------------------------------------------------------
+
+	public static Result showDialog(
+		Component		parent,
+		String			title,
+		List<String>	messageLines,
+		List<Option>	options,
+		int				numColumns,
+		String			defaultOptionKey,
+		String			checkBoxStr)
+	{
+		return new QuestionDialog(GuiUtils.getWindow(parent), title, messageLines, options, numColumns, defaultOptionKey,
 								  checkBoxStr)
 				.getResult();
 	}

@@ -2267,19 +2267,19 @@
           <th colspan="2">Barred grid</th>
         </tr>
         <tr>
-          <td class="definitionTerm">Alt+Left</td>
+          <td class="definitionTerm">Shift+Left</td>
           <td>Toggle the left bar</td>
         </tr>
         <tr>
-          <td class="definitionTerm">Alt+Right</td>
+          <td class="definitionTerm">Shift+Right</td>
           <td>Toggle the right bar</td>
         </tr>
         <tr>
-          <td class="definitionTerm">Alt+Up</td>
+          <td class="definitionTerm">Shift+Up</td>
           <td>Toggle the top bar</td>
         </tr>
         <tr>
-          <td class="definitionTerm">Alt+Down</td>
+          <td class="definitionTerm">Shift+Down</td>
           <td>Toggle the bottom bar</td>
         </tr>
       </table>
@@ -3080,12 +3080,25 @@
           </div>
         </div>
         <div>
+          <div id="cp-view-colour-scheme">
+            <dl>
+              <dt>Colour scheme</dt>
+              <dd class="wrap">
+                This is the colour scheme &mdash; <i>light</i> or <i>dark</i> &mdash; that
+                applies to a crossword view and the grid in the <span
+                class="component">Grid</span> dialog.
+              </dd>
+            </dl>
+          </div>
+        </div>
+        <div>
           <div id="cp-view-colour">
             <dl>
               <dt>Colours</dt>
               <dd class="wrap">
-                These are the colours of the various parts of a crossword view and the grid in
-                the <span class="component">Grid</span> dialog.
+                These are the colours of the current <a href="#cp-view-colour-scheme">colour
+                scheme</a>.  The colours apply to various parts of a crossword view and the grid
+                in the <span class="component">Grid</span> dialog.
               </dd>
             </dl>
           </div>
@@ -4489,109 +4502,241 @@
         </tr>
 
         <tr>
-          <td class="propertyKey">view.colour.background</td>
+          <td class="propertyKey">view.colour.dark.background</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.caret</td>
+          <td class="propertyKey">view.colour.dark.caret</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.clueText</td>
+          <td class="propertyKey">view.colour.dark.clueText</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.editingBox</td>
+          <td class="propertyKey">view.colour.dark.editingBox</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.emptyClueText</td>
+          <td class="propertyKey">view.colour.dark.emptyClueText</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.fieldNumberText</td>
+          <td class="propertyKey">view.colour.dark.fieldNumberText</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.focusedEditingBox</td>
+          <td class="propertyKey">view.colour.dark.focusedEditingBox</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.focusedSelectedFieldBackground</td>
+          <td class="propertyKey">view.colour.dark.focusedSelectedFieldBackground</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.fullyIntersectingFieldBackground</td>
+          <td class="propertyKey">view.colour.dark.fullyIntersectingFieldBackground</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.gridEntryText</td>
+          <td class="propertyKey">view.colour.dark.gridEntryText</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.gridLine</td>
+          <td class="propertyKey">view.colour.dark.gridLine</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.isolatedCellBackground</td>
+          <td class="propertyKey">view.colour.dark.gridSeparatorBar</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.prologueEpilogueText</td>
+          <td class="propertyKey">view.colour.dark.gridSeparatorBlock</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.selectedClueBackground</td>
+          <td class="propertyKey">view.colour.dark.isolatedCellBackground</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.selectedEmptyClueBackground</td>
+          <td class="propertyKey">view.colour.dark.prologueEpilogueText</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.selectedFieldBackground</td>
+          <td class="propertyKey">view.colour.dark.selectedClueBackground</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.text</td>
+          <td class="propertyKey">view.colour.dark.selectedEmptyClueBackground</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
         </tr>
         <tr>
-          <td class="propertyKey">view.colour.titleSeparator</td>
+          <td class="propertyKey">view.colour.dark.selectedFieldBackground</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.dark.text</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.dark.titleSeparator</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.background</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.caret</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.clueText</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.editingBox</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.emptyClueText</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.fieldNumberText</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.focusedEditingBox</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.focusedSelectedFieldBackground</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.fullyIntersectingFieldBackground</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.gridEntryText</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.gridLine</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.gridSeparatorBar</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.gridSeparatorBlock</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.isolatedCellBackground</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.prologueEpilogueText</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.selectedClueBackground</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.selectedEmptyClueBackground</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.selectedFieldBackground</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.text</td>
+          <td class="propertyValue">
+            <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
+          </td>
+        </tr>
+        <tr>
+          <td class="propertyKey">view.colour.light.titleSeparator</td>
           <td class="propertyValue">
             <i>iRed</i>, <i>iGreen</i>, <i>iBlue</i>
           </td>
@@ -4611,7 +4756,7 @@
     <div id="lastModified">
       <div>
         <div>
-          Last modified: 2026-02-16
+          Last modified: 2026-02-21
         </div>
         <div class="image">
           <a class="hideHover" href="http://validator.w3.org/check?uri=referer">
