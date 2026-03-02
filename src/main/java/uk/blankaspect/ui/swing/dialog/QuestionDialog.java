@@ -2,7 +2,7 @@
 
 QuestionDialog.java
 
-Question dialog class.
+Class: question dialog.
 
 \*====================================================================*/
 
@@ -62,7 +62,7 @@ import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
 //----------------------------------------------------------------------
 
 
-// QUESTION DIALOG CLASS
+// CLASS: QUESTION DIALOG
 
 
 public class QuestionDialog
@@ -305,6 +305,25 @@ public class QuestionDialog
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
+	public static Option opt(
+		String	key,
+		String	text)
+	{
+		return new Option(key, text, 0);
+	}
+
+	//------------------------------------------------------------------
+
+	public static Option opt(
+		String	key,
+		String	text,
+		int		mnemonic)
+	{
+		return new Option(key, text, mnemonic);
+	}
+
+	//------------------------------------------------------------------
+
 	public static Result showDialog(
 		Component	parent,
 		String		title,
@@ -314,8 +333,9 @@ public class QuestionDialog
 		String		defaultOptionKey,
 		String		checkBoxStr)
 	{
-		return showDialog(GuiUtils.getWindow(parent), title, List.of(messageLines), List.of(options), numColumns,
-						  defaultOptionKey, checkBoxStr);
+		return new QuestionDialog(GuiUtils.getWindow(parent), title, List.of(messageLines), List.of(options),
+								  numColumns, defaultOptionKey, checkBoxStr)
+				.getResult();
 	}
 
 	//------------------------------------------------------------------
@@ -329,8 +349,8 @@ public class QuestionDialog
 		String			defaultOptionKey,
 		String			checkBoxStr)
 	{
-		return new QuestionDialog(GuiUtils.getWindow(parent), title, messageLines, options, numColumns, defaultOptionKey,
-								  checkBoxStr)
+		return new QuestionDialog(GuiUtils.getWindow(parent), title, messageLines, options, numColumns,
+								  defaultOptionKey, checkBoxStr)
 				.getResult();
 	}
 
@@ -340,6 +360,7 @@ public class QuestionDialog
 //  Instance methods : ActionListener interface
 ////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void actionPerformed(
 		ActionEvent	event)
 	{
@@ -391,56 +412,20 @@ public class QuestionDialog
 	//------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////
-//  Member classes : non-inner classes
-////////////////////////////////////////////////////////////////////////
-
-
-	// OPTION CLASS
-
-
-	public static class Option
-	{
-
-	////////////////////////////////////////////////////////////////////
-	//  Instance variables
-	////////////////////////////////////////////////////////////////////
-
-		private	String	key;
-		private	String	text;
-		private	int		mnemonic;
-
-	////////////////////////////////////////////////////////////////////
-	//  Constructors
-	////////////////////////////////////////////////////////////////////
-
-		public Option(
-			String	key,
-			String	text)
-		{
-			this.key = key;
-			this.text = text;
-		}
-
-		//--------------------------------------------------------------
-
-		public Option(
-			String	key,
-			String	text,
-			int		mnemonic)
-		{
-			this(key, text);
-			this.mnemonic = mnemonic;
-		}
-
-		//--------------------------------------------------------------
-
-	}
-
-	//==================================================================
-
-////////////////////////////////////////////////////////////////////////
 //  Member records
 ////////////////////////////////////////////////////////////////////////
+
+
+	// RECORD: OPTION
+
+
+	public record Option(
+		String	key,
+		String	text,
+		int		mnemonic)
+	{ }
+
+	//==================================================================
 
 
 	// RECORD: RESULT
