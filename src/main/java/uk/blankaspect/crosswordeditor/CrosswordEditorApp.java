@@ -153,9 +153,9 @@ public class CrosswordEditorApp
 
 	private static final	List<QuestionDialog.Option>	VIEW_FILE_OPTIONS	= List.of
 	(
-		new QuestionDialog.Option(QuestionDialogKey.VIEW,        VIEW_FILE_STR),
-		new QuestionDialog.Option(QuestionDialogKey.DO_NOT_VIEW, DO_NOT_VIEW_FILE_STR),
-		new QuestionDialog.Option(QuestionDialog.CANCEL_KEY,     AppConstants.CANCEL_STR)
+		QuestionDialog.opt(QuestionDialogKey.VIEW,        VIEW_FILE_STR),
+		QuestionDialog.opt(QuestionDialogKey.DO_NOT_VIEW, DO_NOT_VIEW_FILE_STR),
+		QuestionDialog.opt(QuestionDialog.CANCEL_KEY,     AppConstants.CANCEL_STR)
 	);
 
 	private interface SystemPropertyKey
@@ -748,8 +748,8 @@ public class CrosswordEditorApp
 			{
 				List<QuestionDialog.Option> options = new ArrayList<>();
 				for (CrosswordView.ColourScheme scheme : CrosswordView.ColourScheme.values())
-					options.add(new QuestionDialog.Option(scheme.getKey(), scheme.toString()));
-				options.add(new QuestionDialog.Option(QuestionDialog.CANCEL_KEY, EXIT_STR));
+					options.add(QuestionDialog.opt(scheme.getKey(), scheme.toString()));
+				options.add(QuestionDialog.opt(QuestionDialog.CANCEL_KEY, EXIT_STR));
 
 				CrosswordView.ColourScheme scheme = CrosswordView.ColourScheme.LIGHT;
 				List<String> messageLines = new ArrayList<>(COLOUR_SCHEME_STRS);
