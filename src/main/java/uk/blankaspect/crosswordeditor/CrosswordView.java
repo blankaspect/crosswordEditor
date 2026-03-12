@@ -524,7 +524,7 @@ class CrosswordView
 		(
 			"gridSeparatorBar",
 			"Grid separator, bar",
-			new Color(32, 120, 96),
+			new Color(40, 144, 112),
 			Color.DARK_GRAY
 		),
 
@@ -548,7 +548,7 @@ class CrosswordView
 		(
 			"caret",
 			"Caret",
-			new Color(112, 255, 192),
+			new Color(192, 255, 240),
 			Color.RED
 		),
 
