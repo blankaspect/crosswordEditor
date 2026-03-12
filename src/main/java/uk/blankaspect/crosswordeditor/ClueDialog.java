@@ -528,11 +528,11 @@ class ClueDialog
 	//  Constants
 	////////////////////////////////////////////////////////////////////
 
-		private static final	int	VERTICAL_MARGIN		= 2;
-		private static final	int	HORIZONTAL_MARGIN	= 5;
-		private static final	int	SEPARATOR_WIDTH		= 1;
+		private static final	int		VERTICAL_MARGIN		= 2;
+		private static final	int		HORIZONTAL_MARGIN	= 5;
+		private static final	int		SEPARATOR_WIDTH		= 1;
 
-		private static final	int	NUM_VIEWABLE_IDS	= 8;
+		private static final	int		NUM_VIEWABLE_IDS	= 8;
 
 		private static final	Color	BACKGROUND_COLOUR			= new Color(248, 240, 216);
 		private static final	Color	SELECTING_BACKGROUND_COLOUR	= new Color(224, 232, 224);
