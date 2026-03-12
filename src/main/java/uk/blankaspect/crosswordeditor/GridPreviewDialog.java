@@ -35,6 +35,8 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.KeyStroke;
 
+import uk.blankaspect.common.function.IProcedure0;
+
 import uk.blankaspect.ui.swing.button.FButton;
 
 import uk.blankaspect.ui.swing.misc.GuiUtils;
@@ -55,7 +57,7 @@ class GridPreviewDialog
 //  Constants
 ////////////////////////////////////////////////////////////////////////
 
-	/** The command that is associated with the <i>close</i> button of a dialog. */
+	/** The command that is associated with the <i>close</i> button of the dialog. */
 	private static final	String	CLOSE_COMMAND	= "close";
 
 	/** Miscellaneous strings. */
@@ -84,14 +86,17 @@ class GridPreviewDialog
 		// Create grid pane
 		GridPane gridPane = grid.getSeparator().createGridPane(grid, false);
 
-		// Button: close
-		JButton closeButton = new FButton(AppConstants.CLOSE_STR);
-		closeButton.addActionListener(event ->
+		// Create procedure to close dialog
+		IProcedure0 closeDialog = () ->
 		{
 			location = getLocation();
 			setVisible(false);
 			dispose();
-		});
+		};
+
+		// Button: close
+		JButton closeButton = new FButton(AppConstants.CLOSE_STR);
+		closeButton.addActionListener(event -> closeDialog.invoke());
 
 		// Create button pane
 		Box buttonPane = Box.createHorizontalBox();
@@ -105,26 +110,26 @@ class GridPreviewDialog
 		mainPane.add(Box.createVerticalStrut(4));
 		mainPane.add(buttonPane);
 
-		// If Escape key is pressed, fire 'close' button
+		// Close dialog if Escape key is pressed
 		mainPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-					.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), CLOSE_COMMAND);
+				.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), CLOSE_COMMAND);
 		mainPane.getActionMap().put(CLOSE_COMMAND, new AbstractAction()
 		{
 			@Override
 			public void actionPerformed(
 				ActionEvent	event)
 			{
-				closeButton.doClick();
+				closeDialog.invoke();
 			}
 		});
 
 		// Set content pane
 		setContentPane(mainPane);
 
-		// Dispose of window when it is closed
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		// Dispose of window explicitly
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-		// Fix y coordinate of window when window is opened
+		// Handle window events
 		addWindowListener(new WindowAdapter()
 		{
 			@Override
@@ -135,6 +140,13 @@ class GridPreviewDialog
 				// when its location is set.  The error in the y coordinate is the height of the title bar of the
 				// window.  The workaround is to set the location of the window again with an adjustment for the error.
 				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+			}
+
+			@Override
+			public void windowClosing(
+				WindowEvent	event)
+			{
+				closeDialog.invoke();
 			}
 		});
 
