@@ -765,8 +765,7 @@ abstract class Grid
 	public List<Field> getFields(
 		Direction	direction)
 	{
-		return fieldLists.containsKey(direction) ? Collections.unmodifiableList(fieldLists.get(direction))
-												 : Collections.emptyList();
+		return fieldLists.containsKey(direction) ? new ArrayList<>(fieldLists.get(direction)) : Collections.emptyList();
 	}
 
 	//------------------------------------------------------------------
@@ -793,40 +792,6 @@ abstract class Grid
 	public Entries getEntries()
 	{
 		return entries.clone();
-	}
-
-	//------------------------------------------------------------------
-
-	public String getEntriesString(
-		String	separator)
-	{
-		StringBuilder buffer = new StringBuilder(1024);
-		for (Direction direction : Direction.DEFINED_DIRECTIONS)
-		{
-			for (Field field : fieldLists.get(direction))
-			{
-				if ((separator != null) && !buffer.isEmpty())
-					buffer.append(separator);
-
-				switch (direction)
-				{
-					case NONE:
-						// do nothing
-						break;
-
-					case ACROSS:
-						for (int i = 0; i < field.length; i++)
-							buffer.append(entries.values[field.row][field.column + i]);
-						break;
-
-					case DOWN:
-						for (int i = 0; i < field.length; i++)
-							buffer.append(entries.values[field.row + i][field.column]);
-						break;
-				}
-			}
-		}
-		return buffer.toString();
 	}
 
 	//------------------------------------------------------------------

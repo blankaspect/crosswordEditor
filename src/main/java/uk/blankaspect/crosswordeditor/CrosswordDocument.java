@@ -37,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
@@ -167,6 +168,7 @@ class CrosswordDocument
 	private static final	String	CLEAR_EDIT_LIST_STR		= "Do you want to clear all the undo/redo actions?";
 	private static final	String	CLEAR_CLUES_STR			= "Clear clues";
 	private static final	String	STYLESHEET_COMMENT_STR	= "Stylesheet for crossword : %s grid, cell size = %d";
+	private static final	String	COPY_ENTRIES_STR		= "Copy grid entries to clipboard";
 	private static final	String	IMPORT_ENTRIES_STR		=
 			"Do you want to import the grid entries from the clipboard?";
 	private static final	String	CLEAR_ENTRIES_STR		= "Do you want to clear all the grid entries?";
@@ -231,50 +233,50 @@ class CrosswordDocument
 		CssRuleSet.of
 		(
 			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV,
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV,
 			StrKVPair.of(CssProperty.DISPLAY, "table-cell"),
 			StrKVPair.of(CssProperty.PADDING, "0 0.8em")
 		),
 		CssRuleSet.of
 		(
 			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssSelector.FIRST_CHILD,
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+					+ CssSelector.FIRST_CHILD,
 			StrKVPair.of(CssProperty.PADDING_LEFT, "0")
 		),
 		CssRuleSet.of
 		(
 			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV,
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV,
 			StrKVPair.of(CssProperty.DISPLAY, "table")
 		),
 		CssRuleSet.of
 		(
 			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV,
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV,
 			StrKVPair.of(CssProperty.DISPLAY, "table-row")
 		),
 		CssRuleSet.of
 		(
 			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV,
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV,
 			StrKVPair.of(CssProperty.DISPLAY,      "table-cell"),
 			StrKVPair.of(CssProperty.PADDING_LEFT, "0.6em")
 		),
 		CssRuleSet.of
 		(
 			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssSelector.FIRST_CHILD,
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+					+ CssSelector.FIRST_CHILD,
 			StrKVPair.of(CssProperty.TEXT_ALIGN,   "right"),
 			StrKVPair.of(CssProperty.PADDING_LEFT, "0"),
 			StrKVPair.of(CssProperty.FONT_WEIGHT,  "bold")
@@ -282,18 +284,18 @@ class CrosswordDocument
 		CssRuleSet.of
 		(
 			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
-												+ CssSelector.CLASS + HtmlConstants.Class.MULTI_FIELD_CLUE,
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+					+ CssSelector.CHILD + HtmlConstants.ElementName.DIV
+					+ CssSelector.CLASS + HtmlConstants.Class.MULTI_FIELD_CLUE,
 			StrKVPair.of(CssProperty.TEXT_INDENT, "-0.6em")
 		),
 		CssRuleSet.of
 		(
 			HtmlConstants.ElementName.DIV + CssSelector.ID + HtmlConstants.Id.CLUES
-												+ CssSelector.DESCENDANT + HtmlConstants.ElementName.SPAN
-												+ CssSelector.CLASS + HtmlConstants.Class.SECONDARY_IDS,
+					+ CssSelector.DESCENDANT + HtmlConstants.ElementName.SPAN
+					+ CssSelector.CLASS + HtmlConstants.Class.SECONDARY_IDS,
 			StrKVPair.of(CssProperty.PADDING_RIGHT, "0.6em"),
 			StrKVPair.of(CssProperty.FONT_WEIGHT,   "bold")
 		),
@@ -394,7 +396,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public CrosswordDocument(int unnamedIndex)
+	public CrosswordDocument(
+		int	unnamedIndex)
 	{
 		this();
 		this.unnamedIndex = unnamedIndex;
@@ -414,10 +417,11 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private static void writeStyle(XmlWriter                       writer,
-								   int                             indent,
-								   EnumSet<CssMediaRule.MediaType> mediaTypes,
-								   List<CssRuleSet>                ruleSets)
+	private static void writeStyle(
+		XmlWriter						writer,
+		int								indent,
+		EnumSet<CssMediaRule.MediaType>	mediaTypes,
+		List<CssRuleSet>				ruleSets)
 		throws IOException
 	{
 		List<String> mediaTypeStrs = new ArrayList<>();
@@ -549,7 +553,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public List<Clue> getClues(Direction direction)
+	public List<Clue> getClues(
+		Direction	direction)
 	{
 		return clueLists.containsKey(direction) ? Collections.unmodifiableList(clueLists.get(direction))
 												: new ArrayList<>();
@@ -557,92 +562,105 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public void setTimestamp(long timestamp)
+	public void setTimestamp(
+		long	timestamp)
 	{
 		this.timestamp = timestamp;
 	}
 
 	//------------------------------------------------------------------
 
-	public void setClueReferenceKeyword(String keyword)
+	public void setClueReferenceKeyword(
+		String	keyword)
 	{
 		clueReferenceKeyword = keyword;
 	}
 
 	//------------------------------------------------------------------
 
-	public void setAnswerLengthPattern(String pattern)
+	public void setAnswerLengthPattern(
+		String	pattern)
 	{
 		answerLengthPattern = pattern;
 	}
 
 	//------------------------------------------------------------------
 
-	public void setAnswerLengthSubstitutions(List<Substitution> substitutions)
+	public void setAnswerLengthSubstitutions(
+		List<Substitution>	substitutions)
 	{
 		answerLengthSubstitutions = substitutions;
 	}
 
 	//------------------------------------------------------------------
 
-	public void setClueSubstitutions(List<Substitution> substitutions)
+	public void setClueSubstitutions(
+		List<Substitution>	substitutions)
 	{
 		clueSubstitutions = substitutions;
 	}
 
 	//------------------------------------------------------------------
 
-	public void setTitle(String title)
+	public void setTitle(
+		String	title)
 	{
 		this.title = title;
 	}
 
 	//------------------------------------------------------------------
 
-	public void setPrologue(List<String> paragraphs)
+	public void setPrologue(
+		List<String>	paragraphs)
 	{
 		prologueParagraphs = (paragraphs == null) ? new ArrayList<>() : new ArrayList<>(paragraphs);
 	}
 
 	//------------------------------------------------------------------
 
-	public void setEpilogue(List<String> paragraphs)
+	public void setEpilogue(
+		List<String>	paragraphs)
 	{
 		epilogueParagraphs = (paragraphs == null) ? new ArrayList<>() : new ArrayList<>(paragraphs);
 	}
 
 	//------------------------------------------------------------------
 
-	public void setFilenameStem(String filename)
+	public void setFilenameStem(
+		String	filename)
 	{
 		filenameStem = filename;
 	}
 
 	//------------------------------------------------------------------
 
-	public void setDocumentDirectory(File directory)
+	public void setDocumentDirectory(
+		File	directory)
 	{
 		documentDirectory = directory;
 	}
 
 	//------------------------------------------------------------------
 
-	public void setHtmlDirectory(File directory)
+	public void setHtmlDirectory(
+		File	directory)
 	{
 		htmlDirectory = directory;
 	}
 
 	//------------------------------------------------------------------
 
-	public void setGrid(Grid grid)
+	public void setGrid(
+		Grid	grid)
 	{
 		this.grid = grid;
 	}
 
 	//------------------------------------------------------------------
 
-	public void setClues(Direction  direction,
-						 List<Clue> clues)
+	public void setClues(
+		Direction	direction,
+		List<Clue>	clues)
 	{
 		// Sort the clues
 		clues.sort(Clue.COMPARATOR);
@@ -670,7 +688,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public void setSolutionProperties(SolutionProperties properties)
+	public void setSolutionProperties(
+		SolutionProperties	properties)
 	{
 		solutionProperties = (properties == null) ? null : properties.clone();
 	}
@@ -690,7 +709,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public String getName(boolean fullPathname)
+	public String getName(
+		boolean	fullPathname)
 	{
 		return (file == null)
 					? UNNAMED_STR + unnamedIndex
@@ -701,7 +721,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public String getTitleString(boolean fullPathname)
+	public String getTitleString(
+		boolean	fullPathname)
 	{
 		String str = getName(fullPathname);
 		if (isChanged())
@@ -711,8 +732,9 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public String getClueIdString(Direction direction,
-								  Clue      clue)
+	public String getClueIdString(
+		Direction	direction,
+		Clue		clue)
 	{
 		boolean implicitDirection = AppConfig.INSTANCE.isImplicitFieldDirection();
 		return StringUtils.join(", ", getClueIdStrings(direction, clue, implicitDirection));
@@ -720,8 +742,9 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public String getClueReferenceString(Direction direction,
-										 Clue      clue)
+	public String getClueReferenceString(
+		Direction	direction,
+		Clue		clue)
 	{
 		Clue.Id refId = clue.getReferentId().clone();
 		if ((refId.fieldId.direction == direction) ||
@@ -733,7 +756,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public List<Clue.Id> getClueIds(Clue.Id clueId)
+	public List<Clue.Id> getClueIds(
+		Clue.Id	clueId)
 	{
 		List<Clue.Id> clueIds = new ArraySet<>();
 		Clue primaryClue = findPrimaryClue(clueId);
@@ -751,7 +775,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public Clue findClue(Clue.Id clueId)
+	public Clue findClue(
+		Clue.Id	clueId)
 	{
 		if (clueLists.containsKey(clueId.fieldId.direction))
 		{
@@ -766,7 +791,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public List<Clue> findClues(Grid.Field.Id fieldId)
+	public List<Clue> findClues(
+		Grid.Field.Id	fieldId)
 	{
 		List<Clue> clues = new ArrayList<>();
 		if (clueLists.containsKey(fieldId.direction))
@@ -783,7 +809,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public Clue findPrimaryClue(Clue.Id clueId)
+	public Clue findPrimaryClue(
+		Clue.Id	clueId)
 	{
 		Clue clue = findClue(clueId);
 		while ((clue != null) && clue.isReference())
@@ -793,7 +820,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public List<Clue> findPrimaryClues(Grid.Field.Id fieldId)
+	public List<Clue> findPrimaryClues(
+		Grid.Field.Id	fieldId)
 	{
 		List<Clue> clues = new ArrayList<>();
 		for (Clue clue : findClues(fieldId))
@@ -849,7 +877,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public void executeCommand(Command command)
+	public void executeCommand(
+		Command	command)
 	{
 		// Set command execution flag
 		executingCommand = true;
@@ -961,7 +990,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public boolean validateClues(String closeStr)
+	public boolean validateClues(
+		String	closeStr)
 	{
 		// Initialise lists of clue IDs and reference IDs
 		List<Grid.Field.Id> clueIds = new ArraySet<>();
@@ -1169,7 +1199,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public void read(File file)
+	public void read(
+		File	file)
 		throws AppException
 	{
 		// Test for file
@@ -1219,7 +1250,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public void write(File file)
+	public void write(
+		File	file)
 		throws AppException
 	{
 		// Initialise progress view
@@ -1500,12 +1532,13 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public void exportHtml(File            file,
-						   StylesheetKind  stylesheetKind,
-						   StyleProperties styleProperties,
-						   boolean         writeStylesheet,
-						   boolean         writeBlockImage,
-						   boolean         writeEntries)
+	public void exportHtml(
+		File			file,
+		StylesheetKind	stylesheetKind,
+		StyleProperties	styleProperties,
+		boolean			writeStylesheet,
+		boolean			writeBlockImage,
+		boolean			writeEntries)
 		throws AppException
 	{
 		// Initialise progress view
@@ -1732,7 +1765,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	public CrosswordDocument createSolutionDocument(int index)
+	public CrosswordDocument createSolutionDocument(
+		int	index)
 	{
 		CrosswordDocument document = new CrosswordDocument(index);
 		Grid gridCopy = grid.createCopy();
@@ -1751,7 +1785,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private boolean hasLineBreak(List<String> paragraphs)
+	private boolean hasLineBreak(
+		List<String>	paragraphs)
 	{
 		Pattern pattern = Pattern.compile(getLineBreakRegex());
 		for (String paragraph : paragraphs)
@@ -1764,9 +1799,10 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private List<String> splitText(String  text,
-								   int     maxLineLength,
-								   boolean keepTrailingSpace)
+	private List<String> splitText(
+		String	text,
+		int		maxLineLength,
+		boolean	keepTrailingSpace)
 	{
 		Pattern pattern = keepTrailingSpace ? WORD_SPACE_PATTERN : WORD_PATTERN;
 
@@ -1797,7 +1833,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private String getLineText(Element element)
+	private String getLineText(
+		Element	element)
 		throws XmlParseException
 	{
 		try
@@ -1833,14 +1870,16 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private String getStylesheetPathname(int cellSize)
+	private String getStylesheetPathname(
+		int	cellSize)
 	{
 		return STYLESHEET_PATHNAME_PREFIX + grid.getSeparator().getKey() + "-" + cellSize + STYLESHEET_PATHNAME_SUFFIX;
 	}
 
 	//------------------------------------------------------------------
 
-	private void setClue(Clue clue)
+	private void setClue(
+		Clue	clue)
 	{
 		Direction direction = clue.getFieldId().direction;
 		List<Clue> clues = clueLists.get(direction);
@@ -1878,7 +1917,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private void setClues(List<Clue> clues)
+	private void setClues(
+		List<Clue>	clues)
 	{
 		// Set clues
 		for (Clue clue : clues)
@@ -1891,7 +1931,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private List<Clue> findClues(Predicate<Clue> filter)
+	private List<Clue> findClues(
+		Predicate<Clue>	filter)
 	{
 		List<Clue> clues = new ArrayList<>();
 		for (Direction direction : clueLists.keySet())
@@ -1907,9 +1948,10 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private List<String> getClueIdStrings(Direction direction,
-										  Clue      clue,
-										  boolean   implicitDirection)
+	private List<String> getClueIdStrings(
+		Direction	direction,
+		Clue		clue,
+		boolean		implicitDirection)
 	{
 		List<String> strs = new ArrayList<>();
 		for (int i = 0; i < clue.getNumFields(); i++)
@@ -1925,9 +1967,10 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private void parse(Document                  document,
-					   XmlParseExceptionExtender xmlParseExceptionExtender,
-					   boolean                   solutionRequired)
+	private void parse(
+		Document					document,
+		XmlParseExceptionExtender	xmlParseExceptionExtender,
+		boolean						solutionRequired)
 		throws AppException
 	{
 		// Test document format
@@ -2029,9 +2072,10 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private void parseSolution(Element                   element,
-							   XmlParseExceptionExtender xmlParseExceptionExtender,
-							   boolean                   solutionRequired)
+	private void parseSolution(
+		Element						element,
+		XmlParseExceptionExtender	xmlParseExceptionExtender,
+		boolean						solutionRequired)
 		throws TaskCancelledException
 	{
 		try
@@ -2072,7 +2116,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private void parseIndications(Element indicationsElement)
+	private void parseIndications(
+		Element	indicationsElement)
 		throws XmlParseException
 	{
 		for (Element element : XmlUtils.getChildElements(indicationsElement))
@@ -2138,7 +2183,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private void parseClues(Element cluesElement)
+	private void parseClues(
+		Element	cluesElement)
 		throws XmlParseException
 	{
 		// Get element path
@@ -2208,7 +2254,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private List<CssRuleSet> getStyleRuleSets(StyleProperties styleProperties)
+	private List<CssRuleSet> getStyleRuleSets(
+		StyleProperties	styleProperties)
 	{
 		List<CssRuleSet> ruleSets = new ArrayList<>();
 
@@ -2227,7 +2274,8 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private String createStylesheet(StyleProperties styleProperties)
+	private String createStylesheet(
+		StyleProperties	styleProperties)
 	{
 		StringBuilder buffer = new StringBuilder(4096);
 		String headerComment = String.format(STYLESHEET_COMMENT_STR, grid.getSeparator().getKey(),
@@ -2252,10 +2300,11 @@ class CrosswordDocument
 
 	//------------------------------------------------------------------
 
-	private void writeHtml(XmlWriter       writer,
-						   StylesheetKind  stylesheetKind,
-						   StyleProperties styleProperties,
-						   boolean         writeEntries)
+	private void writeHtml(
+		XmlWriter		writer,
+		StylesheetKind	stylesheetKind,
+		StyleProperties	styleProperties,
+		boolean			writeEntries)
 		throws AppException, IOException
 	{
 		// Write HTML start tag
@@ -2684,12 +2733,16 @@ class CrosswordDocument
 
 	private GridEntryCharEdit onSetEntryCharacter()
 	{
-		Grid.EntryValue entryValue = (Grid.EntryValue)Command.SET_ENTRY_CHARACTER
-																		.getValue(Command.Property.GRID_ENTRY_VALUE);
-		Direction direction = (Direction)Command.SET_ENTRY_CHARACTER.getValue(Command.Property.DIRECTION);
-		char oldValue = grid.getEntryValue(entryValue.row, entryValue.column);
-		grid.setEntryValue(entryValue.row, entryValue.column, entryValue.value);
-		return new GridEntryCharEdit(entryValue.row, entryValue.column, direction, oldValue, entryValue.value);
+		GridEntryCharEdit edit = null;
+		Command command = Command.SET_ENTRY_CHARACTER;
+		if ((command.getValue(Command.Property.GRID_ENTRY_VALUE) instanceof Grid.EntryValue entryValue)
+				&& (command.getValue(Command.Property.DIRECTION) instanceof Direction direction))
+		{
+			char oldValue = grid.getEntryValue(entryValue.row, entryValue.column);
+			grid.setEntryValue(entryValue.row, entryValue.column, entryValue.value);
+			edit = new GridEntryCharEdit(entryValue.row, entryValue.column, direction, oldValue, entryValue.value);
+		}
+		return edit;
 	}
 
 	//------------------------------------------------------------------
@@ -2809,7 +2862,49 @@ class CrosswordDocument
 	private EditList.IEdit onCopyEntriesToClipboard()
 		throws AppException
 	{
-		Utils.putClipboardText(grid.getEntriesString("\n") + "\n");
+		CopyEntriesDialog.DownOrder order = CopyEntriesDialog.show(getWindow(), COPY_ENTRIES_STR, grid);
+		if (order != null)
+		{
+			// Initialise buffer for entries
+			StringBuilder buffer = new StringBuilder(2048);
+
+			// Add 'across' entries
+			List<Grid.Field> fields = grid.getFields(Direction.ACROSS);
+			for (Grid.Field field : fields)
+			{
+				int row = field.getRow();
+				int column = field.getColumn();
+				for (int i = 0; i < field.getLength(); i++)
+					buffer.append(grid.getEntryValue(row, column + i));
+				buffer.append('\n');
+			}
+
+			// Add separator between 'across' and 'down' entries
+			buffer.append("-".repeat(Math.max(grid.getNumRows(), grid.getNumColumns()))).append('\n');
+
+			// Add 'down' entries
+			fields = grid.getFields(Direction.DOWN);
+			if (order == CopyEntriesDialog.DownOrder.COLUMN)
+				fields.sort(Comparator.comparingInt(Grid.Field::getColumn).thenComparingInt(Grid.Field::getRow));
+			for (Grid.Field field : fields)
+			{
+				int row = field.getRow();
+				int column = field.getColumn();
+				for (int i = 0; i < field.getLength(); i++)
+					buffer.append(grid.getEntryValue(row + i, column));
+				buffer.append('\n');
+			}
+
+			// Put text on clipboard
+			try
+			{
+				Utils.putClipboardText(buffer.toString());
+			}
+			catch (AppException e)
+			{
+				JOptionPane.showMessageDialog(getWindow(), e, title, JOptionPane.ERROR_MESSAGE);
+			}
+		}
 		return null;
 	}
 
@@ -3088,7 +3183,7 @@ class CrosswordDocument
 ////////////////////////////////////////////////////////////////////////
 
 
-	// COMMANDS
+	// ENUMERATION: COMMANDS
 
 
 	enum Command
@@ -3173,7 +3268,7 @@ class CrosswordDocument
 		COPY_ENTRIES_TO_CLIPBOARD
 		(
 			"copyEntriesToClipboard",
-			"Copy grid entries to clipboard"
+			COPY_ENTRIES_STR + AppConstants.ELLIPSIS_STR
 		),
 
 		IMPORT_ENTRIES_FROM_CLIPBOARD
@@ -3270,11 +3365,11 @@ class CrosswordDocument
 
 		//--------------------------------------------------------------
 
-		// Property keys
+		/** Keys of properties. */
 		interface Property
 		{
-			String	GRID_ENTRY_VALUE	= "gridEntryValue";
 			String	DIRECTION			= "direction";
+			String	GRID_ENTRY_VALUE	= "gridEntryValue";
 		}
 
 	////////////////////////////////////////////////////////////////////
@@ -3287,7 +3382,8 @@ class CrosswordDocument
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private Command(String key)
+		private Command(
+			String	key)
 		{
 			command = new uk.blankaspect.ui.swing.action.Command(this);
 			putValue(Action.ACTION_COMMAND_KEY, key);
@@ -3295,8 +3391,9 @@ class CrosswordDocument
 
 		//--------------------------------------------------------------
 
-		private Command(String key,
-						String name)
+		private Command(
+			String	key,
+			String	name)
 		{
 			this(key);
 			putValue(Action.NAME, name);
@@ -3304,9 +3401,10 @@ class CrosswordDocument
 
 		//--------------------------------------------------------------
 
-		private Command(String    key,
-						String    name,
-						KeyStroke acceleratorKey)
+		private Command(
+			String		key,
+			String		name,
+			KeyStroke	acceleratorKey)
 		{
 			this(key, name);
 			putValue(Action.ACCELERATOR_KEY, acceleratorKey);
@@ -3318,7 +3416,8 @@ class CrosswordDocument
 	//  Class methods
 	////////////////////////////////////////////////////////////////////
 
-		public static void setAllEnabled(boolean enabled)
+		public static void setAllEnabled(
+			boolean	enabled)
 		{
 			for (Command command : values())
 				command.setEnabled(enabled);
@@ -3331,7 +3430,8 @@ class CrosswordDocument
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public void addPropertyChangeListener(PropertyChangeListener listener)
+		public void addPropertyChangeListener(
+			PropertyChangeListener	listener)
 		{
 			command.addPropertyChangeListener(listener);
 		}
@@ -3339,7 +3439,8 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 		@Override
-		public Object getValue(String key)
+		public Object getValue(
+			String	key)
 		{
 			return command.getValue(key);
 		}
@@ -3355,8 +3456,9 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 		@Override
-		public void putValue(String key,
-							 Object value)
+		public void putValue(
+			String	key,
+			Object	value)
 		{
 			command.putValue(key, value);
 		}
@@ -3364,7 +3466,8 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 		@Override
-		public void removePropertyChangeListener(PropertyChangeListener listener)
+		public void removePropertyChangeListener(
+			PropertyChangeListener	listener)
 		{
 			command.removePropertyChangeListener(listener);
 		}
@@ -3372,7 +3475,8 @@ class CrosswordDocument
 		//--------------------------------------------------------------
 
 		@Override
-		public void setEnabled(boolean enabled)
+		public void setEnabled(
+			boolean	enabled)
 		{
 			command.setEnabled(enabled);
 		}
@@ -3384,7 +3488,8 @@ class CrosswordDocument
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public void actionPerformed(ActionEvent event)
+		public void actionPerformed(
+			ActionEvent	event)
 		{
 			CrosswordDocument document = CrosswordEditorApp.INSTANCE.getDocument();
 			if (document != null)
@@ -3397,7 +3502,8 @@ class CrosswordDocument
 	//  Instance methods
 	////////////////////////////////////////////////////////////////////
 
-		public void setSelected(boolean selected)
+		public void setSelected(
+			boolean	selected)
 		{
 			putValue(Action.SELECTED_KEY, selected);
 		}
@@ -3416,7 +3522,7 @@ class CrosswordDocument
 	//==================================================================
 
 
-	// ERROR IDENTIFIERS
+	// ENUMERATION: ERROR IDENTIFIERS
 
 
 	private enum ErrorId
@@ -3519,7 +3625,8 @@ class CrosswordDocument
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private ErrorId(String message)
+		private ErrorId(
+			String	message)
 		{
 			this.message = message;
 		}
@@ -3547,7 +3654,7 @@ class CrosswordDocument
 ////////////////////////////////////////////////////////////////////////
 
 
-	// SOLUTION PROPERTIES CLASS
+	// CLASS: SOLUTION PROPERTIES
 
 
 	public static class SolutionProperties
@@ -3574,9 +3681,10 @@ class CrosswordDocument
 
 		//--------------------------------------------------------------
 
-		public SolutionProperties(URL    location,
-								  String passphrase,
-								  byte[] hashValue)
+		public SolutionProperties(
+			URL		location,
+			String	passphrase,
+			byte[]	hashValue)
 		{
 			this.location = location;
 			this.passphrase = passphrase;
@@ -3641,7 +3749,7 @@ class CrosswordDocument
 	//==================================================================
 
 
-	// STYLE PROPERTIES CLASS
+	// CLASS: STYLE PROPERTIES
 
 
 	public static class StyleProperties
@@ -3662,12 +3770,13 @@ class CrosswordDocument
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		public StyleProperties(StringList fontNames,
-							   int        fontSize,
-							   int        cellSize,
-							   Color      gridColour,
-							   Color      entryColour,
-							   double     fieldNumberFontSizeFactor)
+		public StyleProperties(
+			StringList	fontNames,
+			int			fontSize,
+			int			cellSize,
+			Color		gridColour,
+			Color		entryColour,
+			double		fieldNumberFontSizeFactor)
 		{
 			this.fontNames = fontNames;
 			this.fontSize = fontSize;
@@ -3701,14 +3810,16 @@ class CrosswordDocument
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private XmlParseExceptionExtender(File file)
+		private XmlParseExceptionExtender(
+			File	file)
 		{
 			this.file = file;
 		}
 
 		//--------------------------------------------------------------
 
-		private XmlParseExceptionExtender(URL url)
+		private XmlParseExceptionExtender(
+			URL	url)
 		{
 			this.url = url;
 		}
@@ -3719,7 +3830,8 @@ class CrosswordDocument
 	//  Instance methods
 	////////////////////////////////////////////////////////////////////
 
-		private XmlParseException extend(XmlParseException exception)
+		private XmlParseException extend(
+			XmlParseException	exception)
 		{
 			return (url == null) ? new XmlParseException(exception, file) : new XmlParseException(exception, url);
 		}
@@ -3735,7 +3847,7 @@ class CrosswordDocument
 ////////////////////////////////////////////////////////////////////////
 
 
-	// GRID EDIT CLASS
+	// CLASS: AN EDIT OF A GRID
 
 
 	private class GridEdit
@@ -3764,13 +3876,14 @@ class CrosswordDocument
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private GridEdit(Grid.Separator separator,
-						 int            numColumns,
-						 int            numRows,
-						 Grid.Symmetry  oldSymmetry,
-						 String         oldDefinition,
-						 Grid.Symmetry  newSymmetry,
-						 String         newDefinition)
+		private GridEdit(
+			Grid.Separator	separator,
+			int				numColumns,
+			int				numRows,
+			Grid.Symmetry	oldSymmetry,
+			String			oldDefinition,
+			Grid.Symmetry	newSymmetry,
+			String			newDefinition)
 		{
 			this.separator = separator;
 			this.numColumns = numColumns;
@@ -3815,8 +3928,9 @@ class CrosswordDocument
 	//  Instance methods
 	////////////////////////////////////////////////////////////////////
 
-		private void setGrid(Grid.Symmetry symmetry,
-							 String        definition)
+		private void setGrid(
+			Grid.Symmetry	symmetry,
+			String			definition)
 		{
 			try
 			{
@@ -3836,7 +3950,7 @@ class CrosswordDocument
 	//==================================================================
 
 
-	// GRID ENTRY CHARACTER EDIT CLASS
+	// CLASS: AN EDIT OF A GRID-ENTRY CHARACTER
 
 
 	private class GridEntryCharEdit
@@ -3863,11 +3977,12 @@ class CrosswordDocument
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private GridEntryCharEdit(int       row,
-								  int       column,
-								  Direction direction,
-								  char      oldValue,
-								  char      newValue)
+		private GridEntryCharEdit(
+			int			row,
+			int			column,
+			Direction	direction,
+			char		oldValue,
+			char		newValue)
 		{
 			this.row = row;
 			this.column = column;
@@ -3913,7 +4028,7 @@ class CrosswordDocument
 	//==================================================================
 
 
-	// GRID ENTRIES EDIT CLASS
+	// CLASS: AN EDIT OF GRID ENTRIES
 
 
 	private class GridEntriesEdit
@@ -3937,8 +4052,9 @@ class CrosswordDocument
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private GridEntriesEdit(Grid.Entries oldEntries,
-								Grid.Entries newEntries)
+		private GridEntriesEdit(
+			Grid.Entries	oldEntries,
+			Grid.Entries	newEntries)
 		{
 			this.oldEntries = oldEntries.clone();
 			this.newEntries = newEntries.clone();
@@ -3981,7 +4097,7 @@ class CrosswordDocument
 	//==================================================================
 
 
-	// SOLUTION EDIT CLASS
+	// CLASS: AN EDIT OF A SOLUTION
 
 
 	private class SolutionEdit
@@ -4005,8 +4121,9 @@ class CrosswordDocument
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private SolutionEdit(Grid.Entries oldSolution,
-							 Grid.Entries newSolution)
+		private SolutionEdit(
+			Grid.Entries	oldSolution,
+			Grid.Entries	newSolution)
 		{
 			if (oldSolution != null)
 				this.oldSolution = oldSolution.clone();
@@ -4049,7 +4166,7 @@ class CrosswordDocument
 	//==================================================================
 
 
-	// SOLUTION PROPERTIES EDIT CLASS
+	// CLASS: AN EDIT OF SOLUTION PROPERTIES
 
 
 	private class SolutionPropertiesEdit
@@ -4073,8 +4190,9 @@ class CrosswordDocument
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private SolutionPropertiesEdit(SolutionProperties oldProperties,
-									   SolutionProperties newProperties)
+		private SolutionPropertiesEdit(
+			SolutionProperties	oldProperties,
+			SolutionProperties	newProperties)
 		{
 			this.oldProperties = oldProperties;
 			this.newProperties = newProperties;
@@ -4115,7 +4233,7 @@ class CrosswordDocument
 	//==================================================================
 
 
-	// CLUES EDIT CLASS
+	// CLASS: AN EDIT OF CLUES
 
 
 	private class CluesEdit
@@ -4139,8 +4257,9 @@ class CrosswordDocument
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private CluesEdit(List<Clue> oldClues,
-						  List<Clue> newClues)
+		private CluesEdit(
+			List<Clue>	oldClues,
+			List<Clue>	newClues)
 		{
 			this.oldClues = oldClues;
 			this.newClues = newClues;
@@ -4181,7 +4300,7 @@ class CrosswordDocument
 	//==================================================================
 
 
-	// CLUE LISTS EDIT CLASS
+	// CLASS: AN EDIT OF CLUE LISTS
 
 
 	private class ClueListsEdit
@@ -4205,8 +4324,9 @@ class CrosswordDocument
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private ClueListsEdit(Map<Direction, List<Clue>> oldClueLists,
-							  Map<Direction, List<Clue>> newClueLists)
+		private ClueListsEdit(
+			Map<Direction, List<Clue>>	oldClueLists,
+			Map<Direction, List<Clue>>	newClueLists)
 		{
 			this.oldClueLists = oldClueLists;
 			this.newClueLists = newClueLists;
@@ -4255,7 +4375,7 @@ class CrosswordDocument
 	//==================================================================
 
 
-	// TEXT SECTIONS EDIT CLASS
+	// CLASS: AN EDIT OF TEXT SECTIONS
 
 
 	private class TextSectionsEdit
@@ -4284,12 +4404,13 @@ class CrosswordDocument
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private TextSectionsEdit(String       oldTitle,
-								 List<String> oldPrologue,
-								 List<String> oldEpilogue,
-								 String       newTitle,
-								 List<String> newPrologue,
-								 List<String> newEpilogue)
+		private TextSectionsEdit(
+			String			oldTitle,
+			List<String>	oldPrologue,
+			List<String>	oldEpilogue,
+			String			newTitle,
+			List<String>	newPrologue,
+			List<String>	newEpilogue)
 		{
 			sections = EnumSet.noneOf(TextSection.class);
 			this.oldTitle = oldTitle;
@@ -4334,9 +4455,10 @@ class CrosswordDocument
 	//  Instance methods
 	////////////////////////////////////////////////////////////////////
 
-		private void setTextSections(String       title,
-									 List<String> prologue,
-									 List<String> epilogue)
+		private void setTextSections(
+			String			title,
+			List<String>	prologue,
+			List<String>	epilogue)
 		{
 			CrosswordDocument document = CrosswordDocument.this;
 			document.setTitle(title);
@@ -4352,7 +4474,7 @@ class CrosswordDocument
 	//==================================================================
 
 
-	// INDICATIONS EDIT CLASS
+	// CLASS: AN EDIT OF INDICATIONS
 
 
 	private class IndicationsEdit
@@ -4382,14 +4504,15 @@ class CrosswordDocument
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private IndicationsEdit(String             oldClueReferenceKeyword,
-								String             oldAnswerLengthPattern,
-								List<Substitution> oldAnswerLengthSubstitutions,
-								String             oldLineBreak,
-								String             newClueReferenceKeyword,
-								String             newAnswerLengthPattern,
-								List<Substitution> newAnswerLengthSubstitutions,
-								String             newLineBreak)
+		private IndicationsEdit(
+			String				oldClueReferenceKeyword,
+			String				oldAnswerLengthPattern,
+			List<Substitution>	oldAnswerLengthSubstitutions,
+			String				oldLineBreak,
+			String				newClueReferenceKeyword,
+			String				newAnswerLengthPattern,
+			List<Substitution>	newAnswerLengthSubstitutions,
+			String				newLineBreak)
 		{
 			this.oldClueReferenceKeyword = oldClueReferenceKeyword;
 			this.oldAnswerLengthPattern = oldAnswerLengthPattern;
@@ -4439,10 +4562,11 @@ class CrosswordDocument
 	//  Instance methods
 	////////////////////////////////////////////////////////////////////
 
-		private void setIndications(String             clueReferenceKeyword,
-									String             answerLengthPattern,
-									List<Substitution> answerLengthSubstitutions,
-									String             lineBreak)
+		private void setIndications(
+			String				clueReferenceKeyword,
+			String				answerLengthPattern,
+			List<Substitution>	answerLengthSubstitutions,
+			String				lineBreak)
 		{
 			CrosswordDocument document = CrosswordDocument.this;
 			document.clueReferenceKeyword = clueReferenceKeyword;
@@ -4458,7 +4582,7 @@ class CrosswordDocument
 	//==================================================================
 
 
-	// COMPOUND EDIT CLASS
+	// CLASS: COMPOUND EDIT
 
 
 	private class CompoundEdit
@@ -4476,7 +4600,8 @@ class CrosswordDocument
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private CompoundEdit(String text)
+		private CompoundEdit(
+			String	text)
 		{
 			this.text = text;
 			edits = new ArrayList<>();
@@ -4518,7 +4643,8 @@ class CrosswordDocument
 	//  Instance methods
 	////////////////////////////////////////////////////////////////////
 
-		public void addEdit(EditList.IEdit edit)
+		public void addEdit(
+			EditList.IEdit	edit)
 		{
 			edits.add(edit);
 		}
