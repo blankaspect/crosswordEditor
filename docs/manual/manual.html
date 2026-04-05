@@ -228,9 +228,9 @@
       <h3 id="section2-3">2.3&nbsp; Associating file types with CrosswordEditor</h3>
 
       <p class="wrap">
-        CrosswordEditor may be run indirectly by associating file types with its JAR file and
-        opening a file of one of those types.  A file association can be created on Windows with
-        the <a class="command" href="#section8-6-2">Options &gt; Manage file association</a>
+        CrosswordEditor may be run indirectly by associating a file type with its JAR file and
+        opening a file of that type.  A file association can be created on Windows with the <a
+        class="command" href="#section8-6-2">Options &gt; Manage Windows file association</a>
         command.  You can use the same command to remove the file association when you no longer
         want it.
       </p>
@@ -2758,15 +2758,16 @@
         the main window.
       </p>
 
-      <h4 id="section8-6-2">8.6.2&nbsp; <span class="command">Manage file association</span></h4>
+      <h4 id="section8-6-2">8.6.2&nbsp; <span class="command">Manage Windows file association</span></h4>
       <p class="wrap">
-        The <span class="command">Manage file association</span> command provides, on Windows, a
-        means of adding or removing an association between the CrosswordEditor application and
-        files with the <a class="configProperty" href="#cp-file-filenameSuffix">filename
-        suffix</a> of crossword documents.  A file association will allow you, for example, to
-        open a crossword document in CrosswordEditor by double-clicking on its filename in File
-        Explorer.  If CrosswordEditor is already running, the document will be opened in it;
-        otherwise, the document will be opened in a new instance of CrosswordEditor.
+        The <span class="command">Manage Windows file association</span> command provides, on
+        Windows, a means of adding or removing an association between the CrosswordEditor
+        application and files with the <a class="configProperty"
+        href="#cp-file-filenameSuffix">filename suffix</a> of crossword documents.  A file
+        association will allow you, for example, to open a crossword document in CrosswordEditor
+        by double-clicking on its filename in File Explorer.  If CrosswordEditor is already
+        running, the document will be opened in it; otherwise, the document will be opened in a
+        new instance of CrosswordEditor.
       </p>
       <p class="wrap">
         The command creates a file association by modifying entries in the <a class="external"
@@ -2825,15 +2826,14 @@
       <dl class="fileAssoc">
         <dt>Java launcher</dt>
         <dd class="wrap">
-          This is the Windows executable that launches a Java program; with a JRE for Windows,
-          you usually have a choice of <code>javaw.exe</code> (no console) or
-          <code>java.exe</code> (console).  The corresponding <span
-          class="command">Default</span> command sets the pathname to that of the file
-          <code>bin\javaw.exe</code> in the directory specified by the <code>java.home</code>
-          system property, which is the directory that contains the launcher of the running
-          CrosswordEditor application.  If you install another version of Java, the Java
-          launcher might be at a different location; if so, you will need to update the file
-          association accordingly.
+          This is the Windows executable that launches a Java program, which will usually be
+          either <code>javaw.exe</code> (no console) or <code>java.exe</code> (console).  The
+          corresponding <span class="command">Default</span> command sets the pathname to that
+          of the file <code>bin\javaw.exe</code> in the directory specified by the
+          <code>java.home</code> system property, which is the directory that contains the
+          launcher of the current CrosswordEditor application.  If you install another version
+          of Java, the Java launcher might be at a different location; if so, you will need to
+          update the file association accordingly.
         </dd>
         <dt>JAR</dt>
         <dd class="wrap">
@@ -4758,7 +4758,7 @@
     <div id="lastModified">
       <div>
         <div>
-          Last modified: 2026-02-21
+          Last modified: 2026-03-25
         </div>
         <div class="image">
           <a class="hideHover" href="http://validator.w3.org/check?uri=referer">
