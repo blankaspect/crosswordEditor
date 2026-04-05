@@ -2,7 +2,7 @@
 
 TextOutputTaskDialog.java
 
-Text-output task dialog class.
+Class: text-output task dialog.
 
 \*====================================================================*/
 
@@ -76,7 +76,7 @@ import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
 //----------------------------------------------------------------------
 
 
-// TEXT-OUTPUT TASK DIALOG CLASS
+// CLASS: TEXT-OUTPUT TASK DIALOG
 
 
 class TextOutputTaskDialog
@@ -132,9 +132,10 @@ class TextOutputTaskDialog
 //  Constructors
 ////////////////////////////////////////////////////////////////////////
 
-	private TextOutputTaskDialog(Window owner,
-								 String title,
-								 Task   task)
+	private TextOutputTaskDialog(
+		Window	owner,
+		String	title,
+		Task	task)
 		throws AppException
 	{
 		// Call superclass constructor
@@ -144,7 +145,7 @@ class TextOutputTaskDialog
 		setIconImages(owner.getIconImages());
 
 
-		//----  Text area scroll pane
+		//----  Text-area scroll pane
 
 		// Text area
 		textArea = new FTextArea();
@@ -159,8 +160,7 @@ class TextOutputTaskDialog
 		int width = TEXT_AREA_NUM_COLUMNS * FontUtils.getCharWidth('0', fontMetrics);
 		int height = TEXT_AREA_NUM_ROWS * fontMetrics.getHeight();
 		textAreaScrollPane.getViewport().setPreferredSize(new Dimension(width, height));
-		GuiUtils.setViewportBorder(textAreaScrollPane, TEXT_AREA_VERTICAL_MARGIN,
-								   TEXT_AREA_HORIZONTAL_MARGIN);
+		GuiUtils.setViewportBorder(textAreaScrollPane, TEXT_AREA_VERTICAL_MARGIN, TEXT_AREA_HORIZONTAL_MARGIN);
 
 
 		//----  Button panel
@@ -299,9 +299,10 @@ class TextOutputTaskDialog
 //  Class methods
 ////////////////////////////////////////////////////////////////////////
 
-	public static void showDialog(Component parent,
-								  String    title,
-								  Task      task)
+	public static void showDialog(
+		Component	parent,
+		String		title,
+		Task		task)
 		throws AppException
 	{
 		new TextOutputTaskDialog(GuiUtils.getWindow(parent), title, task);
@@ -314,7 +315,8 @@ class TextOutputTaskDialog
 ////////////////////////////////////////////////////////////////////////
 
 	@Override
-	public void actionPerformed(ActionEvent event)
+	public void actionPerformed(
+		ActionEvent	event)
 	{
 		switch (event.getActionCommand())
 		{
@@ -330,7 +332,8 @@ class TextOutputTaskDialog
 ////////////////////////////////////////////////////////////////////////
 
 	@Override
-	public void changedUpdate(DocumentEvent event)
+	public void changedUpdate(
+		DocumentEvent	event)
 	{
 		// do nothing
 	}
@@ -338,7 +341,8 @@ class TextOutputTaskDialog
 	//------------------------------------------------------------------
 
 	@Override
-	public void insertUpdate(DocumentEvent event)
+	public void insertUpdate(
+		DocumentEvent	event)
 	{
 		updateComponents();
 	}
@@ -346,7 +350,8 @@ class TextOutputTaskDialog
 	//------------------------------------------------------------------
 
 	@Override
-	public void removeUpdate(DocumentEvent event)
+	public void removeUpdate(
+		DocumentEvent	event)
 	{
 		updateComponents();
 	}
@@ -358,7 +363,8 @@ class TextOutputTaskDialog
 ////////////////////////////////////////////////////////////////////////
 
 	@Override
-	public void setInfo(String str)
+	public void setInfo(
+		String	str)
 	{
 		// do nothing
 	}
@@ -366,8 +372,9 @@ class TextOutputTaskDialog
 	//------------------------------------------------------------------
 
 	@Override
-	public void setInfo(String str,
-						File   file)
+	public void setInfo(
+		String	str,
+		File	file)
 	{
 		// do nothing
 	}
@@ -383,8 +390,9 @@ class TextOutputTaskDialog
 	//------------------------------------------------------------------
 
 	@Override
-	public void setProgress(int    index,
-							double value)
+	public void setProgress(
+		int		index,
+		double	value)
 	{
 		// do nothing
 	}
@@ -467,7 +475,7 @@ class TextOutputTaskDialog
 ////////////////////////////////////////////////////////////////////////
 
 
-	// ERROR IDENTIFIERS
+	// ENUMERATION: ERROR IDENTIFIERS
 
 
 	private enum ErrorId
@@ -491,7 +499,8 @@ class TextOutputTaskDialog
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private ErrorId(String message)
+		private ErrorId(
+			String	message)
 		{
 			this.message = message;
 		}
@@ -519,7 +528,7 @@ class TextOutputTaskDialog
 ////////////////////////////////////////////////////////////////////////
 
 
-	// TEXT WRITER CLASS
+	// CLASS: TEXT WRITER
 
 
 	public class TextWriter
@@ -537,19 +546,20 @@ class TextOutputTaskDialog
 		//--------------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////
-	//  Instance methods : FileAssociations.ScriptOutputWriter interface
+	//  Instance methods : IProcessOutputWriter interface
 	////////////////////////////////////////////////////////////////////
 
 		@Override
-		public boolean isClosed()
+		public boolean isOpen()
 		{
-			return cancelled;
+			return !cancelled;
 		}
 
 		//--------------------------------------------------------------
 
 		@Override
-		public void write(final String str)
+		public void write(
+			String	str)
 		{
 			textLength += str.length();
 			SwingUtilities.invokeLater(() -> textArea.append(str));
@@ -560,7 +570,7 @@ class TextOutputTaskDialog
 		@Override
 		public void close()
 		{
-			if (!cancelled)
+			if (isOpen())
 			{
 				if (textLength == 0)
 					onClose();

@@ -61,24 +61,15 @@ interface AppConstants
 	String	NS_PREFIX		= NS_PREFIX_BASE + ":";
 
 	// Filename extensions
-	String	EXE_FILENAME_EXTENSION	= ".exe";
 	String	HTML_FILENAME_EXTENSION	= ".html";
-	String	ICON_FILENAME_EXTENSION	= ".ico";
-	String	JAR_FILENAME_EXTENSION	= ".jar";
 	String	XML_FILENAME_EXTENSION	= ".xml";
 
 	// File-filter descriptions
 	String	CROSSWORD_FILES_STR	= "Crossword files";
 
 	// Filters for file choosers
-	FilenameSuffixFilter EXE_FILE_FILTER	=
-			new FilenameSuffixFilter("Windows executable files", EXE_FILENAME_EXTENSION);
 	FilenameSuffixFilter HTML_FILE_FILTER	=
 			new FilenameSuffixFilter("HTML files", HTML_FILENAME_EXTENSION);
-	FilenameSuffixFilter ICON_FILE_FILTER	=
-			new FilenameSuffixFilter("Windows icon files", ICON_FILENAME_EXTENSION);
-	FilenameSuffixFilter JAR_FILE_FILTER	=
-			new FilenameSuffixFilter("JAR files", JAR_FILENAME_EXTENSION);
 	FilenameSuffixFilter XML_FILE_FILTER	=
 			new FilenameSuffixFilter("XML files", XML_FILENAME_EXTENSION);
 

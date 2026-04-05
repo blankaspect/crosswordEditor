@@ -2,7 +2,7 @@
 
 FileAssociationDialog.java
 
-Class: file-association dialog.
+Class: Windows file-association dialog.
 
 \*====================================================================*/
 
@@ -10,7 +10,7 @@ Class: file-association dialog.
 // PACKAGE
 
 
-package uk.blankaspect.crosswordeditor;
+package uk.blankaspect.ui.swing.platform.windows;
 
 //----------------------------------------------------------------------
 
@@ -58,6 +58,8 @@ import uk.blankaspect.common.exception.FileException;
 import uk.blankaspect.common.filesystem.PathnameUtils;
 import uk.blankaspect.common.filesystem.PathUtils;
 
+import uk.blankaspect.common.misc.FilenameSuffixFilter;
+
 import uk.blankaspect.common.platform.windows.FileAssociations;
 
 import uk.blankaspect.common.property.PropertyString;
@@ -76,17 +78,20 @@ import uk.blankaspect.ui.swing.filechooser.FileChooserUtils;
 
 import uk.blankaspect.ui.swing.label.FLabel;
 
+import uk.blankaspect.ui.swing.misc.GuiConstants;
 import uk.blankaspect.ui.swing.misc.GuiUtils;
+
+import uk.blankaspect.ui.swing.textfield.FPathnameField;
 
 import uk.blankaspect.ui.swing.workaround.LinuxWorkarounds;
 
 //----------------------------------------------------------------------
 
 
-// CLASS: FILE-ASSOCIATION DIALOG
+// CLASS: WINDOWS FILE-ASSOCIATION DIALOG
 
 
-class FileAssociationDialog
+public class FileAssociationDialog
 	extends JDialog
 	implements ActionListener
 {
@@ -99,7 +104,18 @@ class FileAssociationDialog
 
 	private static final	String	JAVA_LAUNCHER_PATHNAME	= "bin\\javaw.exe";
 
-	private static final	String	TITLE_STR				= "Windows file associations";
+	private static final	String	EXE_FILENAME_EXTENSION	= ".exe";
+	private static final	String	ICON_FILENAME_EXTENSION	= ".ico";
+	private static final	String	JAR_FILENAME_EXTENSION	= ".jar";
+
+	private static final	FilenameSuffixFilter EXE_FILE_FILTER	=
+			new FilenameSuffixFilter("Windows executable files", EXE_FILENAME_EXTENSION);
+	private static final	FilenameSuffixFilter ICON_FILE_FILTER	=
+			new FilenameSuffixFilter("Windows icon files", ICON_FILENAME_EXTENSION);
+	private static final	FilenameSuffixFilter JAR_FILE_FILTER	=
+			new FilenameSuffixFilter("JAR files", JAR_FILENAME_EXTENSION);
+
+	private static final	String	FILE_ASSOCIATIONS_STR	= "Windows file associations";
 	private static final	String	ACTION_STR				= "Action";
 	private static final	String	JAVA_LAUNCHER_STR		= "Java launcher";
 	private static final	String	JAR_STR					= "JAR";
@@ -137,16 +153,9 @@ class FileAssociationDialog
 //  Class variables
 ////////////////////////////////////////////////////////////////////////
 
-	private static	Point								location;
-	private static	Action								action			= Action.ADD;
-	private static	String								javaLauncherPathname;
-	private static	String								jarPathname;
-	private static	String								iconPathname;
-	private static	boolean								filesMustExist	= true;
-	private static	FileAssociations.ScriptLifeCycle	scriptLifeCycle	=
-			FileAssociations.ScriptLifeCycle.WRITE_EXECUTE_DELETE;
-	private static	Path								defaultJavaLauncherLocation;
-	private static	Path								defaultJarLocation;
+	private static	State	state							= new State();
+	private static	Path	defaultJavaLauncherLocation;
+	private static	Path	defaultJarLocation;
 
 ////////////////////////////////////////////////////////////////////////
 //  Instance variables
@@ -172,7 +181,7 @@ class FileAssociationDialog
 
 	static
 	{
-		// Location of Java launcher
+		// Get location of Java launcher
 		String pathname = System.getProperty(SystemPropertyKey.JAVA_HOME_DIR);
 		if (pathname != null)
 		{
@@ -188,13 +197,13 @@ class FileAssociationDialog
 			}
 		}
 
-		// Location of JAR
+		// Get location of JAR
 		try
 		{
 			Path location =
 					Path.of(FileAssociationDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI());
 			if (Files.isRegularFile(location, LinkOption.NOFOLLOW_LINKS)
-					&& PathnameUtils.suffixMatches(location, AppConstants.JAR_FILENAME_EXTENSION))
+					&& PathnameUtils.suffixMatches(location, JAR_FILENAME_EXTENSION))
 				defaultJarLocation = PathUtils.abs(location);
 		}
 		catch (Exception e)
@@ -211,7 +220,7 @@ class FileAssociationDialog
 		Window	owner)
 	{
 		// Call superclass constructor
-		super(owner, TITLE_STR, ModalityType.APPLICATION_MODAL);
+		super(owner, FILE_ASSOCIATIONS_STR, ModalityType.APPLICATION_MODAL);
 
 		// Set icons
 		setIconImages(owner.getIconImages());
@@ -222,21 +231,21 @@ class FileAssociationDialog
 		javaLauncherFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		javaLauncherFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
 		javaLauncherFileChooser.setApproveButtonToolTipText(SELECT_FILE_STR);
-		FileChooserUtils.setFilter(javaLauncherFileChooser, AppConstants.EXE_FILE_FILTER);
+		FileChooserUtils.setFilter(javaLauncherFileChooser, EXE_FILE_FILTER);
 
 		jarFileChooser = new JFileChooser(System.getProperty(SystemPropertyKey.WORKING_DIR));
 		jarFileChooser.setDialogTitle(JAR_FILE_STR);
 		jarFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		jarFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
 		jarFileChooser.setApproveButtonToolTipText(SELECT_FILE_STR);
-		FileChooserUtils.setFilter(jarFileChooser, AppConstants.JAR_FILE_FILTER);
+		FileChooserUtils.setFilter(jarFileChooser, JAR_FILE_FILTER);
 
 		iconFileChooser = new JFileChooser(System.getProperty(SystemPropertyKey.WORKING_DIR));
 		iconFileChooser.setDialogTitle(ICON_FILE_STR);
 		iconFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		iconFileChooser.setApproveButtonMnemonic(KeyEvent.VK_S);
 		iconFileChooser.setApproveButtonToolTipText(SELECT_FILE_STR);
-		FileChooserUtils.setFilter(iconFileChooser, AppConstants.ICON_FILE_FILTER);
+		FileChooserUtils.setFilter(iconFileChooser, ICON_FILE_FILTER);
 
 		actionComponents = new ArrayList<>();
 
@@ -262,13 +271,13 @@ class FileAssociationDialog
 		gbc.weighty = 0.0;
 		gbc.anchor = GridBagConstraints.LINE_END;
 		gbc.fill = GridBagConstraints.NONE;
-		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gbc.insets = GuiConstants.COMPONENT_INSETS;
 		gridBag.setConstraints(actionLabel, gbc);
 		controlPanel.add(actionLabel);
 
 		// Combo box: action
 		actionComboBox = new FComboBox<>(Action.values());
-		actionComboBox.setSelectedValue(action);
+		actionComboBox.setSelectedValue(state.action);
 		actionComboBox.setActionCommand(Command.SELECT_ACTION);
 		actionComboBox.addActionListener(this);
 
@@ -280,7 +289,7 @@ class FileAssociationDialog
 		gbc.weighty = 0.0;
 		gbc.anchor = GridBagConstraints.LINE_START;
 		gbc.fill = GridBagConstraints.NONE;
-		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gbc.insets = GuiConstants.COMPONENT_INSETS;
 		gridBag.setConstraints(actionComboBox, gbc);
 		controlPanel.add(actionComboBox);
 
@@ -296,7 +305,7 @@ class FileAssociationDialog
 		gbc.weighty = 0.0;
 		gbc.anchor = GridBagConstraints.LINE_END;
 		gbc.fill = GridBagConstraints.NONE;
-		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gbc.insets = GuiConstants.COMPONENT_INSETS;
 		gridBag.setConstraints(javaLauncherLabel, gbc);
 		controlPanel.add(javaLauncherLabel);
 
@@ -312,12 +321,12 @@ class FileAssociationDialog
 		gbc.weighty = 0.0;
 		gbc.anchor = GridBagConstraints.LINE_START;
 		gbc.fill = GridBagConstraints.NONE;
-		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gbc.insets = GuiConstants.COMPONENT_INSETS;
 		gridBag.setConstraints(javaLauncherPanel, gbc);
 		controlPanel.add(javaLauncherPanel);
 
 		// Panel: Java launcher pathname
-		javaLauncherPathnameField = new FPathnameField(javaLauncherPathname);
+		javaLauncherPathnameField = new FPathnameField(state.javaLauncherPathname);
 		JPanel javaLauncherPathnamePanel = new PathnamePanel(javaLauncherPathnameField,
 															 Command.CHOOSE_JAVA_LAUNCHER_FILE, this);
 
@@ -363,7 +372,7 @@ class FileAssociationDialog
 		gbc.weighty = 0.0;
 		gbc.anchor = GridBagConstraints.LINE_END;
 		gbc.fill = GridBagConstraints.NONE;
-		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gbc.insets = GuiConstants.COMPONENT_INSETS;
 		gridBag.setConstraints(jarLabel, gbc);
 		controlPanel.add(jarLabel);
 
@@ -379,12 +388,12 @@ class FileAssociationDialog
 		gbc.weighty = 0.0;
 		gbc.anchor = GridBagConstraints.LINE_START;
 		gbc.fill = GridBagConstraints.NONE;
-		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gbc.insets = GuiConstants.COMPONENT_INSETS;
 		gridBag.setConstraints(jarPanel, gbc);
 		controlPanel.add(jarPanel);
 
 		// Panel: JAR pathname
-		jarPathnameField = new FPathnameField(jarPathname);
+		jarPathnameField = new FPathnameField(state.jarPathname);
 		JPanel jarPathnamePanel = new PathnamePanel(jarPathnameField, Command.CHOOSE_JAR_FILE, this);
 
 		gbc.gridx = 0;
@@ -429,12 +438,12 @@ class FileAssociationDialog
 		gbc.weighty = 0.0;
 		gbc.anchor = GridBagConstraints.LINE_END;
 		gbc.fill = GridBagConstraints.NONE;
-		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gbc.insets = GuiConstants.COMPONENT_INSETS;
 		gridBag.setConstraints(iconLabel, gbc);
 		controlPanel.add(iconLabel);
 
 		// Panel: icon pathname
-		iconPathnameField = new FPathnameField(iconPathname);
+		iconPathnameField = new FPathnameField(state.iconPathname);
 		JPanel iconPathnamePanel = new PathnamePanel(iconPathnameField, Command.CHOOSE_ICON_FILE, this);
 		actionComponents.add(iconPathnamePanel);
 
@@ -446,14 +455,14 @@ class FileAssociationDialog
 		gbc.weighty = 0.0;
 		gbc.anchor = GridBagConstraints.LINE_START;
 		gbc.fill = GridBagConstraints.NONE;
-		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gbc.insets = GuiConstants.COMPONENT_INSETS;
 		gridBag.setConstraints(iconPathnamePanel, gbc);
 		controlPanel.add(iconPathnamePanel);
 
 		// Check box: files must exist
 		filesMustExistCheckBox = new FCheckBox(FILES_MUST_EXIST_STR);
 		actionComponents.add(filesMustExistCheckBox);
-		filesMustExistCheckBox.setSelected(filesMustExist);
+		filesMustExistCheckBox.setSelected(state.filesMustExist);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -463,7 +472,7 @@ class FileAssociationDialog
 		gbc.weighty = 0.0;
 		gbc.anchor = GridBagConstraints.LINE_START;
 		gbc.fill = GridBagConstraints.NONE;
-		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gbc.insets = GuiConstants.COMPONENT_INSETS;
 		gridBag.setConstraints(filesMustExistCheckBox, gbc);
 		controlPanel.add(filesMustExistCheckBox);
 
@@ -478,13 +487,13 @@ class FileAssociationDialog
 		gbc.weighty = 0.0;
 		gbc.anchor = GridBagConstraints.LINE_END;
 		gbc.fill = GridBagConstraints.NONE;
-		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gbc.insets = GuiConstants.COMPONENT_INSETS;
 		gridBag.setConstraints(scriptLifeCycleLabel, gbc);
 		controlPanel.add(scriptLifeCycleLabel);
 
 		// Combo box: script life cycle
 		scriptLifeCycleComboBox = new FComboBox<>(FileAssociations.ScriptLifeCycle.values());
-		scriptLifeCycleComboBox.setSelectedValue(scriptLifeCycle);
+		scriptLifeCycleComboBox.setSelectedValue(state.scriptLifeCycle);
 
 		gbc.gridx = 1;
 		gbc.gridy = gridY++;
@@ -494,7 +503,7 @@ class FileAssociationDialog
 		gbc.weighty = 0.0;
 		gbc.anchor = GridBagConstraints.LINE_START;
 		gbc.fill = GridBagConstraints.NONE;
-		gbc.insets = AppConstants.COMPONENT_INSETS;
+		gbc.insets = GuiConstants.COMPONENT_INSETS;
 		gridBag.setConstraints(scriptLifeCycleComboBox, gbc);
 		controlPanel.add(scriptLifeCycleComboBox);
 
@@ -508,13 +517,13 @@ class FileAssociationDialog
 		buttonPanel.setBorder(BorderFactory.createEmptyBorder(3, 12, 3, 12));
 
 		// Button: OK
-		JButton okButton = new FButton(AppConstants.OK_STR);
+		JButton okButton = new FButton(GuiConstants.OK_STR);
 		okButton.setActionCommand(Command.ACCEPT);
 		okButton.addActionListener(this);
 		buttonPanel.add(okButton);
 
 		// Button: cancel
-		JButton cancelButton = new FButton(AppConstants.CANCEL_STR);
+		JButton cancelButton = new FButton(GuiConstants.CANCEL_STR);
 		cancelButton.setActionCommand(Command.CLOSE);
 		cancelButton.addActionListener(this);
 		buttonPanel.add(cancelButton);
@@ -545,7 +554,7 @@ class FileAssociationDialog
 		gbc.gridheight = 1;
 		gbc.weightx = 0.0;
 		gbc.weighty = 0.0;
-		gbc.anchor = GridBagConstraints.NORTH;
+		gbc.anchor = GridBagConstraints.EAST;
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.insets = new Insets(3, 0, 0, 0);
 		gridBag.setConstraints(buttonPanel, gbc);
@@ -574,11 +583,12 @@ class FileAssociationDialog
 				// WORKAROUND for a bug that has been observed on Linux/GNOME whereby a window is displaced downwards
 				// when its location is set.  The error in the y coordinate is the height of the title bar of the
 				// window.  The workaround is to set the location of the window again with an adjustment for the error.
-				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), location);
+				LinuxWorkarounds.fixWindowYCoord(event.getWindow(), state.location);
 			}
 
 			@Override
-			public void windowClosing(WindowEvent event)
+			public void windowClosing(
+				WindowEvent	event)
 			{
 				onClose();
 			}
@@ -591,9 +601,9 @@ class FileAssociationDialog
 		pack();
 
 		// Set location of dialog
-		if (location == null)
-			location = GuiUtils.getComponentLocation(this, owner);
-		setLocation(location);
+		if (state.location == null)
+			state.location = GuiUtils.getComponentLocation(this, owner);
+		setLocation(state.location);
 
 		// Set default button
 		getRootPane().setDefaultButton(okButton);
@@ -645,9 +655,7 @@ class FileAssociationDialog
 
 	private Result getResult()
 	{
-		return accepted
-				? new Result(javaLauncherPathname, jarPathname, iconPathname, action == Action.REMOVE, scriptLifeCycle)
-				: null;
+		return accepted ? state.result() : null;
 	}
 
 	//------------------------------------------------------------------
@@ -683,7 +691,7 @@ class FileAssociationDialog
 					File file = javaLauncherPathnameField.getFile();
 					try
 					{
-						if (mustExist && !file.isFile())
+						if (!file.isFile())
 							throw new FileException(ErrorId.NOT_A_FILE, file);
 					}
 					catch (SecurityException e)
@@ -816,7 +824,7 @@ class FileAssociationDialog
 		}
 		catch (AppException e)
 		{
-			JOptionPane.showMessageDialog(this, e, TITLE_STR, JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this, e, FILE_ASSOCIATIONS_STR, JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -824,13 +832,13 @@ class FileAssociationDialog
 
 	private void onClose()
 	{
-		location = getLocation();
-		action = actionComboBox.getSelectedValue();
-		javaLauncherPathname = javaLauncherPathnameField.getText();
-		jarPathname = jarPathnameField.getText();
-		iconPathname = iconPathnameField.getText();
-		filesMustExist = filesMustExistCheckBox.isSelected();
-		scriptLifeCycle = scriptLifeCycleComboBox.getSelectedValue();
+		state.location = getLocation();
+		state.action = actionComboBox.getSelectedValue();
+		state.javaLauncherPathname = javaLauncherPathnameField.getText();
+		state.jarPathname = jarPathnameField.getText();
+		state.iconPathname = iconPathnameField.getText();
+		state.filesMustExist = filesMustExistCheckBox.isSelected();
+		state.scriptLifeCycle = scriptLifeCycleComboBox.getSelectedValue();
 		setVisible(false);
 		dispose();
 	}
@@ -893,7 +901,6 @@ class FileAssociationDialog
 		//--------------------------------------------------------------
 
 	}
-
 
 	//==================================================================
 
@@ -959,14 +966,32 @@ class FileAssociationDialog
 	//==================================================================
 
 ////////////////////////////////////////////////////////////////////////
+//  Member records
+////////////////////////////////////////////////////////////////////////
+
+
+	// RECORD: RESULT
+
+
+	public record Result(
+		String								javaLauncherPathname,
+		String								jarPathname,
+		String								iconPathname,
+		boolean								removeEntries,
+		FileAssociations.ScriptLifeCycle	scriptLifeCycle)
+	{ }
+
+	//==================================================================
+
+////////////////////////////////////////////////////////////////////////
 //  Member classes : non-inner classes
 ////////////////////////////////////////////////////////////////////////
 
 
-	// CLASS: RESULT
+	// CLASS: DIALOG STATE
 
 
-	public static class Result
+	private static class State
 	{
 
 	////////////////////////////////////////////////////////////////////
@@ -983,28 +1008,24 @@ class FileAssociationDialog
 	//  Instance variables
 	////////////////////////////////////////////////////////////////////
 
-		String								javaLauncherPathname;
-		String								jarPathname;
-		String								iconPathname;
-		boolean								removeEntries;
-		FileAssociations.ScriptLifeCycle	scriptLifeCycle;
+		private	Point								location;
+		private Action								action;
+		private String								javaLauncherPathname;
+		private String								jarPathname;
+		private String								iconPathname;
+		private boolean								filesMustExist;
+		private FileAssociations.ScriptLifeCycle	scriptLifeCycle;
 
 	////////////////////////////////////////////////////////////////////
 	//  Constructors
 	////////////////////////////////////////////////////////////////////
 
-		private Result(
-			String								javaLauncherPathname,
-			String								jarPathname,
-			String								iconPathname,
-			boolean								removeEntries,
-			FileAssociations.ScriptLifeCycle	scriptLifeCycle)
+		private State()
 		{
-			this.javaLauncherPathname = processPathname(javaLauncherPathname);
-			this.jarPathname = processPathname(jarPathname);
-			this.iconPathname = processPathname(iconPathname);
-			this.removeEntries = removeEntries;
-			this.scriptLifeCycle = scriptLifeCycle;
+			// Initialise instance variables
+			action = Action.ADD;
+			filesMustExist = true;
+			scriptLifeCycle = FileAssociations.ScriptLifeCycle.WRITE_EXECUTE_DELETE;
 		}
 
 		//--------------------------------------------------------------
@@ -1032,6 +1053,18 @@ class FileAssociationDialog
 				}
 			}
 			return buffer.toString();
+		}
+
+		//--------------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////
+	//  Instance methods
+	////////////////////////////////////////////////////////////////////
+
+		private Result result()
+		{
+			return new Result(processPathname(javaLauncherPathname), processPathname(jarPathname),
+							  processPathname(iconPathname), action == Action.REMOVE, scriptLifeCycle);
 		}
 
 		//--------------------------------------------------------------

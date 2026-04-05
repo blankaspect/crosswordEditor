@@ -68,6 +68,8 @@ import uk.blankaspect.ui.swing.filechooser.FileChooserUtils;
 
 import uk.blankaspect.ui.swing.misc.GuiUtils;
 
+import uk.blankaspect.ui.swing.platform.windows.FileAssociationDialog;
+
 import uk.blankaspect.ui.swing.text.TextRendering;
 
 import uk.blankaspect.ui.swing.textfield.TextFieldUtils;
@@ -1196,14 +1198,13 @@ public class CrosswordEditorApp
 		FileAssociationDialog.Result result = FileAssociationDialog.showDialog(mainWindow);
 		if (result != null)
 		{
-			FileAssociations fileAssoc = new FileAssociations();
-			fileAssoc.addParams(ASSOC_FILE_KIND_KEY, ASSOC_FILE_KIND_TEXT, ASSOC_FILE_OPEN_TEXT,
-								AppConfig.INSTANCE.getFilenameSuffix());
+			FileAssociations fileAssociations = new FileAssociations();
+			fileAssociations.addParams(ASSOC_FILE_KIND_KEY, ASSOC_FILE_KIND_TEXT, ASSOC_FILE_OPEN_TEXT,
+									   AppConfig.INSTANCE.getFilenameSuffix());
 			TextOutputTaskDialog.showDialog(mainWindow, FILE_ASSOCIATION_STR,
-											new Task.SetFileAssociation(fileAssoc, result.javaLauncherPathname,
-																		result.jarPathname, result.iconPathname,
-																		ASSOC_SCRIPT_DIR_PREFIX, ASSOC_SCRIPT_FILENAME,
-																		result.removeEntries, result.scriptLifeCycle));
+					new Task.SetFileAssociation(fileAssociations, result.javaLauncherPathname(), result.jarPathname(),
+												result.iconPathname(), ASSOC_SCRIPT_DIR_PREFIX, ASSOC_SCRIPT_FILENAME,
+												result.removeEntries(), result.scriptLifeCycle()));
 		}
 	}
 

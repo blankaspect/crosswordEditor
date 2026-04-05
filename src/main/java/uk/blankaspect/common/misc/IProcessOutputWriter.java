@@ -2,7 +2,7 @@
 
 IProcessOutputWriter.java
 
-Process-output writer interface.
+Interface: process-output writer.
 
 \*====================================================================*/
 
@@ -15,7 +15,7 @@ package uk.blankaspect.common.misc;
 //----------------------------------------------------------------------
 
 
-// PROCESS-OUTPUT WRITER INTERFACE
+// INTERFACE: PROCESS-OUTPUT WRITER
 
 
 public interface IProcessOutputWriter
@@ -25,11 +25,12 @@ public interface IProcessOutputWriter
 //  Methods
 ////////////////////////////////////////////////////////////////////////
 
-	boolean isClosed();
+	boolean isOpen();
 
 	//------------------------------------------------------------------
 
-	void write(String str);
+	void write(
+		String	str);
 
 	//------------------------------------------------------------------
 

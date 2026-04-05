@@ -516,7 +516,7 @@ class CrosswordView
 		(
 			"gridLine",
 			"Grid line",
-			new Color(88, 92, 96),
+			new Color(72, 88, 80),
 			Color.DARK_GRAY
 		),
 
@@ -532,7 +532,7 @@ class CrosswordView
 		(
 			"gridSeparatorBlock",
 			"Grid separator, block",
-			new Color(88, 96, 104),
+			new Color(64, 84, 72),
 			Color.DARK_GRAY
 		),
 
