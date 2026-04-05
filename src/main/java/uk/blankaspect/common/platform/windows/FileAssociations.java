@@ -34,12 +34,15 @@ import java.util.Map;
 import uk.blankaspect.common.exception2.BaseException;
 import uk.blankaspect.common.exception2.FileException;
 import uk.blankaspect.common.exception2.TaskCancelledException;
+import uk.blankaspect.common.exception2.UnexpectedRuntimeException;
 
 import uk.blankaspect.common.filesystem.FileSystemUtils;
 
 import uk.blankaspect.common.misc.IProcessOutputWriter;
 import uk.blankaspect.common.misc.SystemUtils;
 import uk.blankaspect.common.misc.Task;
+
+import uk.blankaspect.common.resource.ResourceUtils;
 
 import uk.blankaspect.common.string.StringUtils;
 
@@ -66,7 +69,9 @@ public class FileAssociations
 
 	private static final	String	EXTENSION_SEPARATOR	= ",";
 
-	private static final	String	SCRIPT_EXTENSION	= ".ps1";
+	private static final	String	SCRIPT_FILENAME_EXTENSION	= ".ps1";
+
+	private static final	String	SCRIPT_TEMPLATE_FILENAME	= "fileAssociation" + SCRIPT_FILENAME_EXTENSION;
 
 	private static final	List<String>	SCRIPT_COMMAND_ARGS	= List.of
 	(
@@ -82,188 +87,6 @@ public class FileAssociations
 	private static final	String	DELETING_STR	= "Deleting ";
 	private static final	String	SUCCESS_STR		= "The operation was completed successfully.\n";
 	private static final	String	ERROR_STR		= "! ERROR !\n";
-
-	private static final	String	HEADER_COMMENT	= """
-		# %s
-		#
-		# This automatically generated Windows PowerShell script may be used to
-		# add and remove Windows Registry entries that associate the following
-		# filename extension%s with the application:
-		%s#
-		# To remove the associations, run this script with the command-line
-		# argument '-remove'.
-		""";
-
-	private static final	String	SCRIPT_FRAGMENT1	= """
-		param
-		(
-		    [switch]$remove = $false
-		)
-
-		$classesRoot    = "HKLM:\\SOFTWARE\\Classes"
-		$fileExtsRoot   = "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts"
-		$openWithIdsKey = "OpenWithProgids"
-		$defaultName    = "(Default)"
-		$extensionsName = "Extensions"
-
-		$java = "%s"
-		$jar  = "%s"
-		$icon = "%s"
-
-		$valueType =
-		@{
-		    string       = "String"
-		    expandString = "ExpandString"
-		}
-
-		$paramSets =
-		@(
-		""";
-
-	private static final	String	SCRIPT_FRAGMENT2	= """
-		)
-
-		function splitExtensions($extensions)
-		{
-		    return $extensions.split(",")
-		}
-
-		function createKeyMap($params)
-		{
-		    $path = Join-Path -Path $classesRoot -ChildPath $params.fileKindKey
-		    [Collections.ArrayList]$keyMap =
-		    @(
-		        @(
-		            $path,
-		            @(),
-		            $true,
-		            $defaultName,
-		            $valueType.string,
-		            $params.fileKindText
-		        ),
-		        @(
-		            $path,
-		            @(),
-		            $false,
-		            $extensionsName,
-		            $valueType.string,
-		            $params.extensions
-		        ),
-		        @(
-		            $path,
-		            @("DefaultIcon"),
-		            $false,
-		            $defaultName,
-		            $valueType.expandString,
-		            \"""$icon""\"
-				),
-				@(
-					$path,
-					@("shell", "open"),
-					$false,
-					$defaultName,
-					$valueType.string,
-					$params.fileOpenText
-				),
-				@(
-					$path,
-					@("shell", "open", "command"),
-					$false,
-					$defaultName,
-					$valueType.expandString,
-					\"""$java"" -jar ""$jar"" ""%1""\"
-				)
-			)
-
-			foreach ($extension in splitExtensions $params.extensions)
-			{
-				$path = Join-Path -Path $classesRoot -ChildPath $extension
-				[void]$keyMap.Add(@($path, @(), $true, $defaultName, $valueType.string, $params.fileKindKey))
-			}
-			return $keyMap
-		}
-
-		# If not running as administrator, run script as administrator in new process
-		if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent() `
-				).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
-		{
-			$command = $MyInvocation.MyCommand
-			Start-Process -FilePath powershell -Verb RunAs -WindowStyle Hidden `
-					-ArgumentList "-File `"$($command.Path)`" `"$($command.UnboundArguments)`""
-			Exit
-		}
-
-		# Add or remove registry entries
-		foreach ($params in $paramSets)
-		{
-			# Remove entries for old extensions
-			$path = Join-Path -Path $classesRoot -ChildPath $params.fileKindKey
-			if (Test-Path -Path $path)
-			{
-				$extensions = (Get-ItemProperty -Path $path).$extensionsName
-				if ($extensions)
-				{
-					foreach ($extension in splitExtensions $extensions)
-					{
-						$path = Join-Path -Path $classesRoot -ChildPath $extension
-						if (Test-Path -Path $path)
-						{
-							Remove-Item -Path $path -Recurse
-						}
-					}
-				}
-			}
-
-			# Add an entry for each kind of file and extension
-			foreach ($entry in createKeyMap $params)
-			{
-				# Concatenate path
-				$path = $entry[0]
-				foreach ($p in $entry[1])
-				{
-					$path = Join-Path -Path $path -ChildPath $p
-				}
-
-				# Remove existing entry
-				if ($entry[2] -and (Test-Path -Path $path))
-				{
-					Remove-Item -Path $path -Recurse
-				}
-
-				# Add entry
-				if (-not $remove)
-				{
-					if (-not (Test-Path -Path $path))
-					{
-						New-Item -Path $path -Force > $null
-					}
-					New-ItemProperty -Path $path -Name $entry[3] -Type $entry[4] -Value $entry[5] > $null
-				}
-			}
-
-			# Add entry for each filename extension
-			foreach ($extension in splitExtensions $params.extensions)
-			{
-				# Remove existing key for extension
-				$path = Join-Path -Path $fileExtsRoot -ChildPath $extension
-				if (Test-Path -Path $path)
-				{
-					Remove-Item -Path $path -Recurse
-				}
-
-				# Add property
-				if (-not $remove)
-				{
-					$path = Join-Path -Path $path -ChildPath $openWithIdsKey
-					if (-not (Test-Path -Path $path))
-					{
-						New-Item -Path $path -Force > $null
-					}
-					New-ItemProperty -Path $path -Name $params.fileKindKey -Type None -Value ([byte[]]@()) -Force > $null
-				}
-			}
-		}
-		""";
 
 	/** Error messages. */
 	private interface ErrorMsg
@@ -482,8 +305,19 @@ public class FileAssociations
 		String	jarPathname,
 		String	iconPathname)
 	{
+		// Read script template from resource
+		String template = null;
+		try
+		{
+			template = ResourceUtils.readText(getClass(), SCRIPT_TEMPLATE_FILENAME);
+		}
+		catch (IOException e)
+		{
+			throw new UnexpectedRuntimeException(e);
+		}
+
 		// Create text of filename extensions
-		StringBuilder buffer = new StringBuilder(4096);
+		StringBuilder buffer = new StringBuilder(1024);
 		for (Map<FileKindParam, String> params : fileKindParams)
 		{
 			for (String ext : params.get(FileKindParam.EXTENSIONS).split(EXTENSION_SEPARATOR))
@@ -491,43 +325,32 @@ public class FileAssociations
 		}
 		String extensions = buffer.toString();
 
-		// Append header comment
+		// Create suffix for quantity of filename extensions
+		String quantitySuffix = (fileKindParams.size() == 1) ? "" : "s";
+
+		// Create script fragment for parameters
 		buffer.setLength(0);
-		buffer.append(String.format(HEADER_COMMENT, appName, (fileKindParams.size() == 1) ? "" : "s", extensions));
-		buffer.append('\n');
-
-		// Append first script fragment
-		buffer.append(String.format(SCRIPT_FRAGMENT1, javaLauncherPathname, jarPathname, iconPathname));
-
-		// Append parameters
 		Iterator<Map<FileKindParam, String>> it = fileKindParams.iterator();
 		while (it.hasNext())
 		{
-			buffer.append(" ".repeat(INDENT_INCREMENT));
-			buffer.append("@{");
-			buffer.append('\n');
+			buffer.append(" ".repeat(INDENT_INCREMENT)).append("@{").append('\n');
 			Map<FileKindParam, String> params = it.next();
 			for (FileKindParam param : FileKindParam.values())
 			{
 				buffer.append(" ".repeat(2 * INDENT_INCREMENT));
 				buffer.append(StringUtils.padAfter(param.key, FileKindParam.MAX_KEY_LENGTH));
-				buffer.append(" = \"");
-				buffer.append(escapeDoubleQuotes(params.get(param)));
-				buffer.append("\"");
-				buffer.append('\n');
+				buffer.append(" = \"").append(escapeDoubleQuotes(params.get(param))).append("\"").append('\n');
 			}
-			buffer.append(" ".repeat(INDENT_INCREMENT));
-			buffer.append('}');
+			buffer.append(" ".repeat(INDENT_INCREMENT)).append('}');
 			if (it.hasNext())
 				buffer.append(',');
 			buffer.append('\n');
 		}
+		String paramsFragment = buffer.toString();
 
-		// Append second script fragment
-		buffer.append(SCRIPT_FRAGMENT2);
-
-		// Return script
-		return buffer.toString();
+		// Replace placeholders in template and return result
+		return String.format(template, appName, quantitySuffix, extensions, quantitySuffix,
+							 javaLauncherPathname, jarPathname, iconPathname, paramsFragment);
 	}
 
 	//------------------------------------------------------------------
@@ -565,8 +388,8 @@ public class FileAssociations
 			}
 
 			// Get pathname of script file
-			if (!scriptFilename.endsWith(SCRIPT_EXTENSION))
-				scriptFilename += SCRIPT_EXTENSION;
+			if (!scriptFilename.endsWith(SCRIPT_FILENAME_EXTENSION))
+				scriptFilename += SCRIPT_FILENAME_EXTENSION;
 			scriptFile = tempDirectory.resolve(scriptFilename);
 
 			// Delete script file and temporary directory when the program terminates
@@ -671,7 +494,7 @@ public class FileAssociations
 			if (outWriter != null)
 			{
 				outWriter.close();
-				while (!outWriter.isClosed())
+				while (outWriter.isOpen())
 				{
 					try
 					{
