@@ -334,12 +334,14 @@
         written by the installer.  If you create a properties file, it should have the following
         form, with the example pathname replaced by the actual pathname:
       </p>
+      <div>
       <pre class="codeFragment">
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;
 &lt;!DOCTYPE properties SYSTEM &quot;http://java.sun.com/dtd/properties.dtd&quot;&gt;
 &lt;properties&gt;
-&lt;entry key=&quot;app.configDir&quot;&gt;/home/slothrop/.blankaspect/crosswordEditor&lt;/entry&gt;
+  &lt;entry key=&quot;app.configDir&quot;&gt;/home/slothrop/.blankaspect/crosswordEditor&lt;/entry&gt;
 &lt;/properties&gt;</pre>
+      </div>
 
       <p class="wrap">
         If the <span class="configProperty">app.configDir</span> property is set both on the
@@ -373,19 +375,20 @@
               <div><i>The current working directory</i></div>
               <div class="wrap">
                 The current working directory, which is denoted by the environment variable
-                <code>$PWD</code> on Linux/UNIX systems, depends on the system and the way in
+                <code>PWD</code> on Unix-like systems, depends on the system and the way in
                 which CrosswordEditor was run.
               </div>
             </li>
             <li class="spaced" id="defaultDirectory">
               <div><i>The default directory</i></div>
               <div class="wrap">
-                On Linux/UNIX systems, the default directory is
-                <code>$HOME/.blankaspect/crosswordEditor</code>, where <code>$HOME</code> is the
+                On Unix-like systems, the default directory is
+                <code>$HOME/.blankaspect/crosswordEditor</code>, where <code>HOME</code> is the
                 environment variable that denotes the user&apos;s home directory.  On Windows
                 systems, the default directory is
-                <code>%APPDATA%\blankaspect\crosswordEditor</code>, where <code>%APPDATA%</code>
-                is an environment variable.
+                <code>%APPDATA%\blankaspect\crosswordEditor</code>, where <code>APPDATA</code>
+                is an environment variable that denotes a subdirectory of the user&apos;s home
+                directory named <code>AppData</code>.
               </div>
             </li>
           </ol>
@@ -446,7 +449,7 @@
       <p class="wrap">
         All the components are optional except for the grid.
       </p>
-      
+
       <h3 id="section4-1">4.1&nbsp; Grid</h3>
 
       <p class="wrap">
@@ -1784,7 +1787,7 @@
           field of the <a class="component" href="#section6-1-5">Text</a> tab.
         </li>
       </ul>
-        
+
       <p class="wrap">
         You can load the parameter sets in the <span class="component">Capture crossword</span>
         dialog by setting the <a class="configProperty"
@@ -2078,8 +2081,8 @@
       <h4 id="section8-2-2">8.2.2&nbsp; <span class="command">Clear edit history</span></h4>
       <p class="wrap">
         The <span class="command">Clear edit history</span> command clears the history of edits
-        to the current text document.  The command may be used to make more memory available if
-        a &quot;Not enough memory&quot; error occurs.
+        to the current document.  The command may be used to make more memory available if a
+        &apos;Not enough memory&apos; error occurs.
       </p>
 
       <h4 id="section8-2-3">8.2.3&nbsp; <span class="command">Edit clue</span></h4>
@@ -2776,7 +2779,8 @@
         href="https://en.wikipedia.org/wiki/Windows_PowerShell">Windows PowerShell</a> script.
         You may execute the script automatically after it is generated, or you can create a
         script file that you can use outside CrosswordEditor.  In order to run the script, you
-        must have PowerShell 2.0 or later installed on your system.
+        must have PowerShell 5.1 or later installed on your system and you must be able to run a
+        PowerShell script as an administrator.
       </p>
       <p class="wrap">
         The command is enabled only if the application is run on Windows.
@@ -2784,9 +2788,9 @@
 
       <h5 id="section8-6-2-1">8.6.2.1&nbsp; <span class="command">The <span class="component">Windows file association</span> dialog</span></h5>
       <p class="wrap">
-        The command brings up a dialog box that controls the content of the PowerShell script
-        and the way in which it is used.  At the top of the dialog is a drop-down list from
-        which you can select the action that you want to perform: <i>Add</i> creates a new file
+        The command displays a dialog that controls the content of the PowerShell script and the
+        way in which it is used.  At the top of the dialog is a drop-down list from which you
+        can select the action that you want to perform: <i>Add</i> creates a new file
         association or modifies an existing one; <i>Remove</i> removes a file association that
         was created with the <i>Add</i> option.  (If you add a file association, you will
         probably want to remove it before you change the <a class="configProperty"
@@ -2863,7 +2867,7 @@
         happens to the PowerShell script after it is generated.  For all options, a script file
         named <code>crosswordEditorAssociations.ps1</code> is written to a subdirectory of the
         system&apos;s temporary directory, which is typically <code>AppData\Local\Temp</code>
-        within the user&apos;s home directory.  The subdirectory has the prefix
+        within the user&apos;s home directory.  The name of the subdirectory has the prefix
         <code>crosswordEditor_</code> , and the full pathname is displayed when the script file
         is written.  After the file has been written, it may be executed and optionally deleted
         after execution, according to selection from the <span class="component">Script life
@@ -2872,14 +2876,16 @@
         leaving a residue on the file system.
       </p>
       <p class="wrap">
-        When you select <span class="command">OK</span>, the pathnames are validated if the
-        action is <i>Add</i> and the <span class="component">Files must exist</span> check box
-        is selected.  If there is no error, a further dialog box is displayed in which the
-        progress of script operations is reported, along with any error messages from
-        CrosswordEditor or the operating system.  The pathname of the script file appears in the
-        first message.  When the script operations have finished, you can copy the contents of
-        the text area to the system clipboard with the dialog&apos;s <span
-        class="command">Copy</span> command.
+        When you accept the dialog with the <span class="component">OK</span> button, the
+        pathnames are validated if the action is <i>Add</i> and the <span
+        class="component">Files must exist</span> check box is selected.  If there is no error,
+        a text-output dialog is displayed to serve as a console for reports of the progress of
+        script operations along with error messages from CrosswordEditor and PowerShell.  The
+        location of the script file is written to the text-output dialog.  Because the script is
+        run as an administrator, Windows may display a User Account Control dialog to ask for
+        confirmation that you want to run the script.  When the script operations have finished,
+        you can copy the contents of the text-output dialog to the system clipboard with the
+        dialog&apos;s <span class="command">Copy</span> command.
       </p>
 
       <h4 id="section8-6-3">8.6.3&nbsp; <span class="command">Preferences</span></h4>
@@ -3821,9 +3827,9 @@
       <p class="wrap">
         Crosswords have their own jargon.  Most of the terms that are defined in the following
         list are conventional ones, though some are used in a particular way in the
-        CrosswordEditor program and in this manual.  The terms marked with an asterisk, <code
-        class="noBackground">*</code>, are unlikely to be found outside of CrosswordEditor, and
-        they have been employed to give a precise meaning to elements of a crossword.
+        CrosswordEditor program and in this manual.  The terms marked with an asterisk, <span
+        class="asterisk">*</span>, are unlikely to be found outside of CrosswordEditor; they
+        have been employed to give a precise meaning to elements of a crossword.
       </p>
 
       <dl class="terminology">
@@ -3835,7 +3841,7 @@
           for a <a class="definition" href="#def-field">field</a>.
         </dd>
 
-        <dt id="def-answerLengthExpression">answer-length expression&nbsp;<code class="noBackground">*</code></dt>
+        <dt id="def-answerLengthExpression">answer-length expression&nbsp;<span class="asterisk">*</span></dt>
         <dd class="wrap">
           An <i>answer-length expression</i> is an optional component of a <a class="definition"
           href="#def-clue">clue</a> that indicates the length of its <a class="definition"
@@ -3916,7 +3922,7 @@
           </ol>
         </dd>
 
-        <dt id="def-clueDefinition">clue definition&nbsp;<code class="noBackground">*</code></dt>
+        <dt id="def-clueDefinition">clue definition&nbsp;<span class="asterisk">*</span></dt>
         <dd class="wrap">
           In CrosswordEditor, the <i>definition</i> of a <a class="definition"
           href="#def-clue">clue</a> is the text of a self-contained clue (ie, a clue that is not
@@ -3929,7 +3935,7 @@
           opposed to the clue&apos;s wordplay or subsidiary indication.
         </dd>
 
-        <dt id="def-clueId">clue ID&nbsp;<code class="noBackground">*</code></dt>
+        <dt id="def-clueId">clue ID&nbsp;<span class="asterisk">*</span></dt>
         <dd class="wrap">
           A <i>clue ID</i> (identifier) is usually the same as a <a class="definition"
           href="#def-fieldId">field ID</a>.  If multiple clues are associated with a single
@@ -3954,7 +3960,7 @@
           list</a> to which the clue belongs.
         </dd>
 
-        <dt id="def-clueReference">clue reference&nbsp;<code class="noBackground">*</code></dt>
+        <dt id="def-clueReference">clue reference&nbsp;<span class="asterisk">*</span></dt>
         <dd>
           <div class="wrap">
             If a <a class="definition" href="#def-clue">clue</a> has a reference to another clue
@@ -3983,7 +3989,7 @@
           </div>
         </dd>
 
-        <dt id="def-clueReferenceKeyword">clue-reference keyword&nbsp;<code class="noBackground">*</code></dt>
+        <dt id="def-clueReferenceKeyword">clue-reference keyword&nbsp;<span class="asterisk">*</span></dt>
         <dd>
           <div class="wrap">
             In a <a class="definition" href="#def-multiFieldClue">multiple-field clue</a>, it is
@@ -4010,7 +4016,7 @@
           a <a class="definition" href="#def-fieldId">field ID</a>.
         </dd>
 
-        <dt id="def-field">field&nbsp;<code class="noBackground">*</code></dt>
+        <dt id="def-field">field&nbsp;<span class="asterisk">*</span></dt>
         <dd class="wrap">
           A <i>field</i> is a horizontal or vertical group of two or more contiguous <a
           class="definition" href="#def-openCell">open cells</a>, bounded by a side of the <a
@@ -4023,7 +4029,7 @@
           and a down field have a cell in common, they are said to intersect.
         </dd>
 
-        <dt id="def-fieldId">field ID&nbsp;<code class="noBackground">*</code></dt>
+        <dt id="def-fieldId">field ID&nbsp;<span class="asterisk">*</span></dt>
         <dd>
           <div class="wrap">
             A <i>field ID</i> (identifier) is the number of a <a class="definition"
@@ -4068,7 +4074,7 @@
           <i>complete</i> if all the fields of the grid have full entries.
         </dd>
 
-        <dt id="def-multiFieldClue">multiple-field clue&nbsp;<code class="noBackground">*</code></dt>
+        <dt id="def-multiFieldClue">multiple-field clue&nbsp;<span class="asterisk">*</span></dt>
         <dd class="wrap">
           A <i>multiple-field clue</i> is a <a class="definition" href="#def-clue">clue</a> that
           is associated with more than one <a class="definition" href="#def-field">field</a>,
@@ -4081,7 +4087,7 @@
           field.
         </dd>
 
-        <dt id="def-openCell">open cell&nbsp;<code class="noBackground">*</code></dt>
+        <dt id="def-openCell">open cell&nbsp;<span class="asterisk">*</span></dt>
         <dd class="wrap">
           An <i>open cell</i> is a <a class="definition" href="#def-cell">cell</a> that is not
           occupied by a <a class="definition" href="#def-block">block</a>.  All cells of a <a
@@ -4091,7 +4097,7 @@
           sides of the grid or separators), which don&apos;t belong to any field.
         </dd>
 
-        <dt id="def-primaryField">primary field&nbsp;<code class="noBackground">*</code></dt>
+        <dt id="def-primaryField">primary field&nbsp;<span class="asterisk">*</span></dt>
         <dd class="wrap">
           In a <a class="definition" href="#def-clue">clue</a> that is associated with more than
           one <a class="definition" href="#def-field">field</a>, the first field is called the
@@ -4099,7 +4105,7 @@
           href="#def-secondaryField">secondary fields</a>.
         </dd>
 
-        <dt id="def-secondaryField">secondary field&nbsp;<code class="noBackground">*</code></dt>
+        <dt id="def-secondaryField">secondary field&nbsp;<span class="asterisk">*</span></dt>
         <dd class="wrap">
           In a <a class="definition" href="#def-clue">clue</a> that is associated with more than
           one <a class="definition" href="#def-field">field</a>, the first field is called the
@@ -4142,7 +4148,7 @@
       <p class="tocLink">
         [ <a href="#toc">Table of contents</a> ]
       </p>
-  
+
       <p class="wrap">
         Where indicated elsewhere in this document, pathname parameters and properties in
         CrosswordEditor can contain special constructs for system properties, environment
@@ -4182,8 +4188,8 @@
         <dd class="wrap">
           A leading <code>~</code> in a pathname is expanded into the user&apos;s home directory
           using the <code>user.home</code> system property, which is usually equivalent to the
-          environment variable <code>$HOME</code> on Linux/UNIX systems or
-          <code>%USERPROFILE%</code> on Windows systems.
+          environment variable <code>HOME</code> on Unix-like systems or
+          <code>USERPROFILE</code> on Windows systems.
         </dd>
         <dd class="wrap">
           &bull; Example: <code>~/projects</code>
@@ -4758,7 +4764,7 @@
     <div id="lastModified">
       <div>
         <div>
-          Last modified: 2026-03-25
+          Last modified: 2026-04-19
         </div>
         <div class="image">
           <a class="hideHover" href="http://validator.w3.org/check?uri=referer">

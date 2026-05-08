@@ -316,10 +316,10 @@ abstract class Task
 			// Perform task
 			try
 			{
-				fileAssociations.executeScript(CrosswordEditorApp.SHORT_NAME, javaLauncherPathname, jarPathname,
-											   iconPathname, tempDirectoryPrefix, scriptFilename,
-											   removeEntries, scriptLifeCycle,
-											   ((TextOutputTaskDialog)getProgressView()).getWriter());
+				fileAssociations
+						.executeScript(CrosswordEditorApp.SHORT_NAME, javaLauncherPathname, jarPathname, iconPathname,
+									   tempDirectoryPrefix, scriptFilename, removeEntries, scriptLifeCycle,
+									   ((TextOutputTaskDialog)getProgressView()).getWriter(), Task::isCancelled);
 			}
 			catch (uk.blankaspect.common.exception2.TaskCancelledException e)
 			{

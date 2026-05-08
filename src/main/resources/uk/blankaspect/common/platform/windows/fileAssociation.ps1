@@ -95,9 +95,13 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
         ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
 {
     $command = $MyInvocation.MyCommand
-    Start-Process -FilePath powershell -Verb RunAs -WindowStyle Hidden `
-            -ArgumentList "-File `"$($command.Path)`" `"$($command.UnboundArguments)`""
-    Exit
+    $process = Start-Process -FilePath powershell -Verb RunAs -WindowStyle Hidden -PassThru -Wait `
+                -ArgumentList "-File `"$($command.Path)`" `"$($command.UnboundArguments)`""
+    if ($process.ExitCode -ne 0)
+    {
+        exit 1
+    }
+    exit
 }
 
 # Add or remove registry entries

@@ -187,7 +187,7 @@ public class CrosswordEditorApp
 	private	boolean				viewHtmlFile;
 	private	boolean				exiting;
 	private	boolean				executingCommand;
-	private	List<File>			pendingFiles;
+	private	List<File>			receivedFiles;
 
 ////////////////////////////////////////////////////////////////////////
 //  Constructors
@@ -423,11 +423,11 @@ public class CrosswordEditorApp
 				mainWindow.updateAll();
 			}
 
-			// Open pending files
-			if (!pendingFiles.isEmpty())
+			// Open received files
+			if (!receivedFiles.isEmpty())
 			{
-				openFiles(pendingFiles);
-				pendingFiles.clear();
+				openFiles(receivedFiles);
+				receivedFiles.clear();
 				mainWindow.updateAll();
 			}
 
@@ -630,7 +630,7 @@ public class CrosswordEditorApp
 		// Initialise instance variables
 		documentsViews = new ArrayList<>();
 		showViewHtmlFileMessage = true;
-		pendingFiles = new ArrayList<>();
+		receivedFiles = new ArrayList<>();
 
 		// Read build properties and initialise version string
 		try
@@ -671,11 +671,11 @@ public class CrosswordEditorApp
 			{
 				SwingUtilities.invokeLater(() ->
 				{
-					// Add pathnames to list of pending files
+					// Add pathnames to list of received files
 					List<String> pathnames = StringUtils.split(data, '\n');
 					if (!pathnames.isEmpty())
 					{
-						pendingFiles.addAll(pathnames.stream()
+						receivedFiles.addAll(pathnames.stream()
 								.filter(pathname -> !pathname.isEmpty())
 								.map(pathname -> new File(pathname))
 								.toList());

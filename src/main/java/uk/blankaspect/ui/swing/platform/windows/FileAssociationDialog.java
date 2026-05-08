@@ -123,7 +123,7 @@ public class FileAssociationDialog
 	private static final	String	FILES_MUST_EXIST_STR	= "Files must exist";
 	private static final	String	SCRIPT_LIFE_CYCLE_STR	= "Script life cycle";
 	private static final	String	DEFAULT_STR				= "Default";
-	private static final	String	JAVA_LAUNCHER_FILE_STR	= "Java launcher file";
+	private static final	String	JAVA_LAUNCHER_FILE_STR	= "Java-launcher file";
 	private static final	String	JAR_FILE_STR			= "JAR file";
 	private static final	String	ICON_FILE_STR			= "Icon file";
 	private static final	String	SELECT_STR				= "Select";

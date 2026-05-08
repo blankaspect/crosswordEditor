@@ -80,6 +80,12 @@ dl.terminology dd {
   padding: 0 0.5em 0.3em 0;
 }
 
+span.asterisk {
+  font-family: monospace;
+  font-size: 115%;
+  padding: 0 0.2em;
+}
+
 span.clue {
   border: 1px solid;
   padding: 0.1em 0.4em;
@@ -90,8 +96,12 @@ table.basic td.definitionTerm {
 }
 
 @media (prefers-color-scheme: light) {
+  :root {
+    --definition-color: #804018;
+  }
+
   a.definition {
-    color: #804018;
+    color: var(--definition-color);
   }
 
   dd.highlighted {
@@ -103,7 +113,11 @@ table.basic td.definitionTerm {
     border-color: #E8E6CC;
   }
   dl.terminology dt {
-    color: #804018;
+    color: var(--definition-color);
+  }
+
+  span.asterisk {
+    color: #003070;
   }
 
   span.clue {
@@ -117,8 +131,12 @@ table.basic td.definitionTerm {
 }
 
 @media (prefers-color-scheme: dark) {
+  :root {
+    --definition-color: #E0A880;
+  }
+
   a.definition {
-    color: #D890A0;
+    color: var(--definition-color);
   }
 
   dd.highlighted {
@@ -130,7 +148,11 @@ table.basic td.definitionTerm {
     border-color: #404850;
   }
   dl.terminology dt {
-    color: #D890A0;
+    color: var(--definition-color);
+  }
+
+  span.asterisk {
+    color: #A0F8A0;
   }
 
   span.clue {

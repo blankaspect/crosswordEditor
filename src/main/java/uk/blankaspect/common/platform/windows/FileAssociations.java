@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import uk.blankaspect.common.exception2.BaseException;
+import uk.blankaspect.common.exception2.ExceptionUtils;
 import uk.blankaspect.common.exception2.FileException;
 import uk.blankaspect.common.exception2.TaskCancelledException;
 import uk.blankaspect.common.exception2.UnexpectedRuntimeException;
@@ -40,11 +41,12 @@ import uk.blankaspect.common.filesystem.FileSystemUtils;
 
 import uk.blankaspect.common.misc.IProcessOutputWriter;
 import uk.blankaspect.common.misc.SystemUtils;
-import uk.blankaspect.common.misc.Task;
 
 import uk.blankaspect.common.resource.ResourceUtils;
 
 import uk.blankaspect.common.string.StringUtils;
+
+import uk.blankaspect.common.task.ICancellable;
 
 //----------------------------------------------------------------------
 
@@ -85,7 +87,7 @@ public class FileAssociations
 	private static final	String	WRITING_STR		= "Writing ";
 	private static final	String	EXECUTING_STR	= "Executing ";
 	private static final	String	DELETING_STR	= "Deleting ";
-	private static final	String	SUCCESS_STR		= "The operation was completed successfully.\n";
+	private static final	String	SUCCESS_STR		= "The operation completed successfully.\n";
 	private static final	String	ERROR_STR		= "! ERROR !\n";
 
 	/** Error messages. */
@@ -170,7 +172,8 @@ public class FileAssociations
 
 	private static void executeProcess(
 		List<String>			arguments,
-		IProcessOutputWriter	outWriter)
+		IProcessOutputWriter	outWriter,
+		ICancellable			taskStatus)
 		throws BaseException
 	{
 		// Start process
@@ -216,7 +219,7 @@ public class FileAssociations
 			while (true)
 			{
 				// Test whether task has been cancelled
-				if (Task.isCancelled())
+				if (taskStatus.isCancelled())
 				{
 					process.destroy();
 					throw new TaskCancelledException();
@@ -364,7 +367,8 @@ public class FileAssociations
 		String					scriptFilename,
 		boolean					removeEntries,
 		ScriptLifeCycle			scriptLifeCycle,
-		IProcessOutputWriter	outWriter)
+		IProcessOutputWriter	outWriter,
+		ICancellable			taskStatus)
 		throws BaseException
 	{
 		Path tempDirectory = null;
@@ -426,7 +430,7 @@ public class FileAssociations
 				arguments.add(scriptFile.toString());
 				if (removeEntries)
 					arguments.add(SCRIPT_ARG_REMOVE);
-				executeProcess(arguments, outWriter);
+				executeProcess(arguments, outWriter, taskStatus);
 			}
 
 			// Delete script file and temporary directory
@@ -477,16 +481,21 @@ public class FileAssociations
 				}
 			}
 
-			// Rethrow exception
-			if (outWriter == null)
-				throw e;
-
 			// Write error message to output
-			if (!(e instanceof TaskCancelledException))
+			if (!(e instanceof TaskCancelledException) && (outWriter != null))
 			{
 				outWriter.write(ERROR_STR);
-				outWriter.write(e.toString());
+				String str = ExceptionUtils.exceptionToString(e);
+				if (!StringUtils.isNullOrBlank(str))
+				{
+					outWriter.write(str);
+					if (!str.endsWith("\n"))
+						outWriter.write("\n");
+				}
 			}
+
+			// Rethrow exception
+			throw e;
 		}
 		finally
 		{
