@@ -960,9 +960,7 @@ public abstract class Property
 
 		public void setValues(List<T> values)
 		{
-			boolean listChanged = false;
-			if (this.values.size() != values.size())
-				listChanged = true;
+			boolean listChanged = (this.values.size() != values.size());
 
 			for (int i = 0; i < values.size(); i++)
 			{
